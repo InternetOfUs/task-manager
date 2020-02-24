@@ -83,7 +83,7 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 
 				} else {
 
-					task.put("id", task.remove("_id"));
+					task.put("taskId", task.remove("_id"));
 					searchHandler.handle(Future.succeededFuture(task));
 				}
 			}
@@ -97,6 +97,8 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 	@Override
 	public void storeTask(JsonObject task, Handler<AsyncResult<JsonObject>> storeHandler) {
 
+		final long now = System.currentTimeMillis();
+		task.put("creationTs", now);
 		this.pool.save(TASKS_COLLECTION, task, store -> {
 
 			if (store.failed()) {
@@ -106,7 +108,7 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 			} else {
 
 				final String id = store.result();
-				task.put("id", id);
+				task.put("taskId", id);
 				task.remove("_id");
 				storeHandler.handle(Future.succeededFuture(task));
 			}
@@ -121,7 +123,7 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 	@Override
 	public void updateTask(JsonObject task, Handler<AsyncResult<JsonObject>> updateHandler) {
 
-		final Object id = task.remove("id");
+		final Object id = task.remove("taskId");
 		final JsonObject query = new JsonObject().put("_id", id);
 		final JsonObject updateTask = new JsonObject().put("$set", task);
 		final UpdateOptions options = new UpdateOptions().setMulti(false);
@@ -137,7 +139,7 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 
 			} else {
 
-				task.put("id", id);
+				task.put("taskId", id);
 				task.remove("_id");
 				updateHandler.handle(Future.succeededFuture(task));
 			}

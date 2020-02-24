@@ -24,67 +24,53 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.wenet_task_manager;
+package eu.internetofus.wenet_task_manager.services;
 
-import eu.internetofus.wenet_task_manager.api.APIVerticle;
-import eu.internetofus.wenet_task_manager.persistence.PersistenceVerticle;
-import eu.internetofus.wenet_task_manager.services.ServiceVerticle;
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Promise;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.WebClient;
 
 /**
- * The Main verticle that start the API and the persistence.
+ * The implementation of the {@link WeNetProfileManagerService}.
+ *
+ *
+ * @see WeNetProfileManagerService
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public class MainVerticle extends AbstractVerticle {
+public class WeNetProfileManagerServiceImpl extends Service implements WeNetProfileManagerService {
+
+	/**
+	 * Create a new service to interact with the WeNet profile manager.
+	 *
+	 * @param client to interact with the other modules.
+	 * @param conf   configuration.
+	 */
+	public WeNetProfileManagerServiceImpl(WebClient client, JsonObject conf) {
+
+		super(client, conf);
+
+	}
 
 	/**
 	 * {@inheritDoc}
-	 *
-	 * @see PersistenceVerticle
-	 * @see ServiceVerticle
-	 * @see APIVerticle
 	 */
 	@Override
-	public void start(Promise<Void> startPromise) throws Exception {
+	public void createProfile(JsonObject profile, Handler<AsyncResult<JsonObject>> createHandler) {
 
-		final DeploymentOptions options = new DeploymentOptions(this.config()).setConfig(this.config());
-		this.vertx.deployVerticle(PersistenceVerticle.class, options, deployPersistence -> {
-
-			if (deployPersistence.failed()) {
-
-				startPromise.fail(deployPersistence.cause());
-
-			} else {
-
-				this.vertx.deployVerticle(ServiceVerticle.class, options, deployService -> {
-
-					if (deployService.failed()) {
-
-						startPromise.fail(deployService.cause());
-
-					} else {
-
-						this.vertx.deployVerticle(APIVerticle.class, options, deployAPI -> {
-
-							if (deployAPI.failed()) {
-
-								startPromise.fail(deployAPI.cause());
-
-							} else {
-
-								startPromise.complete();
-							}
-
-						});
-
-					}
-				});
-			}
-
-		});
+		this.post("/profiles", profile, createHandler);
 
 	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void retrieveProfile(String id, Handler<AsyncResult<JsonObject>> retrieveHandler) {
+
+		this.get("/profiles/" + id, retrieveHandler);
+
+	}
+
 }

@@ -24,53 +24,9 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.wenet_task_manager;
-
 /**
- * Generic methods to validate the common fields of the models.
- *
- * @see ValidationErrorException
+ * The components that manage the interaction with other WeNet components.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public interface Validations {
-
-	/**
-	 * Verify a string value.
-	 *
-	 * @param codePrefix the prefix of the code to use for the error message.
-	 * @param fieldName  name of the checking field.
-	 * @param maxSize    maximum size of the string.
-	 * @param value      to verify.
-	 *
-	 * @return the verified value.
-	 *
-	 * @throws ValidationErrorException If the value is not a valid string.
-	 */
-	static String validateNullableStringField(String codePrefix, String fieldName, int maxSize, String value)
-			throws ValidationErrorException {
-
-		if (value != null) {
-
-			final String trimmedValue = value.trim();
-			if (trimmedValue.length() == 0) {
-
-				return null;
-
-			} else if (trimmedValue.length() > maxSize) {
-
-				throw new ValidationErrorException(codePrefix + "." + fieldName,
-						"The '" + trimmedValue + "' is too large. The maximum length is '" + maxSize + "'.");
-
-			} else {
-
-				return trimmedValue;
-			}
-
-		} else {
-
-			return null;
-		}
-	}
-
-}
+package eu.internetofus.wenet_task_manager.services;

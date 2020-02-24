@@ -49,7 +49,7 @@ import org.tinylog.Level;
 import org.tinylog.provider.InternalLogger;
 
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
-import eu.internetofus.wenet_task_manager.persistence.TasksRepositoryImpl;
+import eu.internetofus.wenet_task_manager.services.WeNetProfileManagerService;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.Json;
@@ -239,8 +239,8 @@ public class WeNetTaskManagerIntegrationExtension implements ParameterResolver, 
 			throws ParameterResolutionException {
 
 		final Class<?> type = parameterContext.getParameter().getType();
-		return type == WebClient.class || type == WeNetTaskManagerContext.class || type == MongoClient.class
-				|| type == TasksRepository.class
+		return type == WebClient.class || type == TasksRepository.class || type == MongoClient.class
+				|| type == WeNetProfileManagerService.class || type == WeNetProfileManagerService.class
 				|| this.vertxExtension.supportsParameter(parameterContext, extensionContext);
 
 	}
@@ -269,7 +269,7 @@ public class WeNetTaskManagerIntegrationExtension implements ParameterResolver, 
 						return WebClient.create(context.vertx, options);
 					}, WebClient.class);
 
-		} else if (type == MongoClient.class || type == TasksRepository.class) {
+		} else if (type == MongoClient.class) {
 
 			final MongoClient pool = extensionContext.getStore(ExtensionContext.Namespace.create(this.getClass().getName()))
 					.getOrComputeIfAbsent(MongoClient.class.getName(), key -> {
@@ -278,19 +278,26 @@ public class WeNetTaskManagerIntegrationExtension implements ParameterResolver, 
 						final JsonObject persitenceConf = context.configuration.getJsonObject("persistence", new JsonObject());
 						return MongoClient.create(context.vertx, persitenceConf);
 					}, MongoClient.class);
+			return pool;
 
-			if (type == TasksRepository.class) {
+		} else if (type == TasksRepository.class) {
 
-				return extensionContext.getStore(ExtensionContext.Namespace.create(this.getClass().getName()))
-						.getOrComputeIfAbsent(TasksRepository.class.getName(), key -> {
+			return extensionContext.getStore(ExtensionContext.Namespace.create(this.getClass().getName()))
+					.getOrComputeIfAbsent(TasksRepository.class.getName(), key -> {
 
-							return new TasksRepositoryImpl(pool);
-						}, TasksRepository.class);
+						final WeNetTaskManagerContext context = getContext();
+						return TasksRepository.createProxy(context.vertx);
+					}, TasksRepository.class);
 
-			} else {
+		} else if (type == WeNetProfileManagerService.class) {
 
-				return pool;
-			}
+			return extensionContext.getStore(ExtensionContext.Namespace.create(this.getClass().getName()))
+					.getOrComputeIfAbsent(WeNetProfileManagerService.class.getName(), key -> {
+
+						final WeNetTaskManagerContext context = getContext();
+						return WeNetProfileManagerService.createProxy(context.vertx);
+
+					}, WeNetProfileManagerService.class);
 
 		} else if (type == WeNetTaskManagerContext.class) {
 

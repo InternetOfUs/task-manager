@@ -116,7 +116,7 @@ public abstract class TasksRepositoryTestCase<T extends TasksRepository> {
 
 		this.repository.storeTask(new JsonObject(), testContext.succeeding(storedTask -> {
 
-			this.repository.searchTaskObject(storedTask.getString("id"),
+			this.repository.searchTaskObject(storedTask.getString("taskId"),
 					testContext.succeeding(foundTask -> testContext.verify(() -> {
 						assertThat(foundTask).isEqualTo(storedTask);
 						testContext.completeNow();
@@ -179,7 +179,7 @@ public abstract class TasksRepositoryTestCase<T extends TasksRepository> {
 	 *
 	 * @param testContext context that executes the test.
 	 *
-	 * @see TasksRepository#searchTask(String, io.vertx.core.Handler)
+	 * @see TasksRepository#storeTask(JsonObject, io.vertx.core.Handler)
 	 */
 	@Test
 	public void shouldStoreTaskObject(VertxTestContext testContext) {
@@ -188,10 +188,9 @@ public abstract class TasksRepositoryTestCase<T extends TasksRepository> {
 		this.repository.storeTask(new JsonObject(), testContext.succeeding(storedTask -> testContext.verify(() -> {
 
 			assertThat(storedTask).isNotNull();
-			final String id = storedTask.getString("id");
+			final String id = storedTask.getString("taskId");
 			assertThat(id).isNotEmpty();
-			assertThat(storedTask.getLong("_creationTs", 0l)).isNotEqualTo(0).isGreaterThanOrEqualTo(now);
-			assertThat(storedTask.getLong("_lastUpdateTs", 1l)).isNotEqualTo(1).isGreaterThanOrEqualTo(now);
+			assertThat(storedTask.getLong("creationTs", 0l)).isNotEqualTo(0).isGreaterThanOrEqualTo(now);
 			testContext.completeNow();
 		})));
 
@@ -225,7 +224,7 @@ public abstract class TasksRepositoryTestCase<T extends TasksRepository> {
 	@Test
 	public void shouldNotUpdateUndefinedTaskObject(VertxTestContext testContext) {
 
-		final JsonObject task = new JsonObject().put("id", "undefined task identifier");
+		final JsonObject task = new JsonObject().put("taskId", "undefined task identifier");
 		this.repository.updateTask(task, testContext.failing(failed -> {
 			testContext.completeNow();
 		}));
@@ -274,7 +273,6 @@ public abstract class TasksRepositoryTestCase<T extends TasksRepository> {
 
 		this.repository.storeTask(task, testContext.succeeding(stored -> testContext.verify(() -> {
 
-			final long now = System.currentTimeMillis();
 			final Task update = new TaskTest().createModelExample(23);
 			update.taskId = stored.taskId;
 			this.repository.updateTask(update, testContext.succeeding(updatedTask -> testContext.verify(() -> {
@@ -302,19 +300,16 @@ public abstract class TasksRepositoryTestCase<T extends TasksRepository> {
 	@Test
 	public void shouldUpdateTaskObject(VertxTestContext testContext) {
 
-		this.repository.storeTask(new JsonObject().put("nationality", "Italian"),
+		this.repository.storeTask(new JsonObject().put("state", "PendingAssignment"),
 				testContext.succeeding(stored -> testContext.verify(() -> {
 
-					final String id = stored.getString("id");
-					final JsonObject update = new JsonObject().put("id", id).put("occupation", "Unemployed");
+					final String id = stored.getString("taskId");
+					final JsonObject update = new JsonObject().put("taskId", id).put("state", "Assigned");
 					this.repository.updateTask(update, testContext.succeeding(updatedTask -> testContext.verify(() -> {
 
-						assertThat(updatedTask).isNotNull();
-						update.put("_lastUpdateTs", updatedTask.getLong("_lastUpdateTs"));
 						assertThat(updatedTask).isEqualTo(update);
 						this.repository.searchTaskObject(id, testContext.succeeding(foundTask -> testContext.verify(() -> {
-							stored.put("_lastUpdateTs", updatedTask.getLong("_lastUpdateTs"));
-							stored.put("occupation", "Unemployed");
+							stored.put("state", "Assigned");
 							assertThat(foundTask).isEqualTo(stored);
 							testContext.completeNow();
 						})));
@@ -352,7 +347,7 @@ public abstract class TasksRepositoryTestCase<T extends TasksRepository> {
 
 		this.repository.storeTask(new JsonObject(), testContext.succeeding(stored -> {
 
-			final String id = stored.getString("id");
+			final String id = stored.getString("taskId");
 			this.repository.deleteTask(id, testContext.succeeding(success -> {
 
 				this.repository.searchTaskObject(id, testContext.failing(search -> {

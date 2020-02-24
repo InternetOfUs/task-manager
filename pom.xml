@@ -56,7 +56,6 @@
 		<main.verticle>eu.internetofus.wenet_task_manager.MainVerticle</main.verticle>
 		<io.swagger-version>2.1.1</io.swagger-version>
 		<commons-validator-version>1.6</commons-validator-version>
-		<com.googlecode.libphonenumber-version>8.11.3</com.googlecode.libphonenumber-version>
 		<jakarta.ws.rs-version>2.1.6</jakarta.ws.rs-version>
 		<org.apache.commons-lang3-version>3.9</org.apache.commons-lang3-version>
 		<org.tinylog-version>2.0.1</org.tinylog-version>
@@ -113,6 +112,10 @@
 			<artifactId>vertx-web</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>io.vertx</groupId>
+			<artifactId>vertx-web-client</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>jakarta.ws.rs</groupId>
 			<artifactId>jakarta.ws.rs-api</artifactId>
 			<version>${jakarta.ws.rs-version}</version>
@@ -126,11 +129,6 @@
 			<groupId>commons-validator</groupId>
 			<artifactId>commons-validator</artifactId>
 			<version>${commons-validator-version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.googlecode.libphonenumber</groupId>
-			<artifactId>libphonenumber</artifactId>
-			<version>${com.googlecode.libphonenumber-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.swagger.core.v3</groupId>

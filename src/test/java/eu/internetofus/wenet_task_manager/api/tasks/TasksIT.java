@@ -37,10 +37,10 @@ import javax.ws.rs.core.Response.Status;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import eu.internetofus.wenet_task_manager.ValidationsTest;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import eu.internetofus.wenet_task_manager.api.ErrorMessage;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
+import eu.internetofus.wenet_task_manager.services.WeNetProfileManagerService;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
@@ -158,17 +158,19 @@ public class TasksIT {
 	/**
 	 * Verify that store a task.
 	 *
-	 * @param repository  that manage the tasks.
-	 * @param client      to connect to the server.
-	 * @param testContext context to test.
+	 * @param repository     that manage the tasks.
+	 * @param profileManager service to create user profiles.
+	 * @param client         to connect to the server.
+	 * @param testContext    context to test.
 	 *
 	 * @see Tasks#createTask(io.vertx.core.json.JsonObject,
 	 *      io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldStoreTask(TasksRepository repository, WebClient client, VertxTestContext testContext) {
+	public void shouldStoreTask(TasksRepository repository, WeNetProfileManagerService profileManager, WebClient client,
+			VertxTestContext testContext) {
 
-		testContext.assertComplete(new TaskTest().createModelExample(1, repository)).setHandler(created -> {
+		testContext.assertComplete(new TaskTest().createModelExample(1, profileManager)).setHandler(created -> {
 
 			final Task task = created.result();
 			testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
@@ -177,6 +179,8 @@ public class TasksIT {
 				final Task stored = assertThatBodyIs(Task.class, res);
 				assertThat(stored).isNotNull().isNotEqualTo(task);
 				task.taskId = stored.taskId;
+				task.creationTs = stored.creationTs;
+				task.norms.get(0).id = stored.norms.get(0).id;
 				assertThat(stored).isEqualTo(task);
 				repository.searchTask(stored.taskId, testContext.succeeding(foundTask -> testContext.verify(() -> {
 
@@ -210,6 +214,7 @@ public class TasksIT {
 			final Task stored = assertThatBodyIs(Task.class, res);
 			assertThat(stored).isNotNull().isNotEqualTo(task);
 			task.taskId = stored.taskId;
+			task.creationTs = stored.creationTs;
 			assertThat(stored).isEqualTo(task);
 			repository.searchTask(stored.taskId, testContext.succeeding(foundTask -> testContext.verify(() -> {
 
@@ -243,6 +248,8 @@ public class TasksIT {
 			assertThat(stored).isNotNull().isNotEqualTo(task);
 			task.taskId = stored.taskId;
 			assertThat(stored).isNotNull().isNotEqualTo(task);
+			task.creationTs = stored.creationTs;
+			task.norms.get(0).id = stored.norms.get(0).id;
 			assertThat(stored).isEqualTo(task);
 			repository.searchTask(stored.taskId, testContext.succeeding(foundTask -> testContext.verify(() -> {
 
@@ -267,7 +274,7 @@ public class TasksIT {
 	@Test
 	public void shouldNotUpdateTaskThatIsNotDefined(WebClient client, VertxTestContext testContext) {
 
-		final Task task = new TaskTest().createBasicExample(1);
+		final Task task = new TaskTest().createModelExample(1);
 		testRequest(client, HttpMethod.PUT, Tasks.PATH + "/undefined-task-identifier").expect(res -> {
 
 			assertThat(res.statusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
@@ -293,7 +300,7 @@ public class TasksIT {
 	public void shouldNotUpdateTaskWithANotTaskObject(TasksRepository repository, WebClient client,
 			VertxTestContext testContext) {
 
-		repository.storeTask(new TaskTest().createBasicExample(1), testContext.succeeding(task -> {
+		repository.storeTask(new TaskTest().createModelExample(1), testContext.succeeding(task -> {
 
 			testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + task.taskId).expect(res -> {
 
@@ -321,7 +328,7 @@ public class TasksIT {
 	public void shouldNotUpdateTaskBecauseNotChangesHasDone(TasksRepository repository, WebClient client,
 			VertxTestContext testContext) {
 
-		repository.storeTask(new TaskTest().createBasicExample(1), testContext.succeeding(task -> {
+		repository.storeTask(new TaskTest().createModelExample(1), testContext.succeeding(task -> {
 
 			testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + task.taskId).expect(res -> {
 
@@ -350,49 +357,17 @@ public class TasksIT {
 	public void shouldNotUpdateTaskBecauseBadSource(TasksRepository repository, WebClient client,
 			VertxTestContext testContext) {
 
-		repository.storeTask(new TaskTest().createBasicExample(1), testContext.succeeding(task -> {
+		repository.storeTask(new TaskTest().createModelExample(1), testContext.succeeding(task -> {
 
 			testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + task.taskId).expect(res -> {
 
 				assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 				final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
-				assertThat(error.code).isNotEmpty().endsWith(".nationality");
+				assertThat(error.code).isNotEmpty().endsWith(".requesterUserId");
 				assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 				testContext.completeNow();
 
-			}).sendJson(new JsonObject().put("nationality", ValidationsTest.STRING_256), testContext);
-		}));
-
-	}
-
-	/**
-	 * Verify that can update a basic task with another.
-	 *
-	 * @param repository  to access the tasks.
-	 * @param client      to connect to the server.
-	 * @param testContext context to test.
-	 *
-	 * @see Tasks#retrieveTask(String, io.vertx.ext.web.api.OperationRequest,
-	 *      io.vertx.core.Handler)
-	 */
-	@Test
-	public void shouldUpdateBasicTask(TasksRepository repository, WebClient client, VertxTestContext testContext) {
-
-		repository.storeTask(new TaskTest().createBasicExample(1), testContext.succeeding(storedTask -> {
-
-			final Task newTask = new TaskTest().createBasicExample(2);
-			newTask.taskId = UUID.randomUUID().toString();
-			testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + storedTask.taskId).expect(res -> testContext.verify(() -> {
-
-				assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-				final Task updated = assertThatBodyIs(Task.class, res);
-				assertThat(updated).isNotEqualTo(storedTask).isNotEqualTo(newTask);
-				newTask.taskId = storedTask.taskId;
-				assertThat(updated).isEqualTo(newTask);
-				testContext.completeNow();
-
-			})).sendJson(newTask.toJsonObject(), testContext);
-
+			}).sendJson(new JsonObject().put("requesterUserId", UUID.randomUUID().toString()), testContext);
 		}));
 
 	}
@@ -400,20 +375,22 @@ public class TasksIT {
 	/**
 	 * Verify that can update a complex task with another.
 	 *
-	 * @param repository  to access the tasks.
-	 * @param client      to connect to the server.
-	 * @param testContext context to test.
+	 * @param repository     that manage the tasks.
+	 * @param profileManager service to create user profiles.
+	 * @param client         to connect to the server.
+	 * @param testContext    context to test.
 	 *
 	 * @see Tasks#retrieveTask(String, io.vertx.ext.web.api.OperationRequest,
 	 *      io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldUpdateTask(TasksRepository repository, WebClient client, VertxTestContext testContext) {
+	public void shouldUpdateTask(TasksRepository repository, WeNetProfileManagerService profileManager, WebClient client,
+			VertxTestContext testContext) {
 
-		testContext.assertComplete(new TaskTest().createModelExample(23, repository)).setHandler(createdTask -> {
+		testContext.assertComplete(new TaskTest().createModelExample(23, profileManager)).setHandler(createdTask -> {
 
 			final Task created = createdTask.result();
-			testContext.assertComplete(created.validate("codePrefix", repository)).setHandler(validation -> {
+			testContext.assertComplete(created.validate("codePrefix", profileManager)).setHandler(validation -> {
 
 				repository.storeTask(created, testContext.succeeding(storedTask -> {
 
@@ -426,6 +403,9 @@ public class TasksIT {
 								final Task updated = assertThatBodyIs(Task.class, res);
 								assertThat(updated).isNotEqualTo(storedTask).isNotEqualTo(newTask);
 								newTask.taskId = storedTask.taskId;
+								newTask.creationTs = storedTask.creationTs;
+								newTask.requesterUserId = storedTask.requesterUserId;
+								newTask.norms.get(0).id = updated.norms.get(0).id;
 								assertThat(updated).isEqualTo(newTask);
 								testContext.completeNow();
 

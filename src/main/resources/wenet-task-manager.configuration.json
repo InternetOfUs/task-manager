@@ -14,5 +14,16 @@
 		"port": 27017,
 		"username": "wenetTaskManager",
 		"password": "password"
+	},
+	"service": {
+		"webClient": {
+			"defaultHost": "wenet.iiia.csic.es",
+			"defaultPort":80
+		},
+		"profileManager": {
+			"host": "ardid.iiia.csic.es",
+			"post": 80,
+			"apiPath": "/dev-wenet-profile-manager"
+		}
 	}
 }

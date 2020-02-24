@@ -39,8 +39,10 @@ import eu.internetofus.wenet_task_manager.ModelTestCase;
 import eu.internetofus.wenet_task_manager.ValidationErrorException;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
+import eu.internetofus.wenet_task_manager.services.WeNetProfileManagerService;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
+import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
 
 /**
@@ -54,32 +56,19 @@ import io.vertx.junit5.VertxTestContext;
 public class TaskTest extends ModelTestCase<Task> {
 
 	/**
-	 * Create an basic model that has the specified index.
-	 *
-	 * @param index to use in the example.
-	 *
-	 * @return the basic example.
-	 */
-	public Task createBasicExample(int index) {
-
-		final Task model = new Task();
-		model.taskId = null;
-		model.creationTs = System.currentTimeMillis() - 1000000;
-		model.startTs = model.creationTs + index * 100;
-		model.endTs = model.startTs + index * 30000;
-		model.deadlineTs = model.startTs + index * 15000;
-		model.state = TaskState.Assigned;
-
-		return model;
-	}
-
-	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public Task createModelExample(int index) {
 
-		final Task model = this.createBasicExample(index);
+		final Task model = new Task();
+		model.taskId = null;
+		model.creationTs = System.currentTimeMillis();
+		model.deadlineTs = model.creationTs + index * 30000;
+		model.startTs = model.creationTs + index * 31000;
+		model.endTs = model.creationTs + index * 300000;
+
+		model.state = TaskState.values()[index % (TaskState.values().length - 1)];
 		model.norms = new ArrayList<>();
 		model.norms.add(new NormTest().createModelExample(index));
 
@@ -90,18 +79,33 @@ public class TaskTest extends ModelTestCase<Task> {
 	/**
 	 * Create an example model that has the specified index.
 	 *
-	 * @param index      to use in the example.
-	 * @param repository to use to create the model.
+	 * @param index          to use in the example.
+	 * @param profileService service to manage user profiles.
 	 *
 	 * @return the example.
 	 */
-	public Future<Task> createModelExample(int index, TasksRepository repository) {
+	public Future<Task> createModelExample(int index, WeNetProfileManagerService profileService) {
 
 		final Promise<Task> promise = Promise.promise();
 		final Future<Task> future = promise.future();
-		final Task model = this.createModelExample(index);
 
-		promise.complete(model);
+		profileService.createProfile(new JsonObject(), create -> {
+
+			if (create.failed()) {
+
+				promise.fail(create.cause());
+
+			} else {
+
+				final JsonObject profile = create.result();
+				final Task model = this.createModelExample(index);
+				model.requesterUserId = profile.getString("id");
+				promise.complete(model);
+
+			}
+
+		});
+
 		return future;
 
 	}
@@ -109,17 +113,16 @@ public class TaskTest extends ModelTestCase<Task> {
 	/**
 	 * Check that an empty model is valid.
 	 *
-	 * @param repository  to create tasks to use.
-	 * @param testContext context to test.
+	 * @param profileService to manage profiles.
+	 * @param testContext    context to test.
 	 *
-	 * @see Task#validate(String,
-	 *      eu.internetofus.wenet_task_manager.persistence.TasksRepository)
+	 * @see Task#validate(String, WeNetProfileManagerService)
 	 */
 	@Test
-	public void shouldEmptyModelBeValid(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldEmptyModelBeValid(WeNetProfileManagerService profileService, VertxTestContext testContext) {
 
 		final Task model = new Task();
-		testContext.assertComplete(model.validate("codePrefix", repository))
+		testContext.assertComplete(model.validate("codePrefix", profileService))
 				.setHandler(result -> testContext.completeNow());
 
 	}
@@ -127,49 +130,42 @@ public class TaskTest extends ModelTestCase<Task> {
 	/**
 	 * Check that the {@link #createModelExample(int)} is valid.
 	 *
-	 * @param index       to verify
-	 * @param repository  to create tasks to use.
-	 * @param testContext context to test.
+	 * @param index          to verify
+	 * @param profileService to manage profiles.
+	 * @param testContext    context to test.
 	 *
-	 * @see Task#validate(String,
-	 *      eu.internetofus.wenet_task_manager.persistence.TasksRepository)
+	 * @see Task#validate(String, WeNetProfileManagerService)
 	 */
 	@ParameterizedTest(name = "The model example {0} has to be valid")
 	@ValueSource(ints = { 0, 1, 2, 3, 4, 5 })
-	public void shouldExampleBeValid(int index, TasksRepository repository, VertxTestContext testContext) {
+	public void shouldExampleBeValid(int index, WeNetProfileManagerService profileService, VertxTestContext testContext) {
 
 		final Task model = this.createModelExample(index);
-		testContext.assertComplete(model.validate("codePrefix", repository))
+		testContext.assertComplete(model.validate("codePrefix", profileService))
 				.setHandler(result -> testContext.completeNow());
 
 	}
 
 	/**
-	 * Check that the {@link #createModelExample(int,TasksRepository)} is valid.
+	 * Check that the {@link #createModelExample(int,WeNetProfileManagerService)} is
+	 * valid.
 	 *
-	 * @param index       to verify
-	 * @param repository  to create tasks to use.
-	 * @param testContext context to test.
+	 * @param index          to verify
+	 * @param profileService to manage profiles.
+	 * @param testContext    context to test.
 	 *
-	 * @see Task#validate(String,
-	 *      eu.internetofus.wenet_task_manager.persistence.TasksRepository)
+	 * @see Task#validate(String, WeNetProfileManagerService)
 	 */
 	@ParameterizedTest(name = "The model example {0} has to be valid")
 	@ValueSource(ints = { 0, 1, 2, 3, 4, 5 })
-	public void shouldExampleFromRepositoryBeValid(int index, TasksRepository repository, VertxTestContext testContext) {
+	public void shouldExampleFromRepositoryBeValid(int index, WeNetProfileManagerService profileService,
+			VertxTestContext testContext) {
 
-		this.createModelExample(index, repository).onComplete(created -> {
+		testContext.assertComplete(this.createModelExample(index, profileService)).setHandler(created -> {
 
-			if (created.failed()) {
-
-				testContext.failNow(created.cause());
-
-			} else {
-
-				final Task model = created.result();
-				testContext.assertComplete(model.validate("codePrefix", repository))
-						.setHandler(result -> testContext.completeNow());
-			}
+			final Task model = created.result();
+			testContext.assertComplete(model.validate("codePrefix", profileService))
+					.setHandler(result -> testContext.completeNow());
 
 		});
 
@@ -178,18 +174,18 @@ public class TaskTest extends ModelTestCase<Task> {
 	/**
 	 * Check that a model with all the values is valid.
 	 *
-	 * @param repository  to use.
-	 * @param testContext context to test.
+	 * @param profileService to manage profiles.
+	 * @param testContext    context to test.
 	 *
-	 * @see Task#validate(String, TasksRepository)
+	 * @see Task#validate(String, WeNetProfileManagerService)
 	 */
 	@Test
-	public void shouldFullModelBeValid(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldFullModelBeValid(WeNetProfileManagerService profileService, VertxTestContext testContext) {
 
 		final Task model = new Task();
 		model.taskId = " ";
 
-		testContext.assertComplete(model.validate("codePrefix", repository)).setHandler(result -> {
+		testContext.assertComplete(model.validate("codePrefix", profileService)).setHandler(result -> {
 
 			final Task expected = new Task();
 			expected.taskId = model.taskId;
@@ -202,60 +198,62 @@ public class TaskTest extends ModelTestCase<Task> {
 	/**
 	 * Check that the validation of a model fails.
 	 *
-	 * @param model       to validate.
-	 * @param suffix      to the error code.
-	 * @param repository  to use.
-	 * @param testContext context to test.
+	 * @param model          to validate.
+	 * @param suffix         to the error code.
+	 * @param profileService to manage profiles.
+	 * @param testContext    context to test.
 	 */
-	public void assertFailValidate(Task model, String suffix, TasksRepository repository, VertxTestContext testContext) {
+	public void assertFailValidate(Task model, String suffix, WeNetProfileManagerService profileService,
+			VertxTestContext testContext) {
 
-		testContext.assertFailure(model.validate("codePrefix", repository)).setHandler(result -> testContext.verify(() -> {
+		testContext.assertFailure(model.validate("codePrefix", profileService))
+				.setHandler(result -> testContext.verify(() -> {
 
-			final Throwable cause = result.cause();
-			assertThat(cause).isInstanceOf(ValidationErrorException.class);
-			String expectedCode = "codePrefix";
-			if (suffix != null && suffix.length() > 0) {
+					final Throwable cause = result.cause();
+					assertThat(cause).isInstanceOf(ValidationErrorException.class);
+					String expectedCode = "codePrefix";
+					if (suffix != null && suffix.length() > 0) {
 
-				expectedCode += "." + suffix;
-			}
-			assertThat(((ValidationErrorException) cause).getCode()).isEqualTo(expectedCode);
-			testContext.completeNow();
-		}));
+						expectedCode += "." + suffix;
+					}
+					assertThat(((ValidationErrorException) cause).getCode()).isEqualTo(expectedCode);
+					testContext.completeNow();
+				}));
 
 	}
 
 	/**
 	 * Check that the model with id is not valid.
 	 *
-	 * @param repository  to use.
-	 * @param testContext context to test.
+	 * @param profileService to manage profiles.
+	 * @param testContext    context to test.
 	 *
-	 * @see Task#validate(String, TasksRepository)
+	 * @see Task#validate(String, WeNetProfileManagerService)
 	 */
 	@Test
-	public void shouldNotBeValidWithAnId(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldNotBeValidWithAnId(WeNetProfileManagerService profileService, VertxTestContext testContext) {
 
 		final Task model = new Task();
 		model.taskId = "has_id";
-		this.assertFailValidate(model, "id", repository, testContext);
+		this.assertFailValidate(model, "taskId", profileService, testContext);
 
 	}
 
 	/**
 	 * Check that a model can not be merged.
 	 *
-	 * @param model       to validate.
-	 * @param suffix      to the error code.
-	 * @param repository  to use.
-	 * @param source      to merge.
-	 * @param testContext context to test.
+	 * @param model          to validate.
+	 * @param suffix         to the error code.
+	 * @param profileService to manage profiles.
+	 * @param source         to merge.
+	 * @param testContext    context to test.
 	 *
-	 * @see Task#merge(Task, String, TasksRepository)
+	 * @see Task#merge(Task, String, WeNetProfileManagerService)
 	 */
-	public void assertFailMerge(Task model, String suffix, TasksRepository repository, Task source,
+	public void assertFailMerge(Task model, String suffix, WeNetProfileManagerService profileService, Task source,
 			VertxTestContext testContext) {
 
-		testContext.assertFailure(model.merge(source, "codePrefix", repository))
+		testContext.assertFailure(model.merge(source, "codePrefix", profileService))
 				.setHandler(result -> testContext.verify(() -> {
 
 					final Throwable cause = result.cause();
@@ -274,17 +272,17 @@ public class TaskTest extends ModelTestCase<Task> {
 	/**
 	 * Check merge empty tasks.
 	 *
-	 * @param repository  to use.
-	 * @param testContext context to test.
+	 * @param profileService to manage profiles.
+	 * @param testContext    context to test.
 	 *
-	 * @see Task#merge(Task, String, TasksRepository)
+	 * @see Task#merge(Task, String, WeNetProfileManagerService)
 	 */
 	@Test
-	public void shouldMergeEmptyModels(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldMergeEmptyModels(WeNetProfileManagerService profileService, VertxTestContext testContext) {
 
 		final Task target = new Task();
 		final Task source = new Task();
-		testContext.assertComplete(target.merge(source, "codePrefix", repository))
+		testContext.assertComplete(target.merge(source, "codePrefix", profileService))
 				.setHandler(testContext.succeeding(merged -> testContext.verify(() -> {
 
 					assertThat(merged).isEqualTo(target);
@@ -296,13 +294,13 @@ public class TaskTest extends ModelTestCase<Task> {
 	/**
 	 * Check merge basic tasks.
 	 *
-	 * @param repository  to use.
-	 * @param testContext context to test.
+	 * @param profileService to manage profiles.
+	 * @param testContext    context to test.
 	 *
-	 * @see Task#merge(Task, String, TasksRepository)
+	 * @see Task#merge(Task, String, WeNetProfileManagerService)
 	 */
 	@Test
-	public void shouldMergeBasicModels(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldMergeBasicModels(WeNetProfileManagerService profileService, VertxTestContext testContext) {
 
 		final Task target = new Task();
 		target.taskId = "1";
@@ -310,7 +308,7 @@ public class TaskTest extends ModelTestCase<Task> {
 		final Task source = new Task();
 		source.taskId = "4";
 
-		testContext.assertComplete(target.merge(source, "codePrefix", repository))
+		testContext.assertComplete(target.merge(source, "codePrefix", profileService))
 				.setHandler(testContext.succeeding(merged -> testContext.verify(() -> {
 
 					assertThat(merged).isEqualTo(target).isNotEqualTo(source);
@@ -322,19 +320,19 @@ public class TaskTest extends ModelTestCase<Task> {
 	/**
 	 * Check merge example tasks.
 	 *
-	 * @param repository  to use.
-	 * @param testContext context to test.
+	 * @param profileService to manage profiles.
+	 * @param testContext    context to test.
 	 *
-	 * @see Task#merge(Task, String, TasksRepository)
+	 * @see Task#merge(Task, String, WeNetProfileManagerService)
 	 */
 	@Test
-	public void shouldMergeExampleModels(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldMergeExampleModels(WeNetProfileManagerService profileService, VertxTestContext testContext) {
 
 		final Task target = this.createModelExample(1);
 		target.taskId = "1";
 		final Task source = this.createModelExample(2);
 		source.taskId = "2";
-		testContext.assertComplete(target.merge(source, "codePrefix", repository))
+		testContext.assertComplete(target.merge(source, "codePrefix", profileService))
 				.setHandler(testContext.succeeding(merged -> testContext.verify(() -> {
 
 					source.taskId = target.taskId;
@@ -347,26 +345,31 @@ public class TaskTest extends ModelTestCase<Task> {
 	/**
 	 * Check merge stored tasks.
 	 *
-	 * @param repository  to use.
-	 * @param testContext context to test.
+	 * import static org.assertj.core.api.Assertions.assertThat;
 	 *
-	 * @see Task#merge(Task, String, TasksRepository)
+	 * @param profileService to manage profiles.
+	 * @param repository     to manage the tasks.
+	 * @param testContext    context to test.
+	 *
+	 * @see Task#merge(Task, String, WeNetProfileManagerService)
 	 */
 	@Test
-	public void shouldMergeStoredModels(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldMergeStoredModels(TasksRepository repository, WeNetProfileManagerService profileService,
+			VertxTestContext testContext) {
 
-		testContext.assertComplete(this.createModelExample(1, repository)).setHandler(targetToStore -> {
+		testContext.assertComplete(this.createModelExample(1, profileService)).setHandler(targetToStore -> {
 
-			testContext.assertComplete(this.createModelExample(2, repository)).setHandler(sourceToStore -> {
+			testContext.assertComplete(this.createModelExample(2, profileService)).setHandler(sourceToStore -> {
 
 				repository.storeTask(targetToStore.result(), testContext.succeeding(target -> {
 
 					repository.storeTask(sourceToStore.result(), testContext.succeeding(source -> {
 
-						testContext.assertComplete(target.merge(source, "codePrefix", repository))
+						testContext.assertComplete(target.merge(source, "codePrefix", profileService))
 								.setHandler(testContext.succeeding(merged -> testContext.verify(() -> {
 
 									source.taskId = target.taskId;
+									source.creationTs = target.creationTs;
 									assertThat(merged).isNotEqualTo(target).isEqualTo(source);
 									testContext.completeNow();
 								})));

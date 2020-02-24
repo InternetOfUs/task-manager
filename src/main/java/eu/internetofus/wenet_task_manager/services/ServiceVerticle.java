@@ -24,67 +24,69 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.wenet_task_manager;
+package eu.internetofus.wenet_task_manager.services;
 
-import eu.internetofus.wenet_task_manager.api.APIVerticle;
-import eu.internetofus.wenet_task_manager.persistence.PersistenceVerticle;
-import eu.internetofus.wenet_task_manager.services.ServiceVerticle;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Promise;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.client.WebClientOptions;
 
 /**
- * The Main verticle that start the API and the persistence.
+ * The verticle that provide the services to interact with the other WeNet
+ * modules.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public class MainVerticle extends AbstractVerticle {
+public class ServiceVerticle extends AbstractVerticle {
+
+	/**
+	 * The component to do request to other services.
+	 */
+	protected WebClient client;
 
 	/**
 	 * {@inheritDoc}
-	 *
-	 * @see PersistenceVerticle
-	 * @see ServiceVerticle
-	 * @see APIVerticle
 	 */
 	@Override
 	public void start(Promise<Void> startPromise) throws Exception {
 
-		final DeploymentOptions options = new DeploymentOptions(this.config()).setConfig(this.config());
-		this.vertx.deployVerticle(PersistenceVerticle.class, options, deployPersistence -> {
+		try {
 
-			if (deployPersistence.failed()) {
+			final JsonObject serviceConf = this.config().getJsonObject("service", new JsonObject());
 
-				startPromise.fail(deployPersistence.cause());
+			// configure the web client
+			final JsonObject webClientConf = serviceConf.getJsonObject("webClient", new JsonObject());
+			final WebClientOptions options = new WebClientOptions(webClientConf);
+			this.client = WebClient.create(this.vertx, options);
 
-			} else {
+			// register the service to interact with the profile manager
+			final JsonObject profileManagerConf = serviceConf.getJsonObject("profileManager", new JsonObject());
+			WeNetProfileManagerService.register(this.vertx, this.client, profileManagerConf);
 
-				this.vertx.deployVerticle(ServiceVerticle.class, options, deployService -> {
+			startPromise.complete();
 
-					if (deployService.failed()) {
+		} catch (final Throwable cause) {
 
-						startPromise.fail(deployService.cause());
-
-					} else {
-
-						this.vertx.deployVerticle(APIVerticle.class, options, deployAPI -> {
-
-							if (deployAPI.failed()) {
-
-								startPromise.fail(deployAPI.cause());
-
-							} else {
-
-								startPromise.complete();
-							}
-
-						});
-
-					}
-				});
-			}
-
-		});
-
+			startPromise.fail(cause);
+		}
 	}
+
+	/**
+	 * Close the web client.
+	 *
+	 * {@inheritDoc}
+	 *
+	 * @see #client
+	 */
+	@Override
+	public void stop() {
+
+		if (this.client != null) {
+
+			this.client.close();
+			this.client = null;
+		}
+	}
+
 }

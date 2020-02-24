@@ -33,6 +33,7 @@ import org.tinylog.Logger;
 import eu.internetofus.wenet_task_manager.Model;
 import eu.internetofus.wenet_task_manager.api.OperationReponseHandlers;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
+import eu.internetofus.wenet_task_manager.services.WeNetProfileManagerService;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -53,6 +54,11 @@ public class TasksResource implements Tasks {
 	protected TasksRepository repository;
 
 	/**
+	 * The repository to manage the tasks.
+	 */
+	protected WeNetProfileManagerService profileManager;
+
+	/**
 	 * Create an empty resource. This is only used for unit tests.
 	 */
 	protected TasksResource() {
@@ -67,6 +73,7 @@ public class TasksResource implements Tasks {
 	public TasksResource(Vertx vertx) {
 
 		this.repository = TasksRepository.createProxy(vertx);
+		this.profileManager = WeNetProfileManagerService.createProxy(vertx);
 	}
 
 	/**
@@ -109,7 +116,7 @@ public class TasksResource implements Tasks {
 
 		} else {
 
-			task.validate("bad_task", this.repository).setHandler(validation -> {
+			task.validate("bad_task", this.profileManager).setHandler(validation -> {
 
 				if (validation.failed()) {
 
@@ -166,7 +173,7 @@ public class TasksResource implements Tasks {
 
 				} else {
 
-					target.merge(source, "bad_new_task", this.repository).setHandler(merge -> {
+					target.merge(source, "bad_new_task", this.profileManager).setHandler(merge -> {
 
 						if (merge.failed()) {
 

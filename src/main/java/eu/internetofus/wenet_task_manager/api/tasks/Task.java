@@ -28,12 +28,16 @@ package eu.internetofus.wenet_task_manager.api.tasks;
 
 import java.util.List;
 
+import eu.internetofus.wenet_task_manager.Merges;
 import eu.internetofus.wenet_task_manager.Model;
-import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
+import eu.internetofus.wenet_task_manager.ValidationErrorException;
+import eu.internetofus.wenet_task_manager.Validations;
+import eu.internetofus.wenet_task_manager.services.WeNetProfileManagerService;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.AccessMode;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 
 /**
  * The task done by a WeneT user.
@@ -115,29 +119,151 @@ public class Task extends Model {
 	/**
 	 * Validate that the values of the model are right.
 	 *
-	 * @param codePrefix prefix for the error code.
-	 * @param repository used to get data to verify the task.
+	 * @param codePrefix     prefix for the error code.
+	 * @param profileService used to verify the user profile identifiers
 	 *
 	 * @return a future that inform if the model is valid.
 	 */
-	public Future<Void> validate(String codePrefix, TasksRepository repository) {
+	public Future<Void> validate(String codePrefix, WeNetProfileManagerService profileService) {
 
-		return Future.failedFuture("Not implemented yet");
+		try {
+			final Promise<Void> promise = Promise.promise();
+
+			this.taskId = Validations.validateNullableStringField(codePrefix, "taskId", 255, this.taskId);
+			if (this.taskId != null) {
+
+				return Future.failedFuture(new ValidationErrorException(codePrefix + ".taskId",
+						"You can not specify the identifier of the task to create"));
+			}
+
+			if (this.startTs > 0 && this.creationTs > this.startTs) {
+
+				promise.fail(
+						new ValidationErrorException(codePrefix + ".startTs", "The task cannot start before the creation time."));
+
+			} else if (this.endTs > 0 && this.startTs > this.endTs) {
+
+				promise.fail(new ValidationErrorException(codePrefix + ".endTs", "The task cannot end before the start time."));
+
+			} else if (this.deadlineTs > 0 && this.deadlineTs > this.startTs) {
+
+				promise.fail(new ValidationErrorException(codePrefix + ".deadlineTs",
+						"The task deadline cannot be after the start time."));
+
+			} else if (this.norms != null && !this.norms.isEmpty()) {
+
+				final String codeNorms = codePrefix + ".norms";
+				for (int index = 0; index < this.norms.size(); index++) {
+
+					final Norm norm = this.norms.get(index);
+					norm.validate(codeNorms + "[" + index + "]");
+				}
+
+			}
+
+			if (this.requesterUserId != null) {
+
+				profileService.retrieveProfile(this.requesterUserId, retrieve -> {
+
+					if (retrieve.failed()) {
+
+						promise.fail(new ValidationErrorException(codePrefix + ".requesterUserId",
+								"The '" + this.requesterUserId + "' does not represents a WeNet user."));
+
+					} else {
+
+						promise.complete();
+					}
+				});
+
+			} else {
+
+				promise.complete();
+			}
+
+			return promise.future();
+
+		} catch (final ValidationErrorException exception) {
+
+			return Future.failedFuture(exception);
+		}
+
 	}
 
 	/**
 	 * Merge this model with another and check that is valid.
 	 *
-	 * @param source     model to get the values to merge.
-	 * @param codePrefix prefix for the error code.
-	 * @param repository used to get data to verify the task.
+	 * @param source         model to get the values to merge.
+	 * @param codePrefix     prefix for the error code.
+	 * @param profileService used to verify the user profile identifiers
 	 *
 	 * @return a future that provide the merged model or the error that explains why
 	 *         can not be merged.
 	 */
-	public Future<Task> merge(Task source, String codePrefix, TasksRepository repository) {
+	public Future<Task> merge(Task source, String codePrefix, WeNetProfileManagerService profileService) {
 
-		return Future.failedFuture("Not implemented yet");
+		try {
+
+			final Task merged = new Task();
+
+			// the creation time can not be changed.
+			merged.creationTs = this.creationTs;
+
+			merged.state = source.state;
+			if (merged.state == null) {
+
+				merged.state = this.state;
+			}
+
+			merged.requesterUserId = source.requesterUserId;
+			if (merged.requesterUserId == null) {
+
+				merged.requesterUserId = this.requesterUserId;
+			}
+
+			merged.startTs = source.startTs;
+			if (merged.startTs == 0) {
+
+				merged.startTs = this.startTs;
+			}
+
+			merged.endTs = source.endTs;
+			if (merged.endTs == 0) {
+
+				merged.endTs = this.endTs;
+			}
+
+			merged.deadlineTs = source.deadlineTs;
+			if (merged.deadlineTs == 0) {
+
+				merged.deadlineTs = this.deadlineTs;
+			}
+
+			final List<Norm> mergedNorms = Merges.mergeListOfNorms(this.norms, source.norms, codePrefix + ".norms");
+
+			final Promise<Task> promise = Promise.promise();
+			final Future<Task> future = promise.future();
+			merged.validate(codePrefix, profileService).setHandler(validate -> {
+
+				if (validate.failed()) {
+
+					promise.fail(validate.cause());
+
+				} else {
+
+					merged.taskId = this.taskId;
+					merged.norms = mergedNorms;
+					promise.complete(merged);
+
+				}
+
+			});
+			return future;
+
+		} catch (final ValidationErrorException exception) {
+
+			return Future.failedFuture(exception);
+		}
 	}
 
 }

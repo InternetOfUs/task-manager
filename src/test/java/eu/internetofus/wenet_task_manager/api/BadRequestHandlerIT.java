@@ -66,6 +66,6 @@ public class BadRequestHandlerIT {
 			final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
 			assertThat(error.code).isEqualTo("bad_api_request");
 			assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-		}).sendJson(new JsonObject().put("id", new JsonObject().put("value", 1)), testContext);
+		}).sendJson(new JsonObject().put("taskId", new JsonObject().put("value", 1)), testContext);
 	}
 }
