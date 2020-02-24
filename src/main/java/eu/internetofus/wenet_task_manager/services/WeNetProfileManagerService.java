@@ -89,4 +89,12 @@ public interface WeNetProfileManagerService {
 	 */
 	void retrieveProfile(String id, Handler<AsyncResult<JsonObject>> retrieveHandler);
 
+	/**
+	 * Return a profile.
+	 *
+	 * @param id            identifier of the profile to get.
+	 * @param deleteHandler handler to manage the delete process.
+	 */
+	void deleteProfile(String id, Handler<AsyncResult<Void>> deleteHandler);
+
 }

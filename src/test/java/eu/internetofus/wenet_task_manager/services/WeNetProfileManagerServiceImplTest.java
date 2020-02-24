@@ -26,61 +26,18 @@
 
 package eu.internetofus.wenet_task_manager.services;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.WebClient;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 
 /**
- * The implementation of the {@link WeNetProfileManagerService}.
+ * Test the {@link WeNetProfileManagerServiceImpl}.
  *
- *
- * @see WeNetProfileManagerService
+ * @see WeNetProfileManagerServiceImpl
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public class WeNetProfileManagerServiceImpl extends Service implements WeNetProfileManagerService {
-
-	/**
-	 * Create a new service to interact with the WeNet profile manager.
-	 *
-	 * @param client to interact with the other modules.
-	 * @param conf   configuration.
-	 */
-	public WeNetProfileManagerServiceImpl(WebClient client, JsonObject conf) {
-
-		super(client, conf);
-
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void createProfile(JsonObject profile, Handler<AsyncResult<JsonObject>> createHandler) {
-
-		this.post("/profiles", profile, createHandler);
-
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void retrieveProfile(String id, Handler<AsyncResult<JsonObject>> retrieveHandler) {
-
-		this.get("/profiles/" + id, retrieveHandler);
-
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void deleteProfile(String id, Handler<AsyncResult<Void>> deleteHandler) {
-
-		this.delete("/profiles/" + id, deleteHandler);
-
-	}
+@ExtendWith(WeNetTaskManagerIntegrationExtension.class)
+public class WeNetProfileManagerServiceImplTest {
 
 }

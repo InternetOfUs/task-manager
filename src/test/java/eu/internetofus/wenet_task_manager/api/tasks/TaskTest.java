@@ -37,6 +37,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import eu.internetofus.wenet_task_manager.ModelTestCase;
 import eu.internetofus.wenet_task_manager.ValidationErrorException;
+import eu.internetofus.wenet_task_manager.ValidationsTest;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
 import eu.internetofus.wenet_task_manager.services.WeNetProfileManagerService;
@@ -381,6 +382,130 @@ public class TaskTest extends ModelTestCase<Task> {
 			});
 
 		});
+
+	}
+
+	/**
+	 * Check that not accept tasks with bad norms.
+	 *
+	 * @param profileService to manage profiles.
+	 * @param testContext    context to test.
+	 *
+	 * @see Task#validate(String, WeNetProfileManagerService)
+	 */
+	@Test
+	public void shouldNotBeValidWithABadNorms(WeNetProfileManagerService profileService, VertxTestContext testContext) {
+
+		final Task model = new Task();
+		model.norms = new ArrayList<>();
+		model.norms.add(new Norm());
+		model.norms.add(new Norm());
+		model.norms.add(new Norm());
+		model.norms.get(1).attribute = ValidationsTest.STRING_256;
+		this.assertFailValidate(model, "norms[1].attribute", profileService, testContext);
+
+	}
+
+	/**
+	 * Check that not merge tasks with bad norms.
+	 *
+	 * @param profileService to manage profiles.
+	 * @param testContext    context to test.
+	 *
+	 * @see Task#merge(Task, String, WeNetProfileManagerService)
+	 */
+	@Test
+	public void shouldNotBeMergeWithABadNorms(WeNetProfileManagerService profileService, VertxTestContext testContext) {
+
+		final Task source = new Task();
+		source.norms = new ArrayList<>();
+		source.norms.add(new Norm());
+		source.norms.add(new Norm());
+		source.norms.add(new Norm());
+		source.norms.get(1).attribute = ValidationsTest.STRING_256;
+		this.assertFailMerge(new Task(), "norms[1].attribute", profileService, source, testContext);
+
+	}
+
+	/**
+	 * Check that not merge tasks with duplicated social practice identifiers.
+	 *
+	 * @param profileService to manage profiles.
+	 * @param testContext    context to test.
+	 *
+	 * @see Task#merge(Task, String, WeNetProfileManagerService)
+	 */
+	@Test
+	public void shouldNotMergeWithADuplicatedNormIds(WeNetProfileManagerService profileService,
+			VertxTestContext testContext) {
+
+		final Task source = new Task();
+		source.norms = new ArrayList<>();
+		source.norms.add(new Norm());
+		source.norms.add(new Norm());
+		source.norms.add(new Norm());
+		source.norms.get(1).id = "1";
+		source.norms.get(2).id = "1";
+		final Task target = new Task();
+		target.norms = new ArrayList<>();
+		target.norms.add(new Norm());
+		target.norms.get(0).id = "1";
+		this.assertFailMerge(target, "norms[2].id", profileService, source, testContext);
+
+	}
+
+	/**
+	 * Check that not merge profiles with not defined social practice id.
+	 *
+	 * @param profileService to manage profiles.
+	 * @param testContext    context to test.
+	 *
+	 * @see Task#merge(Task, String, WeNetProfileManagerService)
+	 */
+	@Test
+	public void shouldNotMergeWithNotDefinecNormId(WeNetProfileManagerService profileService,
+			VertxTestContext testContext) {
+
+		final Task source = new Task();
+		source.norms = new ArrayList<>();
+		source.norms.add(new Norm());
+		source.norms.add(new Norm());
+		source.norms.add(new Norm());
+		source.norms.get(1).id = "1";
+		this.assertFailMerge(new Task(), "norms[1].id", profileService, source, testContext);
+
+	}
+
+	/**
+	 * Check merge social practices profiles.
+	 *
+	 * @param profileService to manage profiles.
+	 * @param testContext    context to test.
+	 *
+	 * @see Task#merge(Task, String, WeNetProfileManagerService)
+	 */
+	@Test
+	public void shouldMergeWithNorms(WeNetProfileManagerService profileService, VertxTestContext testContext) {
+
+		final Task target = new Task();
+		target.norms = new ArrayList<>();
+		target.norms.add(new Norm());
+		target.norms.get(0).id = "1";
+		final Task source = new Task();
+		source.norms = new ArrayList<>();
+		source.norms.add(new Norm());
+		source.norms.add(new Norm());
+		source.norms.add(new Norm());
+		source.norms.get(1).id = "1";
+		testContext.assertComplete(target.merge(source, "codePrefix", profileService))
+				.setHandler(testContext.succeeding(merged -> testContext.verify(() -> {
+
+					assertThat(merged.norms).isNotEqualTo(target.norms).isEqualTo(source.norms);
+					assertThat(merged.norms.get(0).id).isNotEmpty();
+					assertThat(merged.norms.get(1).id).isEqualTo("1");
+					assertThat(merged.norms.get(2).id).isNotEmpty();
+					testContext.completeNow();
+				})));
 
 	}
 

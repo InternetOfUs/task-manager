@@ -152,4 +152,35 @@ public class Service {
 
 	}
 
+	/**
+	 * Delete a resource.
+	 *
+	 * @param path          of the resource to delete.
+	 * @param deleteHandler the handler to manage the receiver resource.
+	 */
+	protected void delete(String path, Handler<AsyncResult<Void>> deleteHandler) {
+
+		final String requestURI = this.apiPath + path;
+		this.client.delete(this.port, this.host, requestURI).send(delete -> {
+
+			if (delete.failed()) {
+
+				deleteHandler.handle(Future.failedFuture(delete.cause()));
+
+			} else {
+
+				final HttpResponse<Buffer> result = delete.result();
+				if (Status.Family.familyOf(result.statusCode()) == Status.Family.SUCCESSFUL) {
+
+					deleteHandler.handle(Future.succeededFuture());
+
+				} else {
+
+					deleteHandler.handle(Future.failedFuture(result.statusMessage()));
+				}
+			}
+		});
+
+	}
+
 }

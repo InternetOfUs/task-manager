@@ -30,6 +30,7 @@ import static eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExte
 import static io.vertx.junit5.web.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response.Status;
@@ -376,7 +377,7 @@ public class TasksIT {
 	 * Verify that can update a complex task with another.
 	 *
 	 * @param repository     that manage the tasks.
-	 * @param profileManager service to create user profiles.
+	 * @param profileManager service to manage the user profiles.
 	 * @param client         to connect to the server.
 	 * @param testContext    context to test.
 	 *
@@ -463,6 +464,53 @@ public class TasksIT {
 					})).send(testContext);
 
 		}));
+
+	}
+
+	/**
+	 * Verify that can update the norms of a task.
+	 *
+	 * @param repository     to access the tasks.
+	 * @param profileManager service to manage the user profiles.
+	 * @param client         to connect to the server.
+	 * @param testContext    context to test.
+	 *
+	 * @see Tasks#updateTask(String, JsonObject,
+	 *      io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
+	 */
+	@Test
+	public void shouldUpdateTaskNorm(TasksRepository repository, WeNetProfileManagerService profileManager,
+			WebClient client, VertxTestContext testContext) {
+
+		testContext.assertComplete(new TaskTest().createModelExample(23, profileManager)).setHandler(createdTask -> {
+
+			final Task created = createdTask.result();
+			testContext.assertComplete(created.validate("codePrefix", profileManager)).setHandler(validation -> {
+
+				repository.storeTask(created, testContext.succeeding(storedTask -> {
+
+					final Task newTask = new Task();
+					newTask.norms = new ArrayList<>();
+					newTask.norms.add(new Norm());
+					newTask.norms.add(new Norm());
+					newTask.norms.get(1).id = storedTask.norms.get(0).id;
+					newTask.norms.get(1).attribute = "Attribute";
+					testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + storedTask.taskId)
+							.expect(res -> testContext.verify(() -> {
+
+								assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+								final Task updated = assertThatBodyIs(Task.class, res);
+								assertThat(updated).isNotEqualTo(storedTask).isNotEqualTo(newTask);
+
+								storedTask.norms.add(0, new Norm());
+								storedTask.norms.get(0).id = updated.norms.get(0).id;
+								storedTask.norms.get(1).attribute = "Attribute";
+								assertThat(updated).isEqualTo(storedTask);
+
+							})).sendJson(newTask.toJsonObject(), testContext);
+				}));
+			});
+		});
 
 	}
 
