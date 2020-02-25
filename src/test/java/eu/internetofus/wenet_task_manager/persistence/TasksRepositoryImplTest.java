@@ -78,7 +78,7 @@ public class TasksRepositoryImplTest extends TasksRepositoryTestCase<TasksReposi
 
 		this.repository.pool = mock(MongoClient.class);
 
-		this.repository.searchTaskObject("id", testContext.failing(search -> {
+		this.repository.searchTaskObject("taskId", testContext.failing(search -> {
 			testContext.completeNow();
 		}));
 		@SuppressWarnings("unchecked")
@@ -139,7 +139,7 @@ public class TasksRepositoryImplTest extends TasksRepositoryTestCase<TasksReposi
 
 		this.repository.pool = mock(MongoClient.class);
 
-		this.repository.deleteTask("id", testContext.failing(delete -> {
+		this.repository.deleteTask("taskId", testContext.failing(delete -> {
 			testContext.completeNow();
 		}));
 		@SuppressWarnings("unchecked")

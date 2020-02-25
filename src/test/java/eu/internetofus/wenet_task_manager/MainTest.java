@@ -337,14 +337,16 @@ public class MainTest {
 	public void shouldLoadConfigurationProperties(VertxTestContext testContext) throws Throwable {
 
 		final Main main = new Main();
-		testContext
-				.assertComplete(
-						main.startWith("-" + Main.PROPERTY_OPTION + "api.host=\"HOST\"", "-" + Main.PROPERTY_OPTION + "api.port=80",
-								"-" + Main.PROPERTY_OPTION, "persistence.db_name=task-manager", "-" + Main.PROPERTY_OPTION,
-								"persistence.username=db-user-name", "-" + Main.PROPERTY_OPTION + " persistence.host=phost",
-								"-" + Main.PROPERTY_OPTION + "persistence.port=27", "-" + Main.PROPERTY_OPTION,
-								"persistence.db_name=DB_NAME", "-" + Main.PROPERTY_OPTION + "persistence.username=USER_NAME",
-								"-" + Main.PROPERTY_OPTION + " persistence.password=PASSWORD", "-" + Main.VERSION_OPTION))
+		testContext.assertComplete(
+				main.startWith("-" + Main.PROPERTY_OPTION + "api.host=\"HOST\"", "-" + Main.PROPERTY_OPTION + "api.port=80",
+						"-" + Main.PROPERTY_OPTION, "persistence.db_name=task-manager", "-" + Main.PROPERTY_OPTION,
+						"persistence.username=db-user-name", "-" + Main.PROPERTY_OPTION + " persistence.host=phost",
+						"-" + Main.PROPERTY_OPTION + "persistence.port=27", "-" + Main.PROPERTY_OPTION,
+						"persistence.db_name=DB_NAME", "-" + Main.PROPERTY_OPTION + "persistence.username=USER_NAME",
+						"-" + Main.PROPERTY_OPTION + " persistence.password=PASSWORD", "-" + Main.PROPERTY_OPTION,
+						"service.webClient.keepAlive=false", "-" + Main.PROPERTY_OPTION, "service.webClient.pipelining=true",
+
+						"-" + Main.VERSION_OPTION))
 				.setHandler(handler -> {
 
 					final ConfigRetriever retriever = ConfigRetriever.create(Vertx.vertx(), main.retrieveOptions);
@@ -359,6 +361,12 @@ public class MainTest {
 						assertThat(conf.getJsonObject("persistence").getString("db_name")).isEqualTo("DB_NAME");
 						assertThat(conf.getJsonObject("persistence").getString("username")).isEqualTo("USER_NAME");
 						assertThat(conf.getJsonObject("persistence").getString("password")).isEqualTo("PASSWORD");
+						assertThat(conf.getJsonObject("service")).isNotNull();
+						assertThat(conf.getJsonObject("service").getJsonObject("webClient")).isNotNull();
+						assertThat(conf.getJsonObject("service").getJsonObject("webClient").getBoolean("keepAlive", true))
+								.isFalse();
+						assertThat(conf.getJsonObject("service").getJsonObject("webClient").getBoolean("pipelining", false))
+								.isTrue();
 
 						testContext.completeNow();
 					})));
@@ -474,6 +482,34 @@ public class MainTest {
 					})));
 
 				});
+
+	}
+
+	/**
+	 * Verify can not start server because cannot start the service.
+	 *
+	 * @param stream captured system err stream.
+	 * @param tmpDir temporal directory.
+	 *
+	 * @throws Throwable if can not listen to a bad persistence port.
+	 */
+	@Test
+	@ExtendWith(SystemErrGuard.class)
+	public void shouldNotStartServerBecauseServiceVerticleFails(final Capturable stream, @TempDir File tmpDir)
+			throws Throwable {
+
+		stream.capture();
+		final Thread thread = new Thread(() -> Main.main("-" + Main.PROPERTY_OPTION, "service.webClient.keepAlive=false",
+				"-" + Main.PROPERTY_OPTION, "service.webClient.pipelining=true"));
+		thread.start();
+
+		String data = stream.getCapturedData();
+		for (int i = 0; i < 1000 && !data.contains("Check the Logs to known why."); i++) {
+
+			Thread.sleep(100);
+			data = stream.getCapturedData();
+		}
+		assertThat(data).contains(Level.ERROR.name(), "Check the Logs to known why.");
 
 	}
 

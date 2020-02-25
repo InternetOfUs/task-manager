@@ -127,27 +127,26 @@ public class Task extends Model {
 	public Future<Void> validate(String codePrefix, WeNetProfileManagerService profileService) {
 
 		try {
-			final Promise<Void> promise = Promise.promise();
 
 			this.taskId = Validations.validateNullableStringField(codePrefix, "taskId", 255, this.taskId);
 			if (this.taskId != null) {
 
 				return Future.failedFuture(new ValidationErrorException(codePrefix + ".taskId",
 						"You can not specify the identifier of the task to create"));
-			}
 
-			if (this.startTs > 0 && this.creationTs > this.startTs) {
+			} else if (this.startTs > 0 && this.creationTs > this.startTs) {
 
-				promise.fail(
+				return Future.failedFuture(
 						new ValidationErrorException(codePrefix + ".startTs", "The task cannot start before the creation time."));
 
 			} else if (this.endTs > 0 && this.startTs > this.endTs) {
 
-				promise.fail(new ValidationErrorException(codePrefix + ".endTs", "The task cannot end before the start time."));
+				return Future.failedFuture(
+						new ValidationErrorException(codePrefix + ".endTs", "The task cannot end before the start time."));
 
 			} else if (this.deadlineTs > 0 && this.deadlineTs > this.startTs) {
 
-				promise.fail(new ValidationErrorException(codePrefix + ".deadlineTs",
+				return Future.failedFuture(new ValidationErrorException(codePrefix + ".deadlineTs",
 						"The task deadline cannot be after the start time."));
 
 			} else if (this.norms != null && !this.norms.isEmpty()) {
@@ -161,6 +160,7 @@ public class Task extends Model {
 
 			}
 
+			final Promise<Void> promise = Promise.promise();
 			if (this.requesterUserId != null) {
 
 				profileService.retrieveProfile(this.requesterUserId, retrieve -> {

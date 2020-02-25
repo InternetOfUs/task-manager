@@ -241,6 +241,68 @@ public class TaskTest extends ModelTestCase<Task> {
 	}
 
 	/**
+	 * Check that the model is not valid if the start time is before the created
+	 * time.
+	 *
+	 * @param profileService to manage profiles.
+	 * @param testContext    context to test.
+	 *
+	 * @see Task#validate(String, WeNetProfileManagerService)
+	 */
+	@Test
+	public void shouldNotBeValidWithAStartTimeBeforeCreationTime(WeNetProfileManagerService profileService,
+			VertxTestContext testContext) {
+
+		final Task model = new Task();
+		model.creationTs = 2;
+		model.startTs = 1;
+		this.assertFailValidate(model, "startTs", profileService, testContext);
+
+	}
+
+	/**
+	 * Check that the model is not valid if the end time is before the start time.
+	 *
+	 * @param profileService to manage profiles.
+	 * @param testContext    context to test.
+	 *
+	 * @see Task#validate(String, WeNetProfileManagerService)
+	 */
+	@Test
+	public void shouldNotBeValidWithAEndTimeBeforeStartTs(WeNetProfileManagerService profileService,
+			VertxTestContext testContext) {
+
+		final Task model = new Task();
+		model.creationTs = 2;
+		model.startTs = 3;
+		model.endTs = 1;
+		this.assertFailValidate(model, "endTs", profileService, testContext);
+
+	}
+
+	/**
+	 * Check that the model is not valid if the deadline time is before the start
+	 * time.
+	 *
+	 * @param profileService to manage profiles.
+	 * @param testContext    context to test.
+	 *
+	 * @see Task#validate(String, WeNetProfileManagerService)
+	 */
+	@Test
+	public void shouldNotBeValidWithADeadlineTimeAfterStartTs(WeNetProfileManagerService profileService,
+			VertxTestContext testContext) {
+
+		final Task model = new Task();
+		model.creationTs = 2;
+		model.startTs = 3;
+		model.deadlineTs = 4;
+		model.endTs = 5;
+		this.assertFailValidate(model, "deadlineTs", profileService, testContext);
+
+	}
+
+	/**
 	 * Check that a model can not be merged.
 	 *
 	 * @param model          to validate.
