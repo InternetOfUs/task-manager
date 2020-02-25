@@ -345,7 +345,6 @@ public class MainTest {
 						"persistence.db_name=DB_NAME", "-" + Main.PROPERTY_OPTION + "persistence.username=USER_NAME",
 						"-" + Main.PROPERTY_OPTION + " persistence.password=PASSWORD", "-" + Main.PROPERTY_OPTION,
 						"service.webClient.keepAlive=false", "-" + Main.PROPERTY_OPTION, "service.webClient.pipelining=true",
-
 						"-" + Main.VERSION_OPTION))
 				.setHandler(handler -> {
 
