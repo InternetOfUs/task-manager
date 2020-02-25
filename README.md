@@ -10,7 +10,8 @@ This project will be used to provide the API to manage the WeNet user tasks.
 
 ## Servers
 
-  - TO DO
+  - **Development server** (http://ardid.iiia.csic.es/dev-wenet-task-manager/)[http://ardid.iiia.csic.es/dev-wenet-task-manager/]
+
 
 # Contact
 

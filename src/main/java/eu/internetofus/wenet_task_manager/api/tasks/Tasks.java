@@ -40,7 +40,6 @@ import eu.internetofus.wenet_task_manager.api.ErrorMessage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -78,21 +77,6 @@ public interface Tasks {
 	String TASK_ID_PATH = "/{taskId}";
 
 	/**
-	 * An example of a {@link Task} that can be created.
-	 */
-	String TASK_TO_CREATE_EXAMPLE = "{\"name\":{\"prefix\":\"Dr.\",\"first\":\"John\",\"middle\":\"Fidgerald\",\"last\":\"Kenedy\",\"suffix\":\"Jr\"},\"dateOfBirth\":{\"year\":1973,\"month\":2,\"day\":24},\"gender\":\"M\",\"email\":\"jfk@president.gov\",\"phoneNumber\":\"+1202-456-1111\",\"locale\":\"en_US\",\"avatar\":\"https://upload.wikimedia.org/wikipedia/commons/1/1e/JFK_White_House_portrait_looking_up_lighting_corrected.jpg\",\"nationality\":\"American\",\"languages\":[{\"name\":\"English\",\"code\":\"en\",\"level\":\"C2\"}],\"occupation\":\"President\",\"norms\":[],\"plannedActivities\":[{\"startTime\":\"2017-07-21T17:32:03Z\",\"endTime\":\"2019-07-21T17:32:23Z\",\"description\":\"Visit Marilyn\",\"status\":\"cancelled\"},{\"startTime\":\"2017-07-21T17:32:03Z\",\"endTime\":\"2019-07-21T17:32:23Z\",\"description\":\"Go to Dallas\",\"status\":\"confirmed\"}],\"relevantLocations\":[{\"label\":\"White house\",\"latitude\":38.897957,\"longitude\":-77.03656}],\"relationships\":[],\"socialPractices\":[],\"personalBehaviors\":[]}";
-
-	/**
-	 * An example of a {@link Task} that can be used.
-	 */
-	String TASK_EXAMPLE = "{\"id\":\"5e4ced814e1dc208a5f7bd25\",\"name\":{\"prefix\":\"Dr.\",\"first\":\"John\",\"middle\":\"Fidgerald\",\"last\":\"Kenedy\",\"suffix\":\"Jr\"},\"dateOfBirth\":{\"year\":1973,\"month\":2,\"day\":24},\"gender\":\"M\",\"email\":\"jfk@president.gov\",\"phoneNumber\":\"+1 202-456-1111\",\"locale\":\"en_US\",\"avatar\":\"https://upload.wikimedia.org/wikipedia/commons/1/1e/JFK_White_House_portrait_looking_up_lighting_corrected.jpg\",\"nationality\":\"American\",\"languages\":[{\"name\":\"English\",\"code\":\"en\",\"level\":\"C2\"}],\"occupation\":\"President\",\"plannedActivities\":[{\"id\":\"ef06fe75-e8bd-41ca-9624-f60289c11de4\",\"startTime\":\"2017-07-21T17:32:03Z\",\"endTime\":\"2019-07-21T17:32:23Z\",\"description\":\"Visit Marilyn\",\"status\":\"cancelled\"},{\"id\":\"b6c9a9da-1832-45ba-9580-a6fef6daa62a\",\"startTime\":\"2017-07-21T17:32:03Z\",\"endTime\":\"2019-07-21T17:32:23Z\",\"description\":\"Go to Dallas\",\"status\":\"confirmed\"}],\"relevantLocations\":[{\"id\":\"f7c4eccc-a654-4b6f-ab82-fd01cd2d47e3\",\"label\":\"White house\",\"latitude\":38.897957,\"longitude\":-77.03656}],\"_creationTs\":1582099841815,\"_lastUpdateTs\":1582099841815}";
-
-	/**
-	 * An example of a {@link Task} that can be used to update.
-	 */
-	String TASK_TO_UPDATE_EXAMPLE = "{\"name\":{\"prefix\":\"\",\"first\":null,\"middle\":null,\"last\":null,\"suffix\":\"III\"},\"dateOfBirth\":{\"year\":1979,\"month\":6,\"day\":4},\"email\":\"jfk3@ex.president.gov\",\"languages\":[{\"name\":\"English\",\"code\":\"en\",\"level\":\"C2\"},{\"name\":\"French\",\"code\":\"fr\",\"level\":\"B2\"}],\"occupation\":\"Conferenciant\"}";
-
-	/**
 	 * The path to the task past attributes resource.
 	 */
 	String HISTORIC_PATH = "/historic";
@@ -113,15 +97,13 @@ public interface Tasks {
 			required = true,
 			content = @Content(
 					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/571266f9402fb78cf01bf1d9cdb23d2989a7882a/sources/wenet-models.yaml#/components/schemas/Task"),
-					examples = { @ExampleObject(value = TASK_TO_CREATE_EXAMPLE) }))
+							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/571266f9402fb78cf01bf1d9cdb23d2989a7882a/sources/wenet-models.yaml#/components/schemas/Task")))
 	@ApiResponse(
 			responseCode = "200",
 			description = "The created task",
 			content = @Content(
 					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/571266f9402fb78cf01bf1d9cdb23d2989a7882a/sources/wenet-models.yaml#/components/schemas/Task"),
-					examples = { @ExampleObject(name = "CreatedTask", value = TASK_EXAMPLE) }))
+							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/571266f9402fb78cf01bf1d9cdb23d2989a7882a/sources/wenet-models.yaml#/components/schemas/Task")))
 	@ApiResponse(
 			responseCode = "400",
 			description = "Bad task",
@@ -148,8 +130,7 @@ public interface Tasks {
 			description = "The task associated to the identifier",
 			content = @Content(
 					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/571266f9402fb78cf01bf1d9cdb23d2989a7882a/sources/wenet-models.yaml#/components/schemas/Task"),
-					examples = { @ExampleObject(name = "FoundTask", value = TASK_EXAMPLE) }))
+							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/571266f9402fb78cf01bf1d9cdb23d2989a7882a/sources/wenet-models.yaml#/components/schemas/Task")))
 	@ApiResponse(
 			responseCode = "404",
 			description = "Not found task",
@@ -179,15 +160,13 @@ public interface Tasks {
 			required = true,
 			content = @Content(
 					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/571266f9402fb78cf01bf1d9cdb23d2989a7882a/sources/wenet-models.yaml#/components/schemas/Task"),
-					examples = { @ExampleObject(value = TASK_TO_UPDATE_EXAMPLE) }))
+							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/571266f9402fb78cf01bf1d9cdb23d2989a7882a/sources/wenet-models.yaml#/components/schemas/Task")))
 	@ApiResponse(
 			responseCode = "200",
 			description = "The updated task",
 			content = @Content(
 					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/571266f9402fb78cf01bf1d9cdb23d2989a7882a/sources/wenet-models.yaml#/components/schemas/Task"),
-					examples = { @ExampleObject(name = "UpdatedTask", value = TASK_EXAMPLE) }))
+							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/571266f9402fb78cf01bf1d9cdb23d2989a7882a/sources/wenet-models.yaml#/components/schemas/Task")))
 	@ApiResponse(
 			responseCode = "400",
 			description = "Bad task",
