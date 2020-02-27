@@ -99,6 +99,11 @@ public class WeNetTaskManagerIntegrationExtension implements ParameterResolver, 
 	}
 
 	/**
+	 * The name of the MongoDB to use by the task manager.
+	 */
+	public static final String WENET_TASK_MANAGER_DB_NAME = "wenetTaskManagerDB";
+
+	/**
 	 * The started WeNet task manager for do the integration tests.
 	 */
 	private static WeNetTaskManagerContext context;
@@ -108,6 +113,7 @@ public class WeNetTaskManagerIntegrationExtension implements ParameterResolver, 
 	 *
 	 * @return the started vertx.
 	 */
+	@SuppressWarnings("resource")
 	public static synchronized WeNetTaskManagerContext getContext() {
 
 		if (context == null) {
@@ -115,33 +121,52 @@ public class WeNetTaskManagerIntegrationExtension implements ParameterResolver, 
 			final Semaphore semaphore = new Semaphore(0);
 			new Thread(() -> {
 
-				int port = 0;
 				try {
-					final ServerSocket server = new ServerSocket(0);
-					port = server.getLocalPort();
-					server.close();
-				} catch (final Throwable ignored) {
-				}
-				new Main().startWith("-papi.port=" + port).onComplete(start -> {
 
-					if (start.failed()) {
+					final MongoContainer mongoContainer = new MongoContainer(WENET_TASK_MANAGER_DB_NAME);
+					mongoContainer.start();
+					final WeNetProfileManagerContainer profileManegrContainer = new WeNetProfileManagerContainer();
+					profileManegrContainer.start();
 
-						InternalLogger.log(Level.ERROR, start.cause(), "Cannot start the WeNet task manager");
-
-					} else {
-
-						context = start.result();
+					int port = 0;
+					try {
+						final ServerSocket server = new ServerSocket(0);
+						port = server.getLocalPort();
+						server.close();
+					} catch (final Throwable ignored) {
 					}
+					new Main().startWith("-papi.port=" + port, "-ppersistence.host=" + mongoContainer.getMongodbHost(),
+							"-ppersistence.port=" + mongoContainer.getMongodbPort(),
+							"-pservice.profileManager.host=" + profileManegrContainer.getApiHost(),
+							"-pservice.profileManager.port=" + profileManegrContainer.getApiPort(),
+							"-pservice.profileManager.apiPath=\"\"").onComplete(start -> {
 
+								if (start.failed()) {
+
+									InternalLogger.log(Level.ERROR, start.cause(), "Cannot start the WeNet task manager");
+									mongoContainer.stop();
+									profileManegrContainer.stop();
+
+								} else {
+
+									context = start.result();
+								}
+
+								semaphore.release();
+
+							});
+
+				} catch (final Throwable throwable) {
+
+					InternalLogger.log(Level.ERROR, throwable, "Cannot start the required services by WeNet task manager");
 					semaphore.release();
+				}
 
-				});
 			}).start();
 			try {
 				semaphore.acquire();
 			} catch (final InterruptedException ignored) {
 			}
-
 		}
 		return context;
 

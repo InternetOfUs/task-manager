@@ -100,7 +100,7 @@ public class WeNetProfileManagerServiceTest {
 	 * @param testContext context over the tests.
 	 */
 	@Test
-	public void shouldRretrieveCreatedProfile(WeNetProfileManagerService service, VertxTestContext testContext) {
+	public void shouldRetrieveCreatedProfile(WeNetProfileManagerService service, VertxTestContext testContext) {
 
 		service.createProfile(new JsonObject(), testContext.succeeding(create -> {
 

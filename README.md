@@ -87,17 +87,7 @@ To develop you need the next software:
  - [docker](https://docs.docker.com/install/)
  - [docker compose](https://docs.docker.com/compose/install/)
  - [Postman](https://www.postman.com/downloads/)
-
-When you have installed this software you can start the development environment with:
-
-```
-docker-compose -f src/dev/docker/docker-compose.yml up -d
-```
-
-This starts:
-
- - A database ( **MongoDB** ) at **localhost:27017**
- - A web to explore the database ( **mongo-express** ) at **http://localhost:8081/** with the credentials **admin:password**
+ - [The docker image wenet/profile-manager:0.10.0](https://bitbucket.org/wenet/wenet-profile-manager/src/master/README.md#deploy-with-docker)
 
 After that you can compile the source, pass the tests and calculate the test coverage with:
 

@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>eu.internetofus</groupId>
 	<artifactId>wenet-task-manager</artifactId>
-	<version>0.1.0</version>
+	<version>0.2.0</version>
 	<description>This project will be used to provide the API to storing
 		and maintaining the WeNet user task.</description>
 	<organization>
@@ -65,6 +65,7 @@
 		<org.assertj-version>3.15.0</org.assertj-version>
 		<org.itsallcode-junit5-system-extensions-version>1.1.0</org.itsallcode-junit5-system-extensions-version>
 		<org.mockito-version>3.2.4</org.mockito-version>
+		<org.testcontainers-version>1.12.5</org.testcontainers-version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -72,6 +73,13 @@
 				<groupId>io.vertx</groupId>
 				<artifactId>vertx-stack-depchain</artifactId>
 				<version>${io.vertx-version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.testcontainers</groupId>
+				<artifactId>testcontainers-bom</artifactId>
+				<version>${org.testcontainers-version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -205,6 +213,11 @@
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
 			<version>${org.mockito-version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

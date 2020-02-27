@@ -1,36 +1,70 @@
+image: docker:latest
+
 variables:
   DOCKER_HOST: tcp://localhost:2375
   DOCKER_TLS_CERTDIR: ""
-  MVN_OPTS: "-Dmaven.repo.local=.m2/repository --batch-mode --errors --fail-at-end"
+  MVN_VERSION: "3.6.3-jdk-11-slim"
+  MAVEN_OPTS: "-Dmaven.repo.local=maven.repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN"
   CONTAINER_IMAGE: ${CI_REGISTRY}/${CI_PROJECT_PATH}:${CI_BUILD_REF_NAME}_${CI_BUILD_REF}
   CONTAINER_IMAGE_LATEST: ${CI_REGISTRY}/${CI_PROJECT_PATH}:latest
+  DOCKER_DRIVER: overlay2
 
-image: maven:3.6.3-jdk-11-slim
+services:
+  - docker:dind
+
 cache:
   key: mavenrepo
   paths:
-    - ./.m2/repository/
-
-stages:
-  - build
-  - test
-  - release
+    - maven.repository/
 
 build:
   stage: build
+  image: maven:${MVN_VERSION}
   script:
-    - mvn $MVN_OPTS package
+    - mvn -B -DskipTests package
 
 test:
   stage: test
+  image: maven:${MVN_VERSION}
   script:
-    - mvn $MVN_OPTS install
+    - mvn -B test
 
-release:
-  stage: release
-  image: docker:latest
-  services:
-    - docker:dind
+pages:
+  stage: deploy
+  image: maven:${MVN_VERSION}
   script:
-    - docker build -f src/main/docker/Dockerfile -t ${CONTAINER_IMAGE} .
-    - docker tag ${CONTAINER_IMAGE} ${CONTAINER_IMAGE_LATEST}
+    - mvn site post-site
+    - mkdir public
+    - cp -r target/site public
+  artifacts:
+    paths:
+      - public 
+
+development:
+  stage: deploy
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build -f src/main/docker/Dockerfile -t "$CI_REGISTRY_IMAGE:latest" .
+    - docker push "$CI_REGISTRY_IMAGE:latest"
+  only:
+    - master
+
+testing:
+  stage: deploy
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build -f src/main/docker/Dockerfile -t "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}" .
+    - docker push "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}"
+  only:
+    - branches
+  except:
+    - master
+
+stable:
+  stage: deploy
+  script:
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+    - docker build -f src/main/docker/Dockerfile -t "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}" .
+    - docker push "$CI_REGISTRY_IMAGE:${CI_COMMIT_REF_SLUG}"
+  only:
+    - tags

@@ -3,6 +3,12 @@
 All notable changes to `wenet-task-manager` will be documented in this file
 
 
+## Version 0.2.0 (2020-02-27)
+
+ * Add gitlab CI process
+ * Do test using testcontainers to not have to start docker before.
+
+
 ## Version 0.1.0 (2020-02-25)
 
  * Project skeleton
