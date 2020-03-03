@@ -23,7 +23,7 @@ services:
     networks:
       wenet_network:
     ports:
-      - ${PROFILE_MANAGER_API_PORT:-8081}:8081
+      - ${PROFILE_MANAGER_API_PORT:-8081}:8080
 
   wenet_task_manager_database:
     image: mongo:4.2.3
@@ -39,19 +39,16 @@ services:
       wenet_network:
 
   wenet_task_manager_api:
-    build:
-      context: ../../../.
-      dockerfile: src/main/docker/Dockerfile
-    image: "wenet/task-manager"
+    image: wenet/task-manager:0.3.0
     depends_on:
       - wenet_task_manager_database
       - wenet_profile_manager_api
     environment:
       DB_HOST: wenet_task_manager_database
-      WENET_PROFILE_MANAGER_API_HOST: wenet_profile_manager_api
+      WENET_PROFILE_MANAGER_API_HOST: localhost
       WENET_PROFILE_MANAGER_API_PORT: ${PROFILE_MANAGER_API_PORT:-8081}
       WENET_PROFILE_MANAGER_API_PATH: ""
-      WAIT_HOSTS: wenet_task_manager_database:27017, wenet_profile_manager_api:${PROFILE_MANAGER_API_PORT:-8081}
+      WAIT_HOSTS: wenet_task_manager_database:27017
     networks:
       wenet_network:
     ports:
