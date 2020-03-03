@@ -22,7 +22,7 @@
 		},
 		"profileManager": {
 			"host": "ardid.iiia.csic.es",
-			"post": 80,
+			"port": 80,
 			"apiPath": "/dev-wenet-profile-manager"
 		}
 	}
