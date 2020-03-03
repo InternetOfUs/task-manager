@@ -130,7 +130,7 @@ public class TasksResource implements Tasks {
 
 						if (stored.failed()) {
 
-							final Throwable cause = validation.cause();
+							final Throwable cause = stored.cause();
 							Logger.debug(cause, "Cannot store  {}.", task);
 							OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 

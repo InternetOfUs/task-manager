@@ -77,11 +77,6 @@ public interface Tasks {
 	String TASK_ID_PATH = "/{taskId}";
 
 	/**
-	 * The path to the task past attributes resource.
-	 */
-	String HISTORIC_PATH = "/historic";
-
-	/**
 	 * Called when want to create an user task.
 	 *
 	 * @param body          the new task to create.
