@@ -40,7 +40,7 @@ public class WeNetProfileManagerContainer extends GenericContainer<WeNetProfileM
 	/**
 	 * The name of the WeNet profile manager docker container to use.
 	 */
-	private static final String WENET_PROFILE_MANAGER_DOCKER_NAME = "wenet/profile-manager:0.10.0";
+	private static final String WENET_PROFILE_MANAGER_DOCKER_NAME = "wenet/profile-manager:0.11.0";
 
 	/**
 	 * The post that export the API.

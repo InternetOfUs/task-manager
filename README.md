@@ -89,7 +89,7 @@ To develop you need the next software:
  - [docker](https://docs.docker.com/install/)
  - [docker compose](https://docs.docker.com/compose/install/)
  - [Postman](https://www.postman.com/downloads/)
- - [The docker image wenet/profile-manager:0.10.0](https://bitbucket.org/wenet/wenet-profile-manager/src/master/README.md#deploy-with-docker)
+ - [The docker image wenet/profile-manager:0.11.0](https://bitbucket.org/wenet/wenet-profile-manager/src/master/README.md#deploy-with-docker)
 
 After that you can compile the source, pass the tests and calculate the test coverage with:
 
