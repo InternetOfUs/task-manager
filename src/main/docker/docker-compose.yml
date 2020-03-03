@@ -11,7 +11,7 @@ services:
       - ./initialize-wenetProfileManagerDB.js:/docker-entrypoint-initdb.d/init-mongo.js
       - wenet_profile_manager_data:/data/db
     networks:
-      wenet_interaction_protocol_engine_net:
+      wenet_network:
 
   wenet_profile_manager_api:
     image: wenet/profile-manager:0.11.0
@@ -21,7 +21,7 @@ services:
       DB_HOST: wenet_profile_manager_database
       WAIT_HOSTS: wenet_profile_manager_database:27017
     networks:
-      wenet_interaction_protocol_engine_net:
+      wenet_network:
     ports:
       - ${PROFILE_MANAGER_API_PORT:-8081}:8081
 
@@ -36,7 +36,7 @@ services:
       - ./initialize-wenetTaskManagerDB.js:/docker-entrypoint-initdb.d/init-mongo.js
       - wenet_task_manager_data:/data/db
     networks:
-      wenet_interaction_protocol_engine_net:
+      wenet_network:
 
   wenet_task_manager_api:
     build:
