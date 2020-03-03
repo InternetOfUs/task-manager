@@ -12,6 +12,8 @@ services:
       - wenet_profile_manager_data:/data/db
     networks:
       wenet_network:
+        aliases:
+          - wenet_profile_manager_database
 
   wenet_profile_manager_api:
     image: wenet/profile-manager:0.11.0
@@ -24,9 +26,6 @@ services:
       wenet_network:
     ports:
       - ${PROFILE_MANAGER_API_PORT:-8081}:8080
-    links:
-      - wenet_profile_manager_database
-
 
   wenet_task_manager_database:
     image: mongo:4.2.3
@@ -40,6 +39,8 @@ services:
       - wenet_task_manager_data:/data/db
     networks:
       wenet_network:
+        aliases:
+          - wenet_task_manager_database
 
   wenet_task_manager_api:
     image: wenet/task-manager:0.3.0
@@ -56,8 +57,6 @@ services:
       wenet_network:
     ports:
       - ${TASK_MANAGER_API_PORT:-8082}:8080
-    links:
-      - wenet_task_manager_database
 
 volumes:
     wenet_profile_manager_data:
