@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
+import eu.internetofus.wenet_task_manager.TimeManager;
 import eu.internetofus.wenet_task_manager.api.tasks.Task;
 import eu.internetofus.wenet_task_manager.api.tasks.TaskTest;
 import io.vertx.core.json.JsonObject;
@@ -184,7 +185,7 @@ public abstract class TasksRepositoryTestCase<T extends TasksRepository> {
 	@Test
 	public void shouldStoreTaskObject(VertxTestContext testContext) {
 
-		final long now = System.currentTimeMillis();
+		final long now = TimeManager.now();
 		this.repository.storeTask(new JsonObject(), testContext.succeeding(storedTask -> testContext.verify(() -> {
 
 			assertThat(storedTask).isNotNull();

@@ -36,6 +36,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import eu.internetofus.wenet_task_manager.ModelTestCase;
+import eu.internetofus.wenet_task_manager.TimeManager;
 import eu.internetofus.wenet_task_manager.ValidationErrorException;
 import eu.internetofus.wenet_task_manager.ValidationsTest;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
@@ -64,7 +65,7 @@ public class TaskTest extends ModelTestCase<Task> {
 
 		final Task model = new Task();
 		model.taskId = null;
-		model.creationTs = System.currentTimeMillis();
+		model.creationTs = TimeManager.now();
 		model.deadlineTs = model.creationTs + index * 30000;
 		model.startTs = model.creationTs + index * 31000;
 		model.endTs = model.creationTs + index * 300000;

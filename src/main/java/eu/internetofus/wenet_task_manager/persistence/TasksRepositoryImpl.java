@@ -26,6 +26,7 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
+import eu.internetofus.wenet_task_manager.TimeManager;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -97,7 +98,7 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 	@Override
 	public void storeTask(JsonObject task, Handler<AsyncResult<JsonObject>> storeHandler) {
 
-		final long now = System.currentTimeMillis();
+		final long now = TimeManager.now();
 		task.put("creationTs", now);
 		this.pool.save(TASKS_COLLECTION, task, store -> {
 
