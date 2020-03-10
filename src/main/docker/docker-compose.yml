@@ -21,6 +21,12 @@ services:
     environment:
       DB_HOST: wenet_profile_manager_database
       WAIT_HOSTS: wenet_profile_manager_database:27017
+      WENET_INTERACTION_PROTOCOL_ENGINE_API_HOST: localhost
+      WENET_INTERACTION_PROTOCOL_ENGINE_API_PORT: ${INTERACTION_PROTOCOL_ENGINE_API_PORT:-8083}
+      WENET_INTERACTION_PROTOCOL_ENGINE_API_PATH: ""
+      WENET_TASK_MANAGER_API_HOST: localhost
+      WENET_TASK_MANAGER_API_PORT: ${TASK_MANAGER_API_PORT:-8082}
+      WENET_TASK_MANAGER_API_PATH: ""
     networks:
       wenet_network:
     ports:
@@ -44,7 +50,6 @@ services:
     restart: always
     depends_on:
       - wenet_task_manager_database
-      - wenet_profile_manager_api
     environment:
       DB_HOST: wenet_task_manager_database
       WENET_PROFILE_MANAGER_API_HOST: localhost
@@ -56,9 +61,42 @@ services:
     ports:
       - ${TASK_MANAGER_API_PORT:-8082}:8080
 
+  wenet_interaction_protocol_engine_database:
+    image: mongo:4.2.3
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: wenetInteractionProtocolEngineDB
+    volumes:
+      - ./initialize-wenetInteractionProtocolEngineDB.js:/docker-entrypoint-initdb.d/init-mongo.js
+      - wenet_interaction_protocol_engine_data:/data/db
+    networks:
+      wenet_network:
+
+  wenet_interaction_protocol_engine_api:
+    image: wenet/interaction-protocol-engine:0.9.0
+    restart: always
+    depends_on:
+      - wenet_interaction_protocol_engine_database
+    environment:
+      DB_HOST: wenet_interaction_protocol_engine_database
+      WENET_PROFILE_MANAGER_API_HOST: localhost
+      WENET_PROFILE_MANAGER_API_PORT: ${PROFILE_MANAGER_API_PORT:-8081}
+      WENET_PROFILE_MANAGER_API_PATH: ""
+      WENET_TASK_MANAGER_API_HOST: localhost
+      WENET_TASK_MANAGER_API_PORT: ${TASK_MANAGER_API_PORT:-8082}
+      WENET_TASK_MANAGER_API_PATH: ""
+      WAIT_HOSTS: wenet_interaction_protocol_engine_database:27017
+    networks:
+      wenet_network:
+    ports:
+      - ${INTERACTION_PROTOCOL_ENGINE_API_PORT:-8083}:8080
+
 volumes:
     wenet_profile_manager_data:
     wenet_task_manager_data:
+    wenet_interaction_protocol_engine_data:
 
 networks:
     wenet_network:
