@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 
-import eu.internetofus.wenet_task_manager.Model;
+import eu.internetofus.common.api.models.Model;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
 import io.vertx.core.AsyncResult;
@@ -117,8 +117,8 @@ public class TasksResourceTest {
 		searchHandler.getValue()
 				.handle(Future.succeededFuture(Model.fromJsonObject(new JsonObject().put("taskId", "taskId"), Task.class)));
 		@SuppressWarnings("unchecked")
-		final ArgumentCaptor<Handler<AsyncResult<Task>>> updateHandler = ArgumentCaptor.forClass(Handler.class);
-		verify(resource.repository, times(1)).updateTask(any(), updateHandler.capture());
+		final ArgumentCaptor<Handler<AsyncResult<Void>>> updateHandler = ArgumentCaptor.forClass(Handler.class);
+		verify(resource.repository, times(1)).updateTask((Task) any(), updateHandler.capture());
 		updateHandler.getValue().handle(Future.failedFuture("Update task error"));
 
 	}

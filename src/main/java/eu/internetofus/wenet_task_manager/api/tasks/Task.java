@@ -28,11 +28,11 @@ package eu.internetofus.wenet_task_manager.api.tasks;
 
 import java.util.List;
 
+import eu.internetofus.common.api.models.Model;
+import eu.internetofus.common.api.models.ValidationErrorException;
+import eu.internetofus.common.api.models.Validations;
+import eu.internetofus.common.services.WeNetProfileManagerService;
 import eu.internetofus.wenet_task_manager.Merges;
-import eu.internetofus.wenet_task_manager.Model;
-import eu.internetofus.wenet_task_manager.ValidationErrorException;
-import eu.internetofus.wenet_task_manager.Validations;
-import eu.internetofus.wenet_task_manager.services.WeNetProfileManagerService;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.AccessMode;

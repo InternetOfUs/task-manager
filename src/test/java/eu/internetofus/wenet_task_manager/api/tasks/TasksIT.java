@@ -26,7 +26,7 @@
 
 package eu.internetofus.wenet_task_manager.api.tasks;
 
-import static eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension.Asserts.assertThatBodyIs;
+import static eu.internetofus.common.api.HttpResponses.assertThatBodyIs;
 import static io.vertx.junit5.web.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -38,10 +38,10 @@ import javax.ws.rs.core.Response.Status;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import eu.internetofus.common.api.models.ErrorMessage;
+import eu.internetofus.common.services.WeNetProfileManagerService;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
-import eu.internetofus.wenet_task_manager.api.ErrorMessage;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
-import eu.internetofus.wenet_task_manager.services.WeNetProfileManagerService;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;

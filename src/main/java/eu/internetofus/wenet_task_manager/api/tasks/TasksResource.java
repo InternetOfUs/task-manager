@@ -30,10 +30,10 @@ import javax.ws.rs.core.Response.Status;
 
 import org.tinylog.Logger;
 
-import eu.internetofus.wenet_task_manager.Model;
-import eu.internetofus.wenet_task_manager.api.OperationReponseHandlers;
+import eu.internetofus.common.api.OperationReponseHandlers;
+import eu.internetofus.common.api.models.Model;
+import eu.internetofus.common.services.WeNetProfileManagerService;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
-import eu.internetofus.wenet_task_manager.services.WeNetProfileManagerService;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -201,8 +201,7 @@ public class TasksResource implements Tasks {
 
 									} else {
 
-										final Task updated = update.result();
-										OperationReponseHandlers.responseOk(resultHandler, updated);
+										OperationReponseHandlers.responseOk(resultHandler, merged);
 
 									}
 

@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
+import eu.internetofus.common.api.models.ValidationErrorException;
 import eu.internetofus.wenet_task_manager.api.tasks.Norm;
 
 /**

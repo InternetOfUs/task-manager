@@ -28,6 +28,7 @@ package eu.internetofus.wenet_task_manager.services;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import eu.internetofus.common.services.WeNetProfileManagerServiceImpl;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 
 /**

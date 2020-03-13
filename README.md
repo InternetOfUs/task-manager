@@ -12,8 +12,10 @@ This project will be used to provide the API to manage the WeNet user tasks.
 
 ## Servers
 
+  - **Sever for the latest API** [http://ardid.iiia.csic.es/wenet-task-manager/latest/](http://ardid.iiia.csic.es/wenet-task-manager/latest/) Linked with [wenet-profile-manager latest](http://ardid.iiia.csic.es/wenet-profile-manager/latest/)
   - **Sever for the API 0.1.0** [http://ardid.iiia.csic.es/dev-wenet-task-manager/](http://ardid.iiia.csic.es/dev-wenet-task-manager/) Linked with [wenet-profile-manager 0.9.0](http://ardid.iiia.csic.es/dev-wenet-profile-manager/)
   - **Sever for the API 0.2.0** [http://ardid.iiia.csic.es/wenet-task-manager/0.2.0/](http://ardid.iiia.csic.es/wenet-task-manager/0.2.0/) Linked with [wenet-profile-manager 0.10.0](http://ardid.iiia.csic.es/wenet-profile-manager/0.10.0/)
+  - **Sever for the API 0.3.0** [http://ardid.iiia.csic.es/wenet-task-manager/0.3.0/](http://ardid.iiia.csic.es/wenet-task-manager/0.2.0/) Linked with [wenet-profile-manager 0.10.0](http://ardid.iiia.csic.es/wenet-profile-manager/0.10.0/)
 
 
 ## Deploy with docker

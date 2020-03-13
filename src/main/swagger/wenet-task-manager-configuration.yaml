@@ -10,10 +10,16 @@ openAPI:
       description: The functionality provided allows to access the user task.
   info:
     # The verion of the API has to be synchonized with the 'api-version' property of the 'pom.xml'
-    version: '0.2.0'
+    version: '0.3.0'
     title: WeNet - Task manager API
     description:  >-
       This API will be used to storing and maintaining the WeNet user task.
+      The task is associated to the next concepts:
+
+         * **TaskType**: describe the attributes and norms that describe the generic goal of a task.
+         * **Task**: the instance of a task type that is active.
+         * **TaskView**: maintains the state of the task instance from the point of view of an specific user.
+
     contact:
       name: Bruno Rosell i Gui (UDT-IA, IIIA-CSIC)
       email: rosell (at) iiia.csic.es
@@ -21,5 +27,5 @@ openAPI:
       name: MIT
       url: https://opensource.org/licenses/MIT
   servers:
-    - url: http://ardid.iiia.csic.es/wenet-task-manager/0.2.0/
+    - url: http://ardid.iiia.csic.es/wenet-task-manager/0.3.0/
       description: Testing server

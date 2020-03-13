@@ -25,7 +25,7 @@
  */
 package eu.internetofus.wenet_task_manager.api.versions;
 
-import eu.internetofus.wenet_task_manager.Model;
+import eu.internetofus.common.api.models.Model;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**

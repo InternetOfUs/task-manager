@@ -26,13 +26,12 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
-import eu.internetofus.wenet_task_manager.TimeManager;
+import eu.internetofus.common.TimeManager;
+import eu.internetofus.common.persitences.Repository;
 import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
-import io.vertx.ext.mongo.UpdateOptions;
 
 /**
  * Implementation of the {@link TasksRepository}.
@@ -69,26 +68,7 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 	public void searchTaskObject(String id, Handler<AsyncResult<JsonObject>> searchHandler) {
 
 		final JsonObject query = new JsonObject().put("_id", id);
-		this.pool.findOne(TASKS_COLLECTION, query, null, search -> {
-
-			if (search.failed()) {
-
-				searchHandler.handle(Future.failedFuture(search.cause()));
-
-			} else {
-
-				final JsonObject task = search.result();
-				if (task == null) {
-
-					searchHandler.handle(Future.failedFuture("Does not exist a task with the identifier '" + id + "'."));
-
-				} else {
-
-					task.put("taskId", task.remove("_id"));
-					searchHandler.handle(Future.succeededFuture(task));
-				}
-			}
-		});
+		this.findOneDocument(TASKS_COLLECTION, query, null, map -> map.put("taskId", map.remove("_id")), searchHandler);
 
 	}
 
@@ -100,21 +80,7 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 
 		final long now = TimeManager.now();
 		task.put("creationTs", now);
-		this.pool.save(TASKS_COLLECTION, task, store -> {
-
-			if (store.failed()) {
-
-				storeHandler.handle(Future.failedFuture(store.cause()));
-
-			} else {
-
-				final String id = store.result();
-				task.put("taskId", id);
-				task.remove("_id");
-				storeHandler.handle(Future.succeededFuture(task));
-			}
-
-		});
+		this.storeOneDocument(TASKS_COLLECTION, task, "taskId", storeHandler);
 
 	}
 
@@ -122,29 +88,11 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void updateTask(JsonObject task, Handler<AsyncResult<JsonObject>> updateHandler) {
+	public void updateTask(JsonObject task, Handler<AsyncResult<Void>> updateHandler) {
 
 		final Object id = task.remove("taskId");
 		final JsonObject query = new JsonObject().put("_id", id);
-		final JsonObject updateTask = new JsonObject().put("$set", task);
-		final UpdateOptions options = new UpdateOptions().setMulti(false);
-		this.pool.updateCollectionWithOptions(TASKS_COLLECTION, query, updateTask, options, update -> {
-
-			if (update.failed()) {
-
-				updateHandler.handle(Future.failedFuture(update.cause()));
-
-			} else if (update.result().getDocModified() != 1) {
-
-				updateHandler.handle(Future.failedFuture("Not Found task to update"));
-
-			} else {
-
-				task.put("taskId", id);
-				task.remove("_id");
-				updateHandler.handle(Future.succeededFuture(task));
-			}
-		});
+		this.updateOneDocument(TASKS_COLLECTION, query, task, updateHandler);
 
 	}
 
@@ -155,21 +103,7 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 	public void deleteTask(String id, Handler<AsyncResult<Void>> deleteHandler) {
 
 		final JsonObject query = new JsonObject().put("_id", id);
-		this.pool.removeDocument(TASKS_COLLECTION, query, remove -> {
-
-			if (remove.failed()) {
-
-				deleteHandler.handle(Future.failedFuture(remove.cause()));
-
-			} else if (remove.result().getRemovedCount() != 1) {
-
-				deleteHandler.handle(Future.failedFuture("Not Found task to delete"));
-
-			} else {
-
-				deleteHandler.handle(Future.succeededFuture());
-			}
-		});
+		this.deleteOneDocument(TASKS_COLLECTION, query, deleteHandler);
 
 	}
 

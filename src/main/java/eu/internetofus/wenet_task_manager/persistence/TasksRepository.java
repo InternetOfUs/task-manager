@@ -26,7 +26,7 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
-import eu.internetofus.wenet_task_manager.Model;
+import eu.internetofus.common.api.models.Model;
 import eu.internetofus.wenet_task_manager.api.tasks.Task;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
@@ -169,7 +169,7 @@ public interface TasksRepository {
 	 * @param updateHandler handler to manage the update.
 	 */
 	@GenIgnore
-	default void updateTask(Task task, Handler<AsyncResult<Task>> updateHandler) {
+	default void updateTask(Task task, Handler<AsyncResult<Void>> updateHandler) {
 
 		final JsonObject object = task.toJsonObject();
 		if (object == null) {
@@ -178,26 +178,7 @@ public interface TasksRepository {
 
 		} else {
 
-			this.updateTask(object, updated -> {
-				if (updated.failed()) {
-
-					updateHandler.handle(Future.failedFuture(updated.cause()));
-
-				} else {
-
-					final JsonObject value = updated.result();
-					final Task updatedTask = Model.fromJsonObject(value, Task.class);
-					if (updatedTask == null) {
-
-						updateHandler.handle(Future.failedFuture("The updated task is not valid."));
-
-					} else {
-
-						updateHandler.handle(Future.succeededFuture(updatedTask));
-					}
-
-				}
-			});
+			this.updateTask(object, updateHandler);
 		}
 	}
 
@@ -207,7 +188,7 @@ public interface TasksRepository {
 	 * @param task          to update.
 	 * @param updateHandler handler to manage the update result.
 	 */
-	void updateTask(JsonObject task, Handler<AsyncResult<JsonObject>> updateHandler);
+	void updateTask(JsonObject task, Handler<AsyncResult<Void>> updateHandler);
 
 	/**
 	 * Delete a task.

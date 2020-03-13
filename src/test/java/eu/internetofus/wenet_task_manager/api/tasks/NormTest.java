@@ -32,9 +32,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
-import eu.internetofus.wenet_task_manager.ModelTestCase;
-import eu.internetofus.wenet_task_manager.ValidationErrorException;
-import eu.internetofus.wenet_task_manager.ValidationsTest;
+import eu.internetofus.common.api.models.ModelTestCase;
+import eu.internetofus.common.api.models.ValidationErrorException;
+import eu.internetofus.common.api.models.ValidationsTest;
 
 /**
  * Test the {@link Norm}

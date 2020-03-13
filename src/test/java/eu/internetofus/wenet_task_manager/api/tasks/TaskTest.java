@@ -35,13 +35,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import eu.internetofus.wenet_task_manager.ModelTestCase;
-import eu.internetofus.wenet_task_manager.TimeManager;
-import eu.internetofus.wenet_task_manager.ValidationErrorException;
-import eu.internetofus.wenet_task_manager.ValidationsTest;
+import eu.internetofus.common.TimeManager;
+import eu.internetofus.common.api.models.ModelTestCase;
+import eu.internetofus.common.api.models.ValidationErrorException;
+import eu.internetofus.common.api.models.ValidationsTest;
+import eu.internetofus.common.services.WeNetProfileManagerService;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
-import eu.internetofus.wenet_task_manager.services.WeNetProfileManagerService;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
