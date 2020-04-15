@@ -47,7 +47,7 @@ public class APIVerticle extends AbstractAPIVerticle {
 	@Override
 	protected String getOpenAPIResourcePath() {
 
-		return "wenet-task-manager-api.yaml";
+		return "wenet-task_manager-openapi.yaml";
 	}
 
 	/**

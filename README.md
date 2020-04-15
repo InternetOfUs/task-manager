@@ -101,7 +101,7 @@ After that you can compile the source, pass the tests and calculate the test cov
 
 This process generate the next files:
 
- - The OpenAPI description of the web services at **target/classes/wenet-task-manager-api.yml**
+ - The OpenAPI description of the web services at **target/classes/wenet-task_manager-openapi.yml**
  - The execution java package at **target/wenet-task-manager-VERSION.jar** where **VERSION** is the version of the software.
  - The java dependencies at **target/lib**.
 

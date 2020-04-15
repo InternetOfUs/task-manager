@@ -318,7 +318,7 @@
 				</executions>
 				<configuration>
 					<outputPath>${basedir}/target/classes</outputPath>
-					<outputFileName>wenet-task-manager-api</outputFileName>
+					<outputFileName>wenet-task_manager-openapi</outputFileName>
 					<outputFormat>YAML</outputFormat>
 					<configurationFilePath>${basedir}/src/main/swagger/wenet-task-manager-configuration.yaml</configurationFilePath>
 				</configuration>
