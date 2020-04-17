@@ -42,6 +42,7 @@ import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.mongo.FindOptions;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.mongo.MongoClientDeleteResult;
 import io.vertx.ext.mongo.MongoClientUpdateResult;
@@ -79,7 +80,7 @@ public abstract class RepositoryTestCase<T extends Repository> {
 	public void shouldSearchPageObjectFailedByMongoClientCount(@Mock MongoClient pool, VertxTestContext testContext) {
 
 		final T repository = this.createRepository(pool);
-		repository.searchPageObject(null, null, null, 0, 100, null, testContext.failing(search -> {
+		repository.searchPageObject(null, null, new FindOptions(), null, testContext.failing(search -> {
 			testContext.completeNow();
 		}));
 		@SuppressWarnings("unchecked")
@@ -99,7 +100,7 @@ public abstract class RepositoryTestCase<T extends Repository> {
 	public void shouldSearchPageObjectFailedByMongoClientFind(@Mock MongoClient pool, VertxTestContext testContext) {
 
 		final T repository = this.createRepository(pool);
-		repository.searchPageObject(null, null, null, 0, 100, null, testContext.failing(search -> {
+		repository.searchPageObject(null, null, new FindOptions(), null, testContext.failing(search -> {
 			testContext.completeNow();
 		}));
 		@SuppressWarnings("unchecked")
@@ -170,7 +171,7 @@ public abstract class RepositoryTestCase<T extends Repository> {
 		}));
 		@SuppressWarnings("unchecked")
 		final ArgumentCaptor<Handler<AsyncResult<String>>> handler = ArgumentCaptor.forClass(Handler.class);
-		verify(pool, times(1)).save(any(), any(), handler.capture());
+		verify(pool, times(1)).insert(any(), any(), handler.capture());
 		handler.getValue().handle(Future.failedFuture("Internal error"));
 
 	}

@@ -27,14 +27,15 @@
 package eu.internetofus.common.api.models;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.format.DateTimeFormatter;
 
 import org.junit.jupiter.api.Test;
 
-import eu.internetofus.common.api.models.ValidationErrorException;
-import eu.internetofus.common.api.models.Validations;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
 
 /**
  * Test the {@link Validations}.
@@ -51,6 +52,89 @@ public class ValidationsTest {
 	public static final String STRING_256 = "0Ncu2eQI7boSct2Ga6VHViEPJn0HqffPajWKyL3TmgUyLG4ZjVLbaZSx7DZXuY0EAWGqWnWOB35Uql92cV2zTbBrSi4gVR0y9jJ3a5zsHnnXNFucmHRyplXw0v98l7BD4d8jvKro7QBIuZM4A4fARUol9gSrRAIoZ7PpUxtbNfteFkVhxfRUhGAkHKfRUsMulmgui5bRQaCM8ivevTJm8N4jXXUlgfkPepeMsQeQPzktJRnZDR3PxDrKLtKjoE24";
 
 	/**
+	 * A string with 256 characters.
+	 */
+	public static final String STRING_1024 = "qsXSHCN3y8WNG9fmnNfOaEo5JvvM609Kjzm6vZDU9KHK9hl0lYRgwS58qGd9nZz8RAVlpVqVVQZBjXOzkTgI9rGYNuAipZGFELNg9XevKjl2b1bD9Q1TJSFJJr35lWlGiaAUg6xfUVxbo1YgqKXCBdHiifmYWrrd7NmhnlPfPeRL3xJGDZGVYoT2J8kpZmzXoU9aw2ga3m4NucuZqcuaoqFSPGWNlFgdnjhHV7RryFxSwRRhfUMPj5xLyyhXDQA44mmLPGVmvtM4a32oQ6ZmANNLXECQKk12FqNKrXtk1GrWi6yFLT3zonuftSSb1K8dxhgxLIBuHdnNSJ2Sh6co6fp9QAqhZbVIBfVhT373HlHKZ0qrkEFmsgw2TgjY5OUX4ZzckFqbaTjipJpI5dxUUrEOQSKX0rmXQ9v2o6dfbYAXK7MuhLTBdqL0H20wFJcofb9XQOihMaTKIMsfRsNeiIK4ZGWxSni9SN6Y3z243zf2Cmp3gwDEYe8mH4VwVIDVxmrNZfDirLOYxHKMKHzZBcQ20ZBCODr6Wx2n7eMxhFkZa416aOssc0NRKseEnNE1SKBzjLY2GMJTnTNwRY0qQwrZJ2RenBVsQkZZoBH42qO3jafaDd0m0jhGOXfcJfkk690iTWy2AKRGEELeZiIe5fy629zFV9UGoPQ6PK7LClQX37KOxeENPxKcvlRabK49jcvV6bgjWxeYh5viFmakPbM3vddpr753FGjedyRCEszGkTLw90uKoz7yyZekEwbUV7pQcOju7nDLf8wa47BAP809YqRaEL8eFFGFpl9x72rsppZlok0Z2aSLfXyoTpYEqvsbZXvD4WjrMMEMkGySZOL7Xuwxuy1J4cEQQ5u6eAXlbr2qSZAlLXs8j5AAJJdz0Lh3r2NpLpSBHkEy35AYgJTkD9CP4YaNH93hqttJ9ajShPYYVTaObyYwWKRbLYpXCDicEmGr9Yk5HT60cU6vdAtWg38xnmFF8ltejRvq81BYyweRt8XvWwO3ZSoWqbbV";
+
+	/**
+	 * Assert that a model is not valid.
+	 *
+	 * @param model       to validate.
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 */
+	public static void assertIsNotValid(Validable model, Vertx vertx, VertxTestContext testContext) {
+
+		assertIsNotValid(model, null, vertx, testContext);
+
+	}
+
+	/**
+	 * Assert that a model is not valid because a field is wrong.
+	 *
+	 * @param model       to validate.
+	 * @param fieldName   name of the field that is not valid.
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 */
+	public static void assertIsNotValid(Validable model, String fieldName, Vertx vertx, VertxTestContext testContext) {
+
+		model.validate("codePrefix", vertx).onComplete(testContext.failing(error -> testContext.verify(() -> {
+
+			assertThat(error).isInstanceOf(ValidationErrorException.class);
+			String expectedCode = "codePrefix";
+			if (fieldName != null) {
+
+				expectedCode += "." + fieldName;
+
+			}
+			assertThat(((ValidationErrorException) error).getCode()).isEqualTo(expectedCode);
+
+			testContext.completeNow();
+
+		})));
+	}
+
+	/**
+	 * Assert that a model is valid.
+	 *
+	 * @param model       to validate.
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 * @param <T>         model to test.
+	 */
+	public static <T extends Validable> void assertIsValid(T model, Vertx vertx, VertxTestContext testContext) {
+
+		assertIsValid(model, vertx, testContext, null);
+
+	}
+
+	/**
+	 * Assert that a model is valid.
+	 *
+	 * @param model       to validate.
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 * @param expected    function to check the validation result.
+	 * @param <T>         model to test.
+	 */
+	public static <T extends Validable> void assertIsValid(T model, Vertx vertx, VertxTestContext testContext,
+			Runnable expected) {
+
+		model.validate("codePrefix", vertx).onComplete(testContext.succeeding(empty -> testContext.verify(() -> {
+
+			if (expected != null) {
+
+				expected.run();
+			}
+
+			testContext.completeNow();
+
+		})));
+
+	}
+
+	/**
 	 * Check that a field can be null.
 	 *
 	 * @see Validations#validateNullableStringField(String, String, int,String)
@@ -58,7 +142,9 @@ public class ValidationsTest {
 	@Test
 	public void shouldNullStringFieldBeValid() {
 
-		assertThat(Validations.validateNullableStringField("codePrefix", "fieldName", 255, null)).isEqualTo(null);
+		assertThatCode(
+				() -> assertThat(Validations.validateNullableStringField("codePrefix", "fieldName", 255, null)).isEqualTo(null))
+						.doesNotThrowAnyException();
 	}
 
 	/**
@@ -69,7 +155,9 @@ public class ValidationsTest {
 	@Test
 	public void shouldEmptyStringFieldBeValid() {
 
-		assertThat(Validations.validateNullableStringField("codePrefix", "fieldName", 255, "")).isEqualTo(null);
+		assertThatCode(
+				() -> assertThat(Validations.validateNullableStringField("codePrefix", "fieldName", 255, "")).isEqualTo(null))
+						.doesNotThrowAnyException();
 	}
 
 	/**
@@ -80,7 +168,8 @@ public class ValidationsTest {
 	@Test
 	public void shouldWhiteStringFieldBeValid() {
 
-		assertThat(Validations.validateNullableStringField("codePrefix", "fieldName", 255, "       ")).isEqualTo(null);
+		assertThatCode(() -> assertThat(Validations.validateNullableStringField("codePrefix", "fieldName", 255, "       "))
+				.isEqualTo(null)).doesNotThrowAnyException();
 	}
 
 	/**
@@ -91,8 +180,9 @@ public class ValidationsTest {
 	@Test
 	public void shouldStringWithWhiteFieldBeValid() {
 
-		assertThat(Validations.validateNullableStringField("codePrefix", "fieldName", 255, "   a b c    "))
-				.isEqualTo("a b c");
+		assertThatCode(
+				() -> assertThat(Validations.validateNullableStringField("codePrefix", "fieldName", 255, "   a b c    "))
+						.isEqualTo("a b c")).doesNotThrowAnyException();
 	}
 
 	/**
@@ -116,7 +206,9 @@ public class ValidationsTest {
 	@Test
 	public void shouldNullEmailFieldBeValid() {
 
-		assertThat(Validations.validateNullableEmailField("codePrefix", "fieldName", null)).isEqualTo(null);
+		assertThatCode(
+				() -> assertThat(Validations.validateNullableEmailField("codePrefix", "fieldName", null)).isEqualTo(null))
+						.doesNotThrowAnyException();
 	}
 
 	/**
@@ -127,7 +219,9 @@ public class ValidationsTest {
 	@Test
 	public void shouldEmptyEmailFieldBeValid() {
 
-		assertThat(Validations.validateNullableEmailField("codePrefix", "fieldName", "")).isEqualTo(null);
+		assertThatCode(
+				() -> assertThat(Validations.validateNullableEmailField("codePrefix", "fieldName", "")).isEqualTo(null))
+						.doesNotThrowAnyException();
 	}
 
 	/**
@@ -138,7 +232,9 @@ public class ValidationsTest {
 	@Test
 	public void shouldWhiteEmailFieldBeValid() {
 
-		assertThat(Validations.validateNullableEmailField("codePrefix", "fieldName", "       ")).isEqualTo(null);
+		assertThatCode(
+				() -> assertThat(Validations.validateNullableEmailField("codePrefix", "fieldName", "       ")).isEqualTo(null))
+						.doesNotThrowAnyException();
 	}
 
 	/**
@@ -149,8 +245,8 @@ public class ValidationsTest {
 	@Test
 	public void shouldEmailWithWhiteFieldBeValid() {
 
-		assertThat(Validations.validateNullableEmailField("codePrefix", "fieldName", "   a@b.com    "))
-				.isEqualTo("a@b.com");
+		assertThatCode(() -> assertThat(Validations.validateNullableEmailField("codePrefix", "fieldName", "   a@b.com    "))
+				.isEqualTo("a@b.com")).doesNotThrowAnyException();
 	}
 
 	/**
@@ -187,7 +283,9 @@ public class ValidationsTest {
 	@Test
 	public void shouldNullLocaleFieldBeValid() {
 
-		assertThat(Validations.validateNullableLocaleField("codePrefix", "fieldName", null)).isEqualTo(null);
+		assertThatCode(
+				() -> assertThat(Validations.validateNullableLocaleField("codePrefix", "fieldName", null)).isEqualTo(null))
+						.doesNotThrowAnyException();
 	}
 
 	/**
@@ -198,7 +296,9 @@ public class ValidationsTest {
 	@Test
 	public void shouldEmptyLocaleFieldBeValid() {
 
-		assertThat(Validations.validateNullableLocaleField("codePrefix", "fieldName", "")).isEqualTo(null);
+		assertThatCode(
+				() -> assertThat(Validations.validateNullableLocaleField("codePrefix", "fieldName", "")).isEqualTo(null))
+						.doesNotThrowAnyException();
 	}
 
 	/**
@@ -209,7 +309,9 @@ public class ValidationsTest {
 	@Test
 	public void shouldWhiteLocaleFieldBeValid() {
 
-		assertThat(Validations.validateNullableLocaleField("codePrefix", "fieldName", "       ")).isEqualTo(null);
+		assertThatCode(
+				() -> assertThat(Validations.validateNullableLocaleField("codePrefix", "fieldName", "       ")).isEqualTo(null))
+						.doesNotThrowAnyException();
 	}
 
 	/**
@@ -220,7 +322,8 @@ public class ValidationsTest {
 	@Test
 	public void shouldLocaleWithWhiteFieldBeValid() {
 
-		assertThat(Validations.validateNullableLocaleField("codePrefix", "fieldName", "   en_US    ")).isEqualTo("en_US");
+		assertThatCode(() -> assertThat(Validations.validateNullableLocaleField("codePrefix", "fieldName", "   en_US    "))
+				.isEqualTo("en_US")).doesNotThrowAnyException();
 	}
 
 	/**
@@ -258,7 +361,8 @@ public class ValidationsTest {
 	@Test
 	public void shouldNullTelephoneFieldBeValid() {
 
-		assertThat(Validations.validateNullableTelephoneField("codePrefix", "fieldName", null, null)).isEqualTo(null);
+		assertThatCode(() -> assertThat(Validations.validateNullableTelephoneField("codePrefix", "fieldName", null, null))
+				.isEqualTo(null)).doesNotThrowAnyException();
 	}
 
 	/**
@@ -270,7 +374,8 @@ public class ValidationsTest {
 	@Test
 	public void shouldEmptyTelephoneFieldBeValid() {
 
-		assertThat(Validations.validateNullableTelephoneField("codePrefix", "fieldName", null, "")).isEqualTo(null);
+		assertThatCode(() -> assertThat(Validations.validateNullableTelephoneField("codePrefix", "fieldName", null, ""))
+				.isEqualTo(null)).doesNotThrowAnyException();
 	}
 
 	/**
@@ -282,7 +387,9 @@ public class ValidationsTest {
 	@Test
 	public void shouldWhiteTelephoneFieldBeValid() {
 
-		assertThat(Validations.validateNullableTelephoneField("codePrefix", "fieldName", null, "       ")).isEqualTo(null);
+		assertThatCode(
+				() -> assertThat(Validations.validateNullableTelephoneField("codePrefix", "fieldName", null, "       "))
+						.isEqualTo(null)).doesNotThrowAnyException();
 	}
 
 	/**
@@ -294,8 +401,9 @@ public class ValidationsTest {
 	@Test
 	public void shouldTelephoneWithWhiteFieldBeValid() {
 
-		assertThat(Validations.validateNullableTelephoneField("codePrefix", "fieldName", null, "   +34987654321    "))
-				.isEqualTo("+34 987 65 43 21");
+		assertThatCode(() -> assertThat(
+				Validations.validateNullableTelephoneField("codePrefix", "fieldName", null, "   +34987654321    "))
+						.isEqualTo("+34 987 65 43 21")).doesNotThrowAnyException();
 	}
 
 	/**
@@ -329,68 +437,70 @@ public class ValidationsTest {
 	/**
 	 * Check that an empty is right but is changed to null.
 	 *
-	 * @see Validations#validateNullableDateField(String, String,
+	 * @see Validations#validateNullableStringDateField(String, String,
 	 *      DateTimeFormatter,String)
 	 */
 	@Test
 	public void shouldEmptyDateFieldBeValid() {
 
-		assertThat(Validations.validateNullableDateField("codePrefix", "fieldName", DateTimeFormatter.ISO_INSTANT, ""))
-				.isEqualTo(null);
+		assertThatCode(() -> assertThat(
+				Validations.validateNullableStringDateField("codePrefix", "fieldName", DateTimeFormatter.ISO_INSTANT, ""))
+						.isEqualTo(null)).doesNotThrowAnyException();
 	}
 
 	/**
 	 * Check that an white value is right but is changed to null.
 	 *
-	 * @see Validations#validateNullableDateField(String, String,
+	 * @see Validations#validateNullableStringDateField(String, String,
 	 *      DateTimeFormatter,String)
 	 */
 	@Test
 	public void shouldWhiteDateFieldBeValid() {
 
-		assertThat(
-				Validations.validateNullableDateField("codePrefix", "fieldName", DateTimeFormatter.ISO_INSTANT, "       "))
-						.isEqualTo(null);
+		assertThatCode(() -> assertThat(Validations.validateNullableStringDateField("codePrefix", "fieldName",
+				DateTimeFormatter.ISO_INSTANT, "       ")).isEqualTo(null)).doesNotThrowAnyException();
 	}
 
 	/**
 	 * Check that the date value is trimmed to be valid.
 	 *
-	 * @see Validations#validateNullableDateField(String, String,
+	 * @see Validations#validateNullableStringDateField(String, String,
 	 *      DateTimeFormatter,String)
 	 */
 	@Test
 	public void shouldDateWithWhiteFieldBeValid() {
 
-		assertThat(Validations.validateNullableDateField("codePrefix", "fieldName", DateTimeFormatter.ISO_INSTANT,
-				"   2011-12-03t10:15:30z    ")).isEqualTo("2011-12-03T10:15:30Z");
+		assertThatCode(() -> assertThat(Validations.validateNullableStringDateField("codePrefix", "fieldName",
+				DateTimeFormatter.ISO_INSTANT, "   2011-12-03t10:15:30z    ")).isEqualTo("2011-12-03T10:15:30Z"))
+						.doesNotThrowAnyException();
 	}
 
 	/**
 	 * Check that the date value of the field is not valid if it is too large.
 	 *
-	 * @see Validations#validateNullableDateField(String, String,
+	 * @see Validations#validateNullableStringDateField(String, String,
 	 *      DateTimeFormatter,String)
 	 */
 	@Test
 	public void shouldNotBeValidABadDateValue() {
 
 		assertThat(assertThrows(ValidationErrorException.class,
-				() -> Validations.validateNullableDateField("codePrefix", "fieldName", null, "bad date")).getCode())
+				() -> Validations.validateNullableStringDateField("codePrefix", "fieldName", null, "bad date")).getCode())
 						.isEqualTo("codePrefix.fieldName");
 	}
 
 	/**
 	 * Check that the date value of the field is not valid if it is too large.
 	 *
-	 * @see Validations#validateNullableDateField(String, String,
+	 * @see Validations#validateNullableStringDateField(String, String,
 	 *      DateTimeFormatter,String)
 	 */
 	@Test
 	public void shouldNotBeValidABadIsoinstanceValue() {
 
-		assertThat(assertThrows(ValidationErrorException.class, () -> Validations.validateNullableDateField("codePrefix",
-				"fieldName", DateTimeFormatter.ISO_INSTANT, "bad date")).getCode()).isEqualTo("codePrefix.fieldName");
+		assertThat(
+				assertThrows(ValidationErrorException.class, () -> Validations.validateNullableStringDateField("codePrefix",
+						"fieldName", DateTimeFormatter.ISO_INSTANT, "bad date")).getCode()).isEqualTo("codePrefix.fieldName");
 	}
 
 }

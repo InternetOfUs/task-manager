@@ -24,15 +24,20 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.wenet_task_manager.api.tasks;
+package eu.internetofus.common.api.models.wenet;
 
 import java.util.UUID;
 
+import eu.internetofus.common.api.models.Mergeable;
+import eu.internetofus.common.api.models.Merges;
 import eu.internetofus.common.api.models.Model;
 import eu.internetofus.common.api.models.Validable;
 import eu.internetofus.common.api.models.ValidationErrorException;
 import eu.internetofus.common.api.models.Validations;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 
 /**
  * The definition of a norm.
@@ -40,7 +45,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @author UDT-IA, IIIA-CSIC
  */
 @Schema(description = "A norm that has to be satisfied.")
-public class Norm extends Model implements Validable {
+public class Norm extends Model implements Validable, Mergeable<Norm> {
 
 	/**
 	 * The identifier of the norm.
@@ -84,35 +89,42 @@ public class Norm extends Model implements Validable {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void validate(String codePrefix) throws ValidationErrorException {
+	public Future<Void> validate(String codePrefix, Vertx vertx) {
 
-		this.id = Validations.validateNullableStringField(codePrefix, "id", 255, this.id);
-		if (this.id != null) {
+		final Promise<Void> promise = Promise.promise();
+		try {
 
-			throw new ValidationErrorException(codePrefix + ".id",
-					"You can not specify the identifier of the norm to create");
+			this.id = Validations.validateNullableStringField(codePrefix, "id", 255, this.id);
+			if (this.id != null) {
 
-		} else {
+				throw new ValidationErrorException(codePrefix + ".id",
+						"You can not specify the identifier of the norm to create");
 
-			this.id = UUID.randomUUID().toString();
+			} else {
+
+				this.id = UUID.randomUUID().toString();
+			}
+			this.attribute = Validations.validateNullableStringField(codePrefix, "attribute", 255, this.attribute);
+			this.comparison = Validations.validateNullableStringField(codePrefix, "comparison", 255, this.comparison);
+			promise.complete();
+
+		} catch (final ValidationErrorException validationError) {
+
+			promise.fail(validationError);
 		}
-		this.attribute = Validations.validateNullableStringField(codePrefix, "attribute", 255, this.attribute);
-		this.comparison = Validations.validateNullableStringField(codePrefix, "comparison", 255, this.comparison);
+
+		return promise.future();
 
 	}
 
 	/**
-	 * Merge this model with another.
-	 *
-	 * @param source     to merge.
-	 * @param codePrefix the prefix of the code to use for the error message.
-	 *
-	 * @return the merged model.
-	 *
-	 * @throws ValidationErrorException if the model is not right.
+	 * {@inheritDoc}
 	 */
-	public Norm merge(Norm source, String codePrefix) throws ValidationErrorException {
+	@Override
+	public Future<Norm> merge(Norm source, String codePrefix, Vertx vertx) {
 
+		final Promise<Norm> promise = Promise.promise();
+		Future<Norm> future = promise.future();
 		if (source != null) {
 
 			final Norm merged = new Norm();
@@ -136,13 +148,19 @@ public class Norm extends Model implements Validable {
 
 			merged.negation = source.negation;
 
-			merged.validate(codePrefix);
-			merged.id = this.id;
-			return merged;
+			promise.complete(merged);
+
+			// validate the merged value and set the id
+			future = future.compose(Merges.validateMerged(codePrefix, vertx)).map(mergedValidatedModel -> {
+
+				mergedValidatedModel.id = this.id;
+				return mergedValidatedModel;
+			});
 
 		} else {
-			return this;
 
+			promise.complete(this);
 		}
+		return future;
 	}
 }

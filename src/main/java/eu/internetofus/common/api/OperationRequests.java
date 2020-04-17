@@ -26,6 +26,7 @@
 
 package eu.internetofus.common.api;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -33,6 +34,8 @@ import java.util.Locale.LanguageRange;
 
 import javax.ws.rs.core.HttpHeaders;
 
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.OperationRequest;
 
 /**
@@ -75,6 +78,54 @@ public interface OperationRequests {
 		} catch (final Throwable badLanguage) {
 
 			return defaultLanguage;
+		}
+
+	}
+
+	/**
+	 * Return the query parameters defined in a context.
+	 *
+	 * @param context to extract the query parameters.
+	 *
+	 * @return the query parameters of the context.
+	 */
+	static JsonObject getQueryParamters(OperationRequest context) {
+
+		return context.getParams().getJsonObject("query", new JsonObject());
+
+	}
+
+	/**
+	 * Convert an array of values to a string list. This is useful to convert a
+	 * array query parameter.
+	 *
+	 * @param array to convert.
+	 *
+	 * @return the string list defined on the array. If the array is {@code null} or
+	 *         empty it return a{@code null} value.
+	 */
+	static List<String> toListString(JsonArray array) {
+
+		if (array == null) {
+
+			return null;
+
+		} else {
+
+			final int max = array.size();
+			if (max == 0) {
+
+				return null;
+
+			} else {
+
+				final List<String> values = new ArrayList<>();
+				for (int i = 0; i < max; i++) {
+
+					values.add(array.getString(i));
+				}
+				return values;
+			}
 		}
 
 	}

@@ -37,6 +37,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import eu.internetofus.common.api.models.ErrorMessage;
+import eu.internetofus.common.api.models.wenet.Task;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -92,13 +93,13 @@ public interface Tasks {
 			required = true,
 			content = @Content(
 					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/571266f9402fb78cf01bf1d9cdb23d2989a7882a/sources/wenet-models.yaml#/components/schemas/Task")))
+							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/9f1b7c5f64a5bb13c37601f0a7d63f2da399b7ee/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
 	@ApiResponse(
 			responseCode = "200",
 			description = "The created task",
 			content = @Content(
 					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/571266f9402fb78cf01bf1d9cdb23d2989a7882a/sources/wenet-models.yaml#/components/schemas/Task")))
+							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/9f1b7c5f64a5bb13c37601f0a7d63f2da399b7ee/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
 	@ApiResponse(
 			responseCode = "400",
 			description = "Bad task",
@@ -125,7 +126,7 @@ public interface Tasks {
 			description = "The task associated to the identifier",
 			content = @Content(
 					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/571266f9402fb78cf01bf1d9cdb23d2989a7882a/sources/wenet-models.yaml#/components/schemas/Task")))
+							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/9f1b7c5f64a5bb13c37601f0a7d63f2da399b7ee/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
 	@ApiResponse(
 			responseCode = "404",
 			description = "Not found task",
@@ -155,13 +156,13 @@ public interface Tasks {
 			required = true,
 			content = @Content(
 					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/571266f9402fb78cf01bf1d9cdb23d2989a7882a/sources/wenet-models.yaml#/components/schemas/Task")))
+							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/9f1b7c5f64a5bb13c37601f0a7d63f2da399b7ee/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
 	@ApiResponse(
 			responseCode = "200",
 			description = "The updated task",
 			content = @Content(
 					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/571266f9402fb78cf01bf1d9cdb23d2989a7882a/sources/wenet-models.yaml#/components/schemas/Task")))
+							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/9f1b7c5f64a5bb13c37601f0a7d63f2da399b7ee/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
 	@ApiResponse(
 			responseCode = "400",
 			description = "Bad task",

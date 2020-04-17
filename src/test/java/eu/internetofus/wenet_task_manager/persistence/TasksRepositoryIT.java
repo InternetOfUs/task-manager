@@ -32,9 +32,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import eu.internetofus.common.TimeManager;
+import eu.internetofus.common.api.models.wenet.Task;
+import eu.internetofus.common.api.models.wenet.TaskTest;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
-import eu.internetofus.wenet_task_manager.api.tasks.Task;
-import eu.internetofus.wenet_task_manager.api.tasks.TaskTest;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
 
@@ -95,7 +95,7 @@ public class TasksRepositoryIT {
 
 		repository.storeTask(new Task(), testContext.succeeding(storedTask -> {
 
-			repository.searchTask(storedTask.taskId, testContext.succeeding(foundTask -> testContext.verify(() -> {
+			repository.searchTask(storedTask.id, testContext.succeeding(foundTask -> testContext.verify(() -> {
 				assertThat(foundTask).isEqualTo(storedTask);
 				testContext.completeNow();
 			})));
@@ -117,7 +117,7 @@ public class TasksRepositoryIT {
 
 		repository.storeTask(new JsonObject(), testContext.succeeding(storedTask -> {
 
-			repository.searchTaskObject(storedTask.getString("taskId"),
+			repository.searchTaskObject(storedTask.getString("id"),
 					testContext.succeeding(foundTask -> testContext.verify(() -> {
 						assertThat(foundTask).isEqualTo(storedTask);
 						testContext.completeNow();
@@ -149,7 +149,7 @@ public class TasksRepositoryIT {
 				return null;
 			}
 		};
-		task.taskId = "undefined task identifier";
+		task.id = "undefined task identifier";
 		repository.storeTask(task, testContext.failing(failed -> {
 			testContext.completeNow();
 		}));
@@ -171,7 +171,7 @@ public class TasksRepositoryIT {
 		repository.storeTask(task, testContext.succeeding(storedTask -> testContext.verify(() -> {
 
 			assertThat(storedTask).isNotNull();
-			assertThat(storedTask.taskId).isNotEmpty();
+			assertThat(storedTask.id).isNotEmpty();
 			testContext.completeNow();
 		})));
 
@@ -192,7 +192,7 @@ public class TasksRepositoryIT {
 		repository.storeTask(new JsonObject(), testContext.succeeding(storedTask -> testContext.verify(() -> {
 
 			assertThat(storedTask).isNotNull();
-			final String id = storedTask.getString("taskId");
+			final String id = storedTask.getString("id");
 			assertThat(id).isNotEmpty();
 			assertThat(storedTask.getLong("creationTs", 0l)).isNotEqualTo(0).isGreaterThanOrEqualTo(now);
 			testContext.completeNow();
@@ -212,7 +212,7 @@ public class TasksRepositoryIT {
 	public void shouldNotUpdateUndefinedTask(TasksRepository repository, VertxTestContext testContext) {
 
 		final Task task = new Task();
-		task.taskId = "undefined task identifier";
+		task.id = "undefined task identifier";
 		repository.updateTask(task, testContext.failing(failed -> {
 			testContext.completeNow();
 		}));
@@ -230,7 +230,7 @@ public class TasksRepositoryIT {
 	@Test
 	public void shouldNotUpdateUndefinedTaskObject(TasksRepository repository, VertxTestContext testContext) {
 
-		final JsonObject task = new JsonObject().put("taskId", "undefined task identifier");
+		final JsonObject task = new JsonObject().put("id", "undefined task identifier");
 		repository.updateTask(task, testContext.failing(failed -> {
 			testContext.completeNow();
 		}));
@@ -259,7 +259,7 @@ public class TasksRepositoryIT {
 				return null;
 			}
 		};
-		task.taskId = "undefined task identifier";
+		task.id = "undefined task identifier";
 		repository.updateTask(task, testContext.failing(failed -> {
 			testContext.completeNow();
 		}));
@@ -282,11 +282,11 @@ public class TasksRepositoryIT {
 		repository.storeTask(task, testContext.succeeding(stored -> testContext.verify(() -> {
 
 			final Task update = new TaskTest().createModelExample(23);
-			update.taskId = stored.taskId;
+			update.id = stored.id;
 			repository.updateTask(update, testContext.succeeding(empty -> testContext.verify(() -> {
 
-				repository.searchTask(stored.taskId, testContext.succeeding(foundTask -> testContext.verify(() -> {
-					update.taskId = stored.taskId;
+				repository.searchTask(stored.id, testContext.succeeding(foundTask -> testContext.verify(() -> {
+					update.id = stored.id;
 					assertThat(foundTask).isEqualTo(update);
 					testContext.completeNow();
 				})));
@@ -310,8 +310,8 @@ public class TasksRepositoryIT {
 		repository.storeTask(new JsonObject().put("state", "PendingAssignment"),
 				testContext.succeeding(stored -> testContext.verify(() -> {
 
-					final String id = stored.getString("taskId");
-					final JsonObject update = new JsonObject().put("taskId", id).put("state", "Assigned");
+					final String id = stored.getString("id");
+					final JsonObject update = new JsonObject().put("id", id).put("state", "Assigned");
 					repository.updateTask(update, testContext.succeeding(empty -> testContext.verify(() -> {
 
 						repository.searchTaskObject(id, testContext.succeeding(foundTask -> testContext.verify(() -> {
@@ -355,7 +355,7 @@ public class TasksRepositoryIT {
 
 		repository.storeTask(new JsonObject(), testContext.succeeding(stored -> {
 
-			final String id = stored.getString("taskId");
+			final String id = stored.getString("id");
 			repository.deleteTask(id, testContext.succeeding(success -> {
 
 				repository.searchTaskObject(id, testContext.failing(search -> {

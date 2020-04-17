@@ -24,33 +24,44 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.wenet_task_manager.api.tasks;
+package eu.internetofus.common.api.models.wenet;
 
-import org.junit.jupiter.api.extension.ExtendWith;
+import static eu.internetofus.common.api.models.ValidationsTest.assertIsValid;
+
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import eu.internetofus.common.api.models.ModelTestCase;
-import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxTestContext;
 
 /**
- * Test the {@link TaskType}.
+ * Test the components that extends the {@link Material}.
  *
- * @see TaskType
+ * @param <T> material to test
+ *
+ * @see Material
  *
  * @author UDT-IA, IIIA-CSIC
  */
-@ExtendWith(WeNetTaskManagerIntegrationExtension.class)
-public class TaskTypeTest extends ModelTestCase<TaskType> {
+public abstract class MaterialTestCase<T extends Material> extends ModelTestCase<T> {
 
 	/**
-	 * {@inheritDoc}
+	 * Check that the {@link #createModelExample(int)} is valid.
+	 *
+	 * @param index       to verify
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 *
+	 * @see Material#validate(String, io.vertx.core.Vertx)
 	 */
-	@Override
-	public TaskType createModelExample(int index) {
+	@ParameterizedTest(name = "The model example {0} has to be valid")
+	@ValueSource(ints = { 0, 1, 2, 3, 4, 5 })
+	public void shouldExampleBeValid(int index, Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType model = new TaskType();
-		model.name = "Namen " + index;
-		model.description = "Description " + index;
-		return model;
+		final T model = this.createModelExample(index);
+		assertIsValid(model, vertx, testContext);
+
 	}
 
 }

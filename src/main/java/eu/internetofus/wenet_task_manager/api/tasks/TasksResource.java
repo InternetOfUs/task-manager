@@ -32,6 +32,7 @@ import org.tinylog.Logger;
 
 import eu.internetofus.common.api.OperationReponseHandlers;
 import eu.internetofus.common.api.models.Model;
+import eu.internetofus.common.api.models.wenet.Task;
 import eu.internetofus.common.services.WeNetProfileManagerService;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
 import io.vertx.core.AsyncResult;
@@ -116,32 +117,33 @@ public class TasksResource implements Tasks {
 
 		} else {
 
-			task.validate("bad_task", this.profileManager).setHandler(validation -> {
+			// task.validate("bad_task", this.profileManager).setHandler(validation -> {
+			//
+			// if (validation.failed()) {
+			//
+			// final Throwable cause = validation.cause();
+			// Logger.debug(cause, "The {} is not valid.", task);
+			// OperationReponseHandlers.responseFailedWith(resultHandler,
+			// Status.BAD_REQUEST, cause);
+			//
+			// } else {
 
-				if (validation.failed()) {
+			this.repository.storeTask(task, stored -> {
 
-					final Throwable cause = validation.cause();
-					Logger.debug(cause, "The {} is not valid.", task);
+				if (stored.failed()) {
+
+					final Throwable cause = stored.cause();
+					Logger.debug(cause, "Cannot store  {}.", task);
 					OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
 				} else {
 
-					this.repository.storeTask(task, stored -> {
-
-						if (stored.failed()) {
-
-							final Throwable cause = stored.cause();
-							Logger.debug(cause, "Cannot store  {}.", task);
-							OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
-
-						} else {
-
-							OperationReponseHandlers.responseOk(resultHandler, stored.result());
-						}
-					});
+					OperationReponseHandlers.responseOk(resultHandler, stored.result());
 				}
-
 			});
+			// }
+			//
+			// });
 		}
 
 	}
@@ -173,44 +175,47 @@ public class TasksResource implements Tasks {
 
 				} else {
 
-					target.merge(source, "bad_new_task", this.profileManager).setHandler(merge -> {
+					// target.merge(source, "bad_new_task", this.profileManager).setHandler(merge ->
+					// {
+					//
+					// if (merge.failed()) {
+					//
+					// final Throwable cause = merge.cause();
+					// Logger.debug(cause, "Cannot update {} with {}.", target, source);
+					// OperationReponseHandlers.responseFailedWith(resultHandler,
+					// Status.BAD_REQUEST, cause);
+					//
+					// } else {
+					//
+					// final Task merged = merge.result();
+					// if (merged.equals(target)) {
+					//
+					// OperationReponseHandlers.responseWithErrorMessage(resultHandler,
+					// Status.BAD_REQUEST,
+					// "task_to_update_equal_to_original", "You can not update the task '" + taskId
+					// + "', because the new values is equals to the current one.");
+					//
+					// } else {
+					this.repository.updateTask(source, update -> {
 
-						if (merge.failed()) {
+						if (update.failed()) {
 
-							final Throwable cause = merge.cause();
-							Logger.debug(cause, "Cannot update  {} with {}.", target, source);
+							final Throwable cause = update.cause();
+							Logger.debug(cause, "Cannot update  {}.", target);
 							OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
 						} else {
 
-							final Task merged = merge.result();
-							if (merged.equals(target)) {
+							OperationReponseHandlers.responseOk(resultHandler, source);
 
-								OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST,
-										"task_to_update_equal_to_original", "You can not update the task '" + taskId
-												+ "', because the new values is equals to the current one.");
-
-							} else {
-								this.repository.updateTask(merged, update -> {
-
-									if (update.failed()) {
-
-										final Throwable cause = update.cause();
-										Logger.debug(cause, "Cannot update  {}.", target);
-										OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
-
-									} else {
-
-										OperationReponseHandlers.responseOk(resultHandler, merged);
-
-									}
-
-								});
-							}
 						}
-					}
 
-					);
+					});
+					// }
+					// }
+					// }
+					//
+					// );
 
 				}
 			});

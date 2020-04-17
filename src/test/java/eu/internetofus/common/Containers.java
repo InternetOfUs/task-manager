@@ -59,7 +59,7 @@ public interface Containers {
 	/**
 	 * The name of the WeNet profile manager docker container to use.
 	 */
-	String WENET_PROFILE_MANAGER_DOCKER_NAME = "wenet/profile-manager:0.11.0";
+	String WENET_PROFILE_MANAGER_DOCKER_NAME = "wenet/profile-manager:0.12.0";
 
 	/**
 	 * The name of the WeNet profile manager database.
@@ -285,8 +285,8 @@ public interface Containers {
 	static String[] createInteractionProtocolEngineContainersToStartWith(int port, int profileManagerApiPort,
 			int taskManagerApiPort, Network network) {
 
-		final GenericContainer<?> persistenceContainer = Containers.createMongoContainerFor(WENET_PROFILE_MANAGER_DB_NAME,
-				network);
+		final GenericContainer<?> persistenceContainer = Containers
+				.createMongoContainerFor(WENET_INTERACTION_PROTOCOL_ENGINE_DB_NAME, network);
 		persistenceContainer.start();
 
 		return new String[] { "-papi.port=" + port, "-ppersistence.host=localhost",

@@ -24,37 +24,38 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.wenet_task_manager.api.tasks;
+package eu.internetofus.common.api.models.wenet;
+
+import eu.internetofus.common.TimeManager;
+import eu.internetofus.common.api.models.Model;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * The posible states of the task.
+ * A model that has information when it is created and updated.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public enum TaskState {
+@Schema(hidden = true, description = "Generic model for the models that can be created and updated.")
+public class CreateUpdateTsDetails extends Model {
 
 	/**
-	 * When the task is open.
+	 * The instant of the creation.
 	 */
-	Open,
+	@Schema(description = "The time stamp representing the account creation instant.", example = "1563871899")
+	public long _creationTs;
+
 	/**
-	 * When the task is waiting to assign to anyone to do.
+	 * The instant of the last update.
 	 */
-	PendingAssignment,
+	@Schema(description = "The time stamp representing the last update instant.", example = "1563898764")
+	public long _lastUpdateTs;
+
 	/**
-	 * When the task is assigned to an user.
+	 * Create a new model.
 	 */
-	Assigned,
-	/**
-	 * When the task is completed.
-	 */
-	Completed,
-	/**
-	 * When the task is closed because the time to do it has expired.
-	 */
-	Expired,
-	/**
-	 * When the task is cancelled by the requester user.
-	 */
-	Cancelled;
+	public CreateUpdateTsDetails() {
+
+		this._creationTs = this._lastUpdateTs = TimeManager.now();
+
+	}
 }

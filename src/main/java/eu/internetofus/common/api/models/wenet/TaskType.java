@@ -24,35 +24,29 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.wenet_task_manager.api.tasks;
+package eu.internetofus.common.api.models.wenet;
+
+import eu.internetofus.common.api.models.Model;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * A norm operator.
+ * Describe a type of task that can be done by the users.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-// @Schema(description = "The possible norms operators")
-public enum NormOperator {
+@Schema(hidden = true, name = "TaskType", description = "Describe a type of task that can be done by the users.")
+public class TaskType extends Model {
 
 	/**
-	 * Equals operator.
+	 * The identifier of the profile.
 	 */
-	EQUALS,
+	@Schema(description = "The unique identifier of the task type.", example = "4a559aafceb8464")
+	public String id;
+
 	/**
-	 * Less than operator.
+	 * A name that identify the type..
 	 */
-	LESS_THAN,
-	/**
-	 * Greater than operator.
-	 */
-	GREATER_THAN,
-	/**
-	 * Less or equals than operator.
-	 */
-	LESS_EQ_THAN,
-	/**
-	 * Greater or equals than operator.
-	 */
-	GREATER_EQ_THAN;
+	@Schema(description = " A name that identify the type..", example = "Eat together task")
+	public String name;
 
 }

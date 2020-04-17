@@ -29,7 +29,11 @@ package eu.internetofus.common.api.models;
 import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.commons.validator.routines.EmailValidator;
@@ -37,6 +41,10 @@ import org.apache.commons.validator.routines.EmailValidator;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.PhoneNumberUtil.PhoneNumberFormat;
 import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
+
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 
 /**
  * Generic methods to validate the common fields of the models.
@@ -86,6 +94,44 @@ public interface Validations {
 	}
 
 	/**
+	 * Verify a list of string values.
+	 *
+	 * @param codePrefix the prefix of the code to use for the error message.
+	 * @param fieldName  name of the checking field.
+	 * @param maxSize    maximum size of the string.
+	 * @param values     to verify.
+	 *
+	 * @return the verified value.
+	 *
+	 * @throws ValidationErrorException If the value is not a valid list of strings.
+	 */
+	static List<String> validateNullableListStringField(String codePrefix, String fieldName, int maxSize,
+			List<String> values) throws ValidationErrorException {
+
+		if (values == null || values.isEmpty()) {
+
+			return values;
+
+		} else {
+
+			final List<String> validValues = new ArrayList<>();
+			final int max = values.size();
+			for (int index = 0; index < max; index++) {
+
+				final String value = Validations.validateNullableStringField(codePrefix, fieldName + "[" + index + "]", maxSize,
+						values.get(index));
+				if (value != null) {
+
+					validValues.add(value);
+				}
+			}
+
+			return validValues;
+		}
+
+	}
+
+	/**
 	 * Verify a string value.
 	 *
 	 * @param codePrefix the prefix of the code to use for the error message.
@@ -123,7 +169,8 @@ public interface Validations {
 	 *
 	 * @see #validateNullableStringField(String, String, int, String)
 	 */
-	static String validateNullableEmailField(String codePrefix, String fieldName, String value) {
+	static String validateNullableEmailField(String codePrefix, String fieldName, String value)
+			throws ValidationErrorException {
 
 		final String trimmedValue = validateNullableStringField(codePrefix, fieldName, 255, value);
 		if (trimmedValue != null && !EmailValidator.getInstance().isValid(trimmedValue)) {
@@ -148,7 +195,8 @@ public interface Validations {
 	 *
 	 * @see #validateNullableStringField(String, String, int,String)
 	 */
-	static String validateNullableLocaleField(String codePrefix, String fieldName, String value) {
+	static String validateNullableLocaleField(String codePrefix, String fieldName, String value)
+			throws ValidationErrorException {
 
 		final String validStringValue = validateNullableStringField(codePrefix, fieldName, 50, value);
 		if (validStringValue != null) {
@@ -181,7 +229,8 @@ public interface Validations {
 	 *
 	 * @see #validateNullableStringField(String, String,int, String)
 	 */
-	static String validateNullableTelephoneField(String codePrefix, String fieldName, String locale, String value) {
+	static String validateNullableTelephoneField(String codePrefix, String fieldName, String locale, String value)
+			throws ValidationErrorException {
 
 		final String validStringValue = validateNullableStringField(codePrefix, fieldName, 50, value);
 		if (validStringValue != null) {
@@ -231,7 +280,8 @@ public interface Validations {
 	 *
 	 * @see #validateNullableStringField(String, String,int, String)
 	 */
-	static String validateNullableURLField(String codePrefix, String fieldName, String value) {
+	static String validateNullableURLField(String codePrefix, String fieldName, String value)
+			throws ValidationErrorException {
 
 		String validStringValue = validateNullableStringField(codePrefix, fieldName, 255, value);
 		if (validStringValue != null) {
@@ -260,8 +310,11 @@ public interface Validations {
 	 * @param value      to verify.
 	 *
 	 * @return the verified date.
+	 *
+	 * @throws ValidationErrorException If the value is not a valid date.
 	 */
-	static String validateNullableDateField(String codePrefix, String fieldName, DateTimeFormatter format, String value) {
+	static String validateNullableStringDateField(String codePrefix, String fieldName, DateTimeFormatter format,
+			String value) throws ValidationErrorException {
 
 		String validStringValue = validateNullableStringField(codePrefix, fieldName, 255, value);
 		if (validStringValue != null) {
@@ -279,6 +332,123 @@ public interface Validations {
 
 		}
 		return validStringValue;
+	}
+
+	/**
+	 * Validate a fields that contains a list of models.
+	 *
+	 * @param models     to validate.
+	 * @param codePrefix the prefix of the code to use for the error message.
+	 * @param vertx      the event bus infrastructure to use.
+	 *
+	 *
+	 * @return the function that can be composed with the future that is validating
+	 *         the model of the filed.
+	 *
+	 * @see ValidationErrorException
+	 */
+	static Function<Void, Future<Void>> validate(List<? extends Validable> models, String codePrefix, Vertx vertx) {
+
+		return mapper -> {
+			final Promise<Void> promise = Promise.promise();
+			Future<Void> future = promise.future();
+			if (models != null) {
+
+				final ListIterator<? extends Validable> iterator = models.listIterator();
+				while (iterator.hasNext()) {
+
+					final Validable model = iterator.next();
+					if (model == null) {
+
+						iterator.remove();
+
+					} else {
+
+						final int index = iterator.previousIndex();
+						final String modelPrefix = codePrefix + "[" + index + "]";
+						future = future.compose(elementMapper -> model.validate(modelPrefix, vertx));
+						future = future.compose(elementMapper -> {
+
+							final int firstIndex = models.indexOf(model);
+							if (firstIndex != index) {
+
+								return Future.failedFuture(new ValidationErrorException(modelPrefix,
+										"This model is already defined at '" + firstIndex + "'."));
+
+							} else {
+
+								return Future.succeededFuture();
+							}
+
+						});
+					}
+
+				}
+
+			}
+
+			promise.complete();
+
+			return future;
+		};
+	}
+
+	/**
+	 * Validate that the value is a valid time stamp.
+	 *
+	 * @param codePrefix    the prefix of the code to use for the error message.
+	 * @param fieldName     name of the checking field.
+	 * @param value         to verify.
+	 * @param from          the minimum value that the time stamp can have. If it is
+	 *                      {@code null}, it uses {@code 0}.
+	 * @param fromInclusive this is{@code true} if the time stamp can be equals to
+	 *                      the from value.
+	 * @param to            the maximum value that the time stamp can have. If it is
+	 *                      {@code null}, it uses {@link Long#MAX_VALUE}.
+	 * @param toInclusive   this is{@code true} if the time stamp can be equals to
+	 *                      the to value.
+	 *
+	 * @return the valid time stamp value.
+	 *
+	 * @throws ValidationErrorException If the value is not a valid time stamp.
+	 */
+	static Long validateNullableTimeStamp(String codePrefix, String fieldName, Long value, Long from,
+			boolean fromInclusive, Long to, boolean toInclusive) throws ValidationErrorException {
+
+		if (value != null) {
+			long minValue = 0;
+			if (from != null) {
+
+				minValue = from;
+			}
+			if (fromInclusive) {
+				minValue--;
+			}
+			minValue = Math.max(0, minValue - 1);
+			long maxValue = Long.MAX_VALUE;
+			if (to != null) {
+
+				maxValue = to;
+				if (!toInclusive) {
+
+					maxValue--;
+				}
+			}
+			maxValue = Math.max(minValue + 1, maxValue);
+
+			if (value > minValue) {
+
+				throw new ValidationErrorException(codePrefix + "." + fieldName,
+						"The time stamp '" + value + "' has to be greater than '" + minValue + "'.");
+
+			} else if (value <= maxValue) {
+
+				throw new ValidationErrorException(codePrefix + "." + fieldName,
+						"The time stamp '" + value + "' has to be less than or equal to '" + maxValue + "'.");
+
+			}
+		}
+		return value;
 	}
 
 }

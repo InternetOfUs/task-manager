@@ -38,7 +38,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 
-import eu.internetofus.common.api.models.Model;
+import eu.internetofus.common.api.models.wenet.Task;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
 import io.vertx.core.AsyncResult;
@@ -91,35 +91,6 @@ public class TasksResourceTest {
 		final ArgumentCaptor<Handler<AsyncResult<Task>>> storeHandler = ArgumentCaptor.forClass(Handler.class);
 		verify(resource.repository, times(1)).storeTask(any(), storeHandler.capture());
 		storeHandler.getValue().handle(Future.failedFuture("Search task error"));
-
-	}
-
-	/**
-	 * Check fail update task because repository can not update it.
-	 *
-	 * @param testContext test context.
-	 */
-	@Test
-	public void shouldFailUpdateTaskBecasueRepositoryFailsToUpdate(VertxTestContext testContext) {
-
-		final TasksResource resource = createTasksResource();
-		final OperationRequest context = mock(OperationRequest.class);
-		resource.updateTask("taskId", new JsonObject().put("state", TaskState.Cancelled), context,
-				testContext.succeeding(update -> {
-
-					assertThat(update.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-					testContext.completeNow();
-				}));
-
-		@SuppressWarnings("unchecked")
-		final ArgumentCaptor<Handler<AsyncResult<Task>>> searchHandler = ArgumentCaptor.forClass(Handler.class);
-		verify(resource.repository, times(1)).searchTask(any(), searchHandler.capture());
-		searchHandler.getValue()
-				.handle(Future.succeededFuture(Model.fromJsonObject(new JsonObject().put("taskId", "taskId"), Task.class)));
-		@SuppressWarnings("unchecked")
-		final ArgumentCaptor<Handler<AsyncResult<Void>>> updateHandler = ArgumentCaptor.forClass(Handler.class);
-		verify(resource.repository, times(1)).updateTask((Task) any(), updateHandler.capture());
-		updateHandler.getValue().handle(Future.failedFuture("Update task error"));
 
 	}
 

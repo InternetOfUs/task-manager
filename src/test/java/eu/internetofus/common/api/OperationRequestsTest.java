@@ -28,13 +28,16 @@ package eu.internetofus.common.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Arrays;
+
 import javax.ws.rs.core.HttpHeaders;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import eu.internetofus.common.api.OperationRequests;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.OperationRequest;
 
@@ -64,6 +67,37 @@ public class OperationRequestsTest {
 		}
 		final OperationRequest request = new OperationRequest(new JsonObject().put("headers", headers));
 		assertThat(OperationRequests.acceptedLanguageIn(request, "en", "ca")).isEqualTo("en");
+
+	}
+
+	/**
+	 * Check that convert a {@code null} array to a {@code null} list.
+	 */
+	@Test
+	public void shouldNullArrayBeNullListString() {
+
+		assertThat(OperationRequests.toListString(null)).isNull();
+
+	}
+
+	/**
+	 * Check that convert an empty array to a {@code null} list.
+	 */
+	@Test
+	public void shouldEmptyArrayBeNullListString() {
+
+		assertThat(OperationRequests.toListString(new JsonArray())).isNull();
+
+	}
+
+	/**
+	 * Check that convert an empty array to a string list.
+	 */
+	@Test
+	public void shouldArrayBeConvertedToListString() {
+
+		assertThat(OperationRequests.toListString(new JsonArray().add("value").add("true").add("3")))
+				.isEqualTo(Arrays.asList("value", "true", "3"));
 
 	}
 

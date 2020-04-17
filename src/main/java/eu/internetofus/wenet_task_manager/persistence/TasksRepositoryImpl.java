@@ -68,7 +68,10 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 	public void searchTaskObject(String id, Handler<AsyncResult<JsonObject>> searchHandler) {
 
 		final JsonObject query = new JsonObject().put("_id", id);
-		this.findOneDocument(TASKS_COLLECTION, query, null, map -> map.put("taskId", map.remove("_id")), searchHandler);
+		this.findOneDocument(TASKS_COLLECTION, query, null, found -> {
+			final String _id = (String) found.remove("_id");
+			return found.put("id", _id);
+		}, searchHandler);
 
 	}
 
@@ -78,9 +81,20 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 	@Override
 	public void storeTask(JsonObject task, Handler<AsyncResult<JsonObject>> storeHandler) {
 
+		final String id = (String) task.remove("id");
+		if (id != null) {
+
+			task.put("_id", id);
+		}
 		final long now = TimeManager.now();
-		task.put("creationTs", now);
-		this.storeOneDocument(TASKS_COLLECTION, task, "taskId", storeHandler);
+		task.put("_creationTs", now);
+		task.put("_lastUpdateTs", now);
+		this.storeOneDocument(TASKS_COLLECTION, task, stored -> {
+
+			final String _id = (String) stored.remove("_id");
+			return stored.put("id", _id);
+
+		}, storeHandler);
 
 	}
 
@@ -90,8 +104,10 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 	@Override
 	public void updateTask(JsonObject task, Handler<AsyncResult<Void>> updateHandler) {
 
-		final Object id = task.remove("taskId");
+		final Object id = task.remove("id");
 		final JsonObject query = new JsonObject().put("_id", id);
+		final long now = TimeManager.now();
+		task.put("_lastUpdateTs", now);
 		this.updateOneDocument(TASKS_COLLECTION, query, task, updateHandler);
 
 	}

@@ -24,21 +24,32 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.wenet_task_manager.services;
+package eu.internetofus.common.services;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import eu.internetofus.common.services.WeNetProfileManagerServiceImpl;
-import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
+import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxExtension;
 
 /**
- * Test the {@link WeNetProfileManagerServiceImpl}.
- *
- * @see WeNetProfileManagerServiceImpl
+ * Test the {@link WeNetProfileManagerServiceOnMemory}.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-@ExtendWith(WeNetTaskManagerIntegrationExtension.class)
-public class WeNetProfileManagerServiceImplTest {
+@ExtendWith(VertxExtension.class)
+public class WeNetProfileManagerServiceOnMemoryTest extends WeNetProfileManagerServiceTestCase {
+
+	/**
+	 * Register the necessary services before to test.
+	 *
+	 * @param vertx event bus to register the necessary services.
+	 */
+	@BeforeEach
+	public void registerServices(Vertx vertx) {
+
+		WeNetProfileManagerServiceOnMemory.register(vertx);
+
+	}
 
 }
