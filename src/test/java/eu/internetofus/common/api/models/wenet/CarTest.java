@@ -218,6 +218,27 @@ public class CarTest extends MaterialTestCase<Car> {
 	}
 
 	/**
+	 * Check that merge with {@code null} source.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 *
+	 * @see Car#merge(Material, String, Vertx)
+	 */
+	@Test
+	public void shouldMergeCarWithNull(Vertx vertx, VertxTestContext testContext) {
+
+		final Car target = this.createModelExample(1);
+		target.mergeCar(null, "codePrefix", vertx).onComplete(testContext.succeeding(merged -> testContext.verify(() -> {
+
+			assertThat(merged).isSameAs(target);
+			testContext.completeNow();
+
+		})));
+
+	}
+
+	/**
 	 * Check that merge only car type.
 	 *
 	 * @param vertx       event bus to use.

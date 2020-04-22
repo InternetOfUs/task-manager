@@ -102,6 +102,23 @@ public class TaskAttributeTest extends ModelTestCase<TaskAttribute> {
 	}
 
 	/**
+	 * Check that the attribute is not valid without a name.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 *
+	 * @see TaskAttribute#validate(String, Vertx)
+	 */
+	@Test
+	public void shouldNotBeValidWithoutAName(Vertx vertx, VertxTestContext testContext) {
+
+		final TaskAttribute model = new TaskAttribute();
+		model.value = ValidationsTest.STRING_256;
+		assertIsNotValid(model, "name", vertx, testContext);
+
+	}
+
+	/**
 	 * Check that the name is not valid if has a large name.
 	 *
 	 * @param vertx       event bus to use.
@@ -132,6 +149,24 @@ public class TaskAttributeTest extends ModelTestCase<TaskAttribute> {
 		final TaskAttribute target = new TaskAttribute();
 		final TaskAttribute source = new TaskAttribute();
 		source.name = ValidationsTest.STRING_256;
+		assertCannotMerge(target, source, "name", vertx, testContext);
+
+	}
+
+	/**
+	 * Check that can not merge is a name is not defined.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 *
+	 * @see TaskAttribute#merge(TaskAttribute, String, Vertx)
+	 */
+	@Test
+	public void shouldNotMergeWithoutAName(Vertx vertx, VertxTestContext testContext) {
+
+		final TaskAttribute target = new TaskAttribute();
+		final TaskAttribute source = new TaskAttribute();
+		source.value = ValidationsTest.STRING_256;
 		assertCannotMerge(target, source, "name", vertx, testContext);
 
 	}
@@ -185,6 +220,22 @@ public class TaskAttributeTest extends ModelTestCase<TaskAttribute> {
 
 		final TaskAttribute target = this.createModelExample(1);
 		assertCanMerge(target, null, vertx, testContext, merged -> assertThat(merged).isSameAs(target));
+
+	}
+
+	/**
+	 * Check that can merge with an empty model.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 *
+	 * @see TaskAttribute#merge(TaskAttribute, String, Vertx)
+	 */
+	@Test
+	public void shouldMergeWithEmptyModel(Vertx vertx, VertxTestContext testContext) {
+
+		final TaskAttribute target = this.createModelExample(1);
+		assertCanMerge(target, new TaskAttribute(), vertx, testContext, merged -> assertThat(merged).isEqualTo(target));
 
 	}
 

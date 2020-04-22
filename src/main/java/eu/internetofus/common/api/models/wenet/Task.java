@@ -35,6 +35,7 @@ import eu.internetofus.common.api.models.Validable;
 import eu.internetofus.common.api.models.ValidationErrorException;
 import eu.internetofus.common.api.models.Validations;
 import eu.internetofus.common.services.WeNetProfileManagerService;
+import eu.internetofus.common.services.WeNetServiceApiService;
 import eu.internetofus.common.services.WeNetTaskManagerService;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -156,7 +157,7 @@ public class Task extends CreateUpdateTsDetails implements Validable, Mergeable<
 					return verifyNotRepeatedIdPromise.future();
 				});
 			}
-			this.taskTypeId = Validations.validateNullableStringField(codePrefix, "taskTypeId", 255, this.id);
+			this.taskTypeId = Validations.validateNullableStringField(codePrefix, "taskTypeId", 255, this.taskTypeId);
 			if (this.taskTypeId != null) {
 
 				future = future.compose(mapper -> {
@@ -177,7 +178,7 @@ public class Task extends CreateUpdateTsDetails implements Validable, Mergeable<
 					return verifyNotRepeatedIdPromise.future();
 				});
 			}
-			this.requesterId = Validations.validateNullableStringField(codePrefix, "requesterId", 255, this.id);
+			this.requesterId = Validations.validateNullableStringField(codePrefix, "requesterId", 255, this.requesterId);
 			if (this.requesterId != null) {
 
 				future = future.compose(mapper -> {
@@ -193,6 +194,27 @@ public class Task extends CreateUpdateTsDetails implements Validable, Mergeable<
 
 							verifyNotRepeatedIdPromise.fail(new ValidationErrorException(codePrefix + ".requesterId",
 									"The '" + this.requesterId + "' is not defined."));
+						}
+					});
+					return verifyNotRepeatedIdPromise.future();
+				});
+			}
+			this.appId = Validations.validateNullableStringField(codePrefix, "appId", 255, this.appId);
+			if (this.appId != null) {
+
+				future = future.compose(mapper -> {
+
+					final Promise<Void> verifyNotRepeatedIdPromise = Promise.promise();
+					WeNetServiceApiService.createProxy(vertx).retrieveApp(this.appId, app -> {
+
+						if (!app.failed()) {
+
+							verifyNotRepeatedIdPromise.complete();
+
+						} else {
+
+							verifyNotRepeatedIdPromise.fail(
+									new ValidationErrorException(codePrefix + ".appId", "The '" + this.appId + "' is not defined."));
 						}
 					});
 					return verifyNotRepeatedIdPromise.future();

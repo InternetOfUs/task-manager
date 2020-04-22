@@ -40,6 +40,7 @@ import eu.internetofus.common.api.models.wenet.RelevantLocation;
 import eu.internetofus.common.api.models.wenet.Routine;
 import eu.internetofus.common.api.models.wenet.SocialPractice;
 import eu.internetofus.common.api.models.wenet.TaskAttribute;
+import eu.internetofus.common.api.models.wenet.TaskAttributeType;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -340,6 +341,29 @@ public interface Merges {
 			}
 
 		};
+
+	}
+
+	/**
+	 * Merge two list of task attribute types.
+	 *
+	 * @param targetTaskAttributeTypes target task attribute types to merge.
+	 * @param sourceTaskAttributeTypes source task attribute types to merge.
+	 * @param codePrefix               prefix for the error code.
+	 * @param vertx                    the event bus infrastructure to use.
+	 * @param setter                   function to set the merged field list into
+	 *                                 the merged model.
+	 *
+	 * @return the future that will provide the merged list of task attribute types.
+	 */
+	static <M> Function<M, Future<M>> mergeTaskAttributeTypes(List<TaskAttributeType> targetTaskAttributeTypes,
+			List<TaskAttributeType> sourceTaskAttributeTypes, String codePrefix, Vertx vertx,
+			BiConsumer<M, List<TaskAttributeType>> setter) {
+
+		return Merges.mergeFieldList(targetTaskAttributeTypes, sourceTaskAttributeTypes, codePrefix, vertx,
+				taskattributetype -> taskattributetype.name != null, (targetTaskAttributeType,
+						sourceTaskAttributeType) -> targetTaskAttributeType.name.equals(sourceTaskAttributeType.name),
+				setter);
 
 	}
 

@@ -28,6 +28,7 @@ package eu.internetofus.common.services;
 
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -40,23 +41,23 @@ import io.vertx.serviceproxy.ServiceBinder;
  * @author UDT-IA, IIIA-CSIC
  */
 @ProxyGen
-public interface WeNetInteractionProtocolEngineService {
+public interface WeNetServiceApiService {
 
 	/**
 	 * The address of this service.
 	 */
-	String ADDRESS = "wenet_common.service.InteractionProtocolEngine";
+	String ADDRESS = "wenet_common.service.ServiceApi";
 
 	/**
-	 * Create a proxy of the {@link WeNetInteractionProtocolEngineService}.
+	 * Create a proxy of the {@link WeNetServiceApiService}.
 	 *
 	 * @param vertx where the service has to be used.
 	 *
 	 * @return the task.
 	 */
-	static WeNetInteractionProtocolEngineService createProxy(Vertx vertx) {
+	static WeNetServiceApiService createProxy(Vertx vertx) {
 
-		return new WeNetInteractionProtocolEngineServiceVertxEBProxy(vertx, WeNetInteractionProtocolEngineService.ADDRESS);
+		return new WeNetServiceApiServiceVertxEBProxy(vertx, WeNetServiceApiService.ADDRESS);
 	}
 
 	/**
@@ -68,33 +69,42 @@ public interface WeNetInteractionProtocolEngineService {
 	 */
 	static void register(Vertx vertx, WebClient client, JsonObject conf) {
 
-		new ServiceBinder(vertx).setAddress(WeNetInteractionProtocolEngineService.ADDRESS).register(
-				WeNetInteractionProtocolEngineService.class, new WeNetInteractionProtocolEngineServiceImpl(client, conf));
+		new ServiceBinder(vertx).setAddress(WeNetServiceApiService.ADDRESS).register(WeNetServiceApiService.class,
+				new WeNetServiceApiServiceImpl(client, conf));
 
 	}
 
 	/**
-	 * Return a community.
+	 * Return an app.
 	 *
-	 * @param id              identifier of the community to get.
+	 * @param id              identifier of the app to get.
 	 * @param retrieveHandler handler to manage the retrieve process.
 	 */
-	void retrieveCommunity(String id, Handler<AsyncResult<JsonObject>> retrieveHandler);
+	void retrieveApp(String id, Handler<AsyncResult<JsonObject>> retrieveHandler);
 
 	/**
-	 * Create a community.
+	 * Defined method only for testing and can store an APP. ATTENTIOMN: this method
+	 * is not defined on the API, so by default it fails.
 	 *
-	 * @param community     to create.
+	 * @param app           to create.
 	 * @param createHandler handler to manage the creation process.
 	 */
-	void createCommunity(JsonObject community, Handler<AsyncResult<JsonObject>> createHandler);
+	default void createApp(JsonObject app, Handler<AsyncResult<JsonObject>> createHandler) {
+
+		createHandler.handle(Future.failedFuture("The API does not allow to create an APP"));
+
+	}
 
 	/**
-	 * Delete a community.
+	 * Defined method only for testing and can delete an APP. ATTENTIOMN: this
+	 * method is not defined on the API, so by default it fails.
 	 *
-	 * @param id            identifier of the community to remove.
+	 * @param id            identifier of the application to remove.
 	 * @param deleteHandler handler to manage the delete process.
 	 */
-	void deleteCommunity(String id, Handler<AsyncResult<Void>> deleteHandler);
+	default void deleteApp(String id, Handler<AsyncResult<Void>> deleteHandler) {
+
+		deleteHandler.handle(Future.failedFuture("The API does not allow to delete an APP."));
+	}
 
 }

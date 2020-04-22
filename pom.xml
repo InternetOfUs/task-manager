@@ -52,7 +52,7 @@
     <exec-maven-plugin-version>1.6.0</exec-maven-plugin-version>
     <build-helper-maven-plugin-version>3.0.0</build-helper-maven-plugin-version>
     <!-- Library versions -->
-    <io.vertx-version>3.8.5</io.vertx-version>
+    <io.vertx-version>3.9.0</io.vertx-version>
     <main.verticle>eu.internetofus.wenet_profile_manager.MainVerticle</main.verticle>
     <io.swagger-version>2.1.1</io.swagger-version>
     <commons-validator-version>1.6</commons-validator-version>

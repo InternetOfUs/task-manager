@@ -101,4 +101,15 @@ public class OperationRequestsTest {
 
 	}
 
+	/**
+	 * Check that return an empty query object when it is not defiend.
+	 */
+	@Test
+	public void shouldEmptyQueryObjectWhenNotDefined() {
+
+		final OperationRequest context = new OperationRequest(new JsonObject());
+		assertThat(OperationRequests.getQueryParamters(context)).isEqualTo(new JsonObject());
+
+	}
+
 }

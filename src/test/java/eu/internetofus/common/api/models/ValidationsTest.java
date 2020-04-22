@@ -28,13 +28,21 @@ package eu.internetofus.common.api.models;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.atIndex;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import eu.internetofus.common.TimeManager;
+import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 
 /**
@@ -44,6 +52,7 @@ import io.vertx.junit5.VertxTestContext;
  *
  * @author UDT-IA, IIIA-CSIC
  */
+@ExtendWith(VertxExtension.class)
 public class ValidationsTest {
 
 	/**
@@ -496,11 +505,565 @@ public class ValidationsTest {
 	 *      DateTimeFormatter,String)
 	 */
 	@Test
-	public void shouldNotBeValidABadIsoinstanceValue() {
+	public void shouldNotBeValidABadIsoInstanceValue() {
 
 		assertThat(
 				assertThrows(ValidationErrorException.class, () -> Validations.validateNullableStringDateField("codePrefix",
 						"fieldName", DateTimeFormatter.ISO_INSTANT, "bad date")).getCode()).isEqualTo("codePrefix.fieldName");
+	}
+
+	/**
+	 * Check that a field can not be a null value.
+	 *
+	 * @see Validations#validateStringField(String, String, int, String, String...)
+	 */
+	@Test
+	public void shouldNullStringFieldNotBeValid() {
+
+		assertThat(assertThrows(ValidationErrorException.class,
+				() -> Validations.validateStringField("codePrefix", "fieldName", 255, null)).getCode())
+						.isEqualTo("codePrefix.fieldName");
+
+	}
+
+	/**
+	 * Check that a field can not be an empty value.
+	 *
+	 * @see Validations#validateStringField(String, String, int, String, String...)
+	 */
+	@Test
+	public void shouldEmptyStringFieldNotBeValid() {
+
+		assertThat(assertThrows(ValidationErrorException.class,
+				() -> Validations.validateStringField("codePrefix", "fieldName", 255, "")).getCode())
+						.isEqualTo("codePrefix.fieldName");
+
+	}
+
+	/**
+	 * Check that a field can not be a white value.
+	 *
+	 * @see Validations#validateStringField(String, String, int, String, String...)
+	 */
+	@Test
+	public void shouldWhiteStringFieldNotBeValid() {
+
+		assertThat(assertThrows(ValidationErrorException.class,
+				() -> Validations.validateStringField("codePrefix", "fieldName", 255, "       ")).getCode())
+						.isEqualTo("codePrefix.fieldName");
+
+	}
+
+	/**
+	 * Check that a field can not be a white value.
+	 *
+	 * @see Validations#validateStringField(String, String, int, String, String...)
+	 */
+	@Test
+	public void shouldStringFieldNotBeValidBecauseIsTooLong() {
+
+		assertThat(assertThrows(ValidationErrorException.class,
+				() -> Validations.validateStringField("codePrefix", "fieldName", 5, "123456")).getCode())
+						.isEqualTo("codePrefix.fieldName");
+
+	}
+
+	/**
+	 * Check that a field can not be a white value.
+	 *
+	 * @see Validations#validateStringField(String, String, int, String, String...)
+	 */
+	@Test
+	public void shouldStringFieldNotBeValidBecauseValueNotAllowed() {
+
+		assertThat(assertThrows(ValidationErrorException.class,
+				() -> Validations.validateStringField("codePrefix", "fieldName", 255, "   value    ", "1", "2", "3")).getCode())
+						.isEqualTo("codePrefix.fieldName");
+
+	}
+
+	/**
+	 * Check that a non empty string is valid.
+	 *
+	 * @see Validations#validateStringField(String, String, int, String, String...)
+	 */
+	@Test
+	public void shouldStringBeValid() {
+
+		assertThatCode(() -> assertThat(Validations.validateStringField("codePrefix", "fieldName", 255, "   value    "))
+				.isEqualTo("value")).doesNotThrowAnyException();
+	}
+
+	/**
+	 * Check that a non empty string is valid because is defined in the possible
+	 * values.
+	 *
+	 * @see Validations#validateStringField(String, String, int, String, String...)
+	 */
+	@Test
+	public void shouldStringBeValidBecauseIsAPosisbleValue() {
+
+		assertThatCode(() -> assertThat(
+				Validations.validateStringField("codePrefix", "fieldName", 255, "   value    ", "val", "lue", "value"))
+						.isEqualTo("value")).doesNotThrowAnyException();
+	}
+
+	/**
+	 * Check that a non empty string is valid.
+	 *
+	 * @see Validations#validateStringField(String, String, int, String, String...)
+	 */
+	@Test
+	public void shouldStringBeValidBecauseIsNotEmpty() {
+
+		assertThatCode(() -> assertThat(
+				Validations.validateStringField("codePrefix", "fieldName", 255, "   value   ", (String[]) null))
+						.isEqualTo("value")).doesNotThrowAnyException();
+	}
+
+	/**
+	 * Check that a {@code null} time stamp is valid.
+	 *
+	 * @see Validations#validateNullableTimeStamp(String, String, Long, Long,
+	 *      boolean, Long, boolean)
+	 */
+	@Test
+	public void shouldNullTimeStampBeValid() {
+
+		assertThatCode(() -> assertThat(
+				Validations.validateNullableTimeStamp("codePrefix", "fieldName", null, TimeManager.now(), true, null, false))
+						.isNull()).doesNotThrowAnyException();
+	}
+
+	/**
+	 * Check that a value that is valid it it is equals to the inferior limit.
+	 *
+	 * @see Validations#validateNullableTimeStamp(String, String, Long, Long,
+	 *      boolean, Long, boolean)
+	 */
+	@Test
+	public void shouldTimeStampBeValidEqualsToInferiorLimit() {
+
+		assertThatCode(
+				() -> assertThat(Validations.validateNullableTimeStamp("codePrefix", "fieldName", 0l, 0l, true, 10l, false))
+						.isEqualTo(0l)).doesNotThrowAnyException();
+	}
+
+	/**
+	 * Check that a value that is not valid it it is equals to the inferior limit.
+	 *
+	 * @see Validations#validateNullableTimeStamp(String, String, Long, Long,
+	 *      boolean, Long, boolean)
+	 */
+	@Test
+	public void shouldTimeStampNotBeValidEqualsToInferiorLimit() {
+
+		assertThat(assertThrows(ValidationErrorException.class,
+				() -> Validations.validateNullableTimeStamp("codePrefix", "fieldName", 5l, 5l, false, 10l, true)).getCode())
+						.isEqualTo("codePrefix.fieldName");
+	}
+
+	/**
+	 * Check that a value that is not valid it it is equals to the inferior limit.
+	 *
+	 * @see Validations#validateNullableTimeStamp(String, String, Long, Long,
+	 *      boolean, Long, boolean)
+	 */
+	@Test
+	public void shouldTimeStampNotBeValidEqualsToDefaultInferiorLimit() {
+
+		assertThat(assertThrows(ValidationErrorException.class,
+				() -> Validations.validateNullableTimeStamp("codePrefix", "fieldName", 0l, null, false, 10l, true)).getCode())
+						.isEqualTo("codePrefix.fieldName");
+	}
+
+	/**
+	 * Check that a value that is valid it it is equals to the superior limit.
+	 *
+	 * @see Validations#validateNullableTimeStamp(String, String, Long, Long,
+	 *      boolean, Long, boolean)
+	 */
+	@Test
+	public void shouldTimeStampBeValidEqualsToSuperiorLimit() {
+
+		assertThatCode(
+				() -> assertThat(Validations.validateNullableTimeStamp("codePrefix", "fieldName", 10l, 0l, true, 10l, true))
+						.isEqualTo(10l)).doesNotThrowAnyException();
+	}
+
+	/**
+	 * Check that a value that is not valid it it is equals to the superior limit.
+	 *
+	 * @see Validations#validateNullableTimeStamp(String, String, Long, Long,
+	 *      boolean, Long, boolean)
+	 */
+	@Test
+	public void shouldTimeStampNotBeValidEqualsToSuperiorLimit() {
+
+		assertThat(assertThrows(ValidationErrorException.class,
+				() -> Validations.validateNullableTimeStamp("codePrefix", "fieldName", 10l, 0l, false, 10l, false)).getCode())
+						.isEqualTo("codePrefix.fieldName");
+	}
+
+	/**
+	 * Check that a value that is less than 0 is not a valid time stamp.
+	 *
+	 * @see Validations#validateNullableTimeStamp(String, String, Long, Long,
+	 *      boolean, Long, boolean)
+	 */
+	@Test
+	public void shouldTimeStampNotBeValidBecauseIsLessThanZero() {
+
+		assertThat(assertThrows(ValidationErrorException.class,
+				() -> Validations.validateNullableTimeStamp("codePrefix", "fieldName", -1l, -100l, false, null, false))
+						.getCode()).isEqualTo("codePrefix.fieldName");
+	}
+
+	/**
+	 * Check that a value that is the default limits is valid.
+	 *
+	 * @see Validations#validateNullableTimeStamp(String, String, Long, Long,
+	 *      boolean, Long, boolean)
+	 */
+	@Test
+	public void shouldTimeStampBeValidEqualsInDefaultLimits() {
+
+		assertThatCode(
+				() -> assertThat(Validations.validateNullableTimeStamp("codePrefix", "fieldName", 10l, null, true, null, true))
+						.isEqualTo(10l)).doesNotThrowAnyException();
+	}
+
+	/**
+	 * Check that a value that is the default limits is valid.
+	 *
+	 * @see Validations#validateNullableTimeStamp(String, String, Long, Long,
+	 *      boolean, Long, boolean)
+	 */
+	@Test
+	public void shouldTimeStampNotBeValidEqualsInDefaultInferiorLimit() {
+
+		assertThat(assertThrows(ValidationErrorException.class,
+				() -> Validations.validateNullableTimeStamp("codePrefix", "fieldName", 0l, null, false, null, false)).getCode())
+						.isEqualTo("codePrefix.fieldName");
+
+	}
+
+	/**
+	 * Check that a value that is the default limits is valid.
+	 *
+	 * @see Validations#validateNullableTimeStamp(String, String, Long, Long,
+	 *      boolean, Long, boolean)
+	 */
+	@Test
+	public void shouldTimeStampBeValidEqualsInDefaultSuperiorLimit() {
+
+		assertThatCode(() -> assertThat(
+				Validations.validateNullableTimeStamp("codePrefix", "fieldName", Long.MAX_VALUE, null, false, null, true))
+						.isEqualTo(Long.MAX_VALUE)).doesNotThrowAnyException();
+	}
+
+	/**
+	 * Check that a value that is the default limits is valid.
+	 *
+	 * @see Validations#validateNullableTimeStamp(String, String, Long, Long,
+	 *      boolean, Long, boolean)
+	 */
+	@Test
+	public void shouldTimeStampNotBeValidEqualsInDefaultSuperiorLimit() {
+
+		assertThat(assertThrows(ValidationErrorException.class, () -> Validations.validateNullableTimeStamp("codePrefix",
+				"fieldName", Long.MAX_VALUE, null, false, null, false)).getCode()).isEqualTo("codePrefix.fieldName");
+	}
+
+	/**
+	 * Check that is valid a {@code null} as a nullable string list.
+	 *
+	 * @see Validations#validateNullableListStringField(String, String, int,
+	 *      java.util.List)
+	 */
+	@Test
+	public void shouldSuccessValidateNullableListStringFieldWithNull() {
+
+		assertThatCode(
+				() -> assertThat(Validations.validateNullableListStringField("codePrefix", "fieldName", 255, null)).isNull())
+						.doesNotThrowAnyException();
+	}
+
+	/**
+	 * Check that is valid a empty list as a nullable string list.
+	 *
+	 * @see Validations#validateNullableListStringField(String, String, int,
+	 *      java.util.List)
+	 */
+	@Test
+	public void shouldSuccessValidateNullableListStringFieldWithEmptyList() {
+
+		assertThatCode(
+				() -> assertThat(Validations.validateNullableListStringField("codePrefix", "fieldName", 255, new ArrayList<>()))
+						.isEmpty()).doesNotThrowAnyException();
+	}
+
+	/**
+	 * Check that is valid a list with some strings.
+	 *
+	 * @see Validations#validateNullableListStringField(String, String, int,
+	 *      java.util.List)
+	 */
+	@Test
+	public void shouldSuccessValidateNullableListStringFieldWithSomeValues() {
+
+		final List<String> values = new ArrayList<>();
+		values.add(null);
+		values.add("                 ");
+		values.add("  123         ");
+		values.add("  12345         ");
+		values.add(null);
+		values.add("  1 3         ");
+		values.add("                 ");
+
+		assertThatCode(() -> assertThat(Validations.validateNullableListStringField("codePrefix", "fieldName", 5, values))
+				.hasSize(3).contains("123", atIndex(0)).contains("12345", atIndex(1)).contains("1 3", atIndex(2)))
+						.doesNotThrowAnyException();
+	}
+
+	/**
+	 * Check that is not valid a list with large strings.
+	 *
+	 * @see Validations#validateNullableListStringField(String, String, int,
+	 *      java.util.List)
+	 */
+	@Test
+	public void shouldFailValidateNullableListStringFieldWithLargeStrings() {
+
+		final List<String> values = new ArrayList<>();
+		values.add(null);
+		values.add("                 ");
+		values.add("  123         ");
+		values.add("  1234567         ");
+		values.add(null);
+		values.add("                 ");
+		assertThat(assertThrows(ValidationErrorException.class,
+				() -> Validations.validateNullableListStringField("codePrefix", "fieldName", 5, values)).getCode())
+						.isEqualTo("codePrefix.fieldName[3]");
+	}
+
+	/**
+	 * A null list of models has to be valid.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 *
+	 * @see Validations#validate(List, String, Vertx)
+	 */
+	@Test
+	public void shouldNullListOfModelsBeValid(Vertx vertx, VertxTestContext testContext) {
+
+		final Promise<Void> promise = Promise.promise();
+		final Future<Void> future = promise.future();
+		future.compose(Validations.validate(null, "codePrefix", vertx))
+				.onComplete(testContext.succeeding(empty -> testContext.completeNow()));
+		promise.complete();
+	}
+
+	/**
+	 * An empty list of models has to be valid.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 *
+	 * @see Validations#validate(List, String, Vertx)
+	 */
+	@Test
+	public void shouldEmptyListOfModelsBeValid(Vertx vertx, VertxTestContext testContext) {
+
+		final Promise<Void> promise = Promise.promise();
+		final Future<Void> future = promise.future();
+		future.compose(Validations.validate(new ArrayList<>(), "codePrefix", vertx))
+				.onComplete(testContext.succeeding(empty -> testContext.completeNow()));
+		promise.complete();
+	}
+
+	/**
+	 * An list of {@code null} models has to be valid.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 *
+	 * @see Validations#validate(List, String, Vertx)
+	 */
+	@Test
+	public void shouldListWithNullModelsBeValid(Vertx vertx, VertxTestContext testContext) {
+
+		final List<? extends Validable> models = new ArrayList<>();
+		models.add(null);
+		models.add(null);
+		models.add(null);
+		models.add(null);
+		models.add(null);
+		final Promise<Void> promise = Promise.promise();
+		final Future<Void> future = promise.future();
+		future.compose(Validations.validate(models, "codePrefix", vertx))
+				.onComplete(testContext.succeeding(empty -> testContext.verify(() -> {
+					assertThat(models).isEmpty();
+					testContext.completeNow();
+				})));
+		promise.complete();
+	}
+
+	/**
+	 * An list of valid models has to be valid.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 *
+	 * @see Validations#validate(List, String, Vertx)
+	 */
+	@Test
+	public void shouldListWithValidModelsBeValid(Vertx vertx, VertxTestContext testContext) {
+
+		final Validable model1 = new Validable() {
+
+			@Override
+			public Future<Void> validate(String codePrefix, Vertx vertx) {
+
+				return Future.succeededFuture();
+			}
+		};
+		final Validable model4 = new Validable() {
+
+			@Override
+			public Future<Void> validate(String codePrefix, Vertx vertx) {
+
+				return Future.succeededFuture();
+			}
+		};
+		final List<Validable> models = new ArrayList<>();
+		models.add(null);
+		models.add(model1);
+		models.add(null);
+		models.add(null);
+		models.add(model4);
+		final Promise<Void> promise = Promise.promise();
+		final Future<Void> future = promise.future();
+		future.compose(Validations.validate(models, "codePrefix", vertx))
+				.onComplete(testContext.succeeding(empty -> testContext.verify(() -> {
+					assertThat(models).hasSize(2).contains(model1, atIndex(0)).contains(model4, atIndex(1));
+					testContext.completeNow();
+				})));
+		promise.complete();
+	}
+
+	/**
+	 * An list of valid and invalid models has not to be valid.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 *
+	 * @see Validations#validate(List, String, Vertx)
+	 */
+	@Test
+	public void shouldListWithValidAndInvalidModelsBeNotValid(Vertx vertx, VertxTestContext testContext) {
+
+		final ValidationErrorException validationError = new ValidationErrorException("code_of_error", "model not valid");
+		final Validable model1 = new Validable() {
+
+			@Override
+			public Future<Void> validate(String codePrefix, Vertx vertx) {
+
+				return Future.failedFuture(validationError);
+
+			}
+		};
+		final Validable model4 = new Validable() {
+
+			@Override
+			public Future<Void> validate(String codePrefix, Vertx vertx) {
+
+				return Future.succeededFuture();
+			}
+		};
+		final List<Validable> models = new ArrayList<>();
+		models.add(null);
+		models.add(model1);
+		models.add(null);
+		models.add(null);
+		models.add(model4);
+		final Promise<Void> promise = Promise.promise();
+		final Future<Void> future = promise.future();
+		future.compose(Validations.validate(models, "codePrefix", vertx))
+				.onComplete(testContext.failing(error -> testContext.verify(() -> {
+					assertThat(error).isEqualTo(validationError);
+					assertThat(models).hasSize(2).contains(model1, atIndex(0)).contains(model4, atIndex(1));
+					testContext.completeNow();
+				})));
+		promise.complete();
+	}
+
+	/**
+	 * An list of valid models has not to be valid because one is duplicated.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 *
+	 * @see Validations#validate(List, String, Vertx)
+	 */
+	@Test
+	public void shouldListWithValidModelsBeNotValidBecauseExistoneDuplicatedOne(Vertx vertx,
+			VertxTestContext testContext) {
+
+		final Validable model1 = new Validable() {
+
+			@Override
+			public Future<Void> validate(String codePrefix, Vertx vertx) {
+
+				return Future.succeededFuture();
+
+			}
+		};
+		final Validable model3 = new Validable() {
+
+			@Override
+			public Future<Void> validate(String codePrefix, Vertx vertx) {
+
+				return Future.succeededFuture();
+
+			}
+
+			/**
+			 * {@inheritDoc}
+			 */
+			@Override
+			public boolean equals(Object obj) {
+
+				return true;
+			}
+		};
+		final Validable model4 = new Validable() {
+
+			@Override
+			public Future<Void> validate(String codePrefix, Vertx vertx) {
+
+				return Future.succeededFuture();
+			}
+		};
+		final List<Validable> models = new ArrayList<>();
+		models.add(null);
+		models.add(model1);
+		models.add(null);
+		models.add(model3);
+		models.add(null);
+		models.add(model4);
+		final Promise<Void> promise = Promise.promise();
+		final Future<Void> future = promise.future();
+		future.compose(Validations.validate(models, "codePrefix", vertx))
+				.onComplete(testContext.failing(error -> testContext.verify(() -> {
+					assertThat(error).isInstanceOf(ValidationErrorException.class);
+					assertThat(((ValidationErrorException) error).getCode()).isEqualTo("codePrefix[1]");
+					assertThat(models).hasSize(3).contains(model1, atIndex(0)).contains(model3, atIndex(1)).contains(model4,
+							atIndex(2));
+					testContext.completeNow();
+				})));
+		promise.complete();
 	}
 
 }

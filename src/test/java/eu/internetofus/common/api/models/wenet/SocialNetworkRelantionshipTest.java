@@ -30,6 +30,8 @@ import static eu.internetofus.common.api.models.ValidationsTest.assertIsNotValid
 import static eu.internetofus.common.api.models.ValidationsTest.assertIsValid;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,6 +61,23 @@ import io.vertx.junit5.VertxTestContext;
  */
 @ExtendWith(VertxExtension.class)
 public class SocialNetworkRelantionshipTest extends ModelTestCase<SocialNetworkRelationship> {
+
+	/**
+	 * Test constructor.
+	 *
+	 * @see SocialNetworkRelationship#SocialNetworkRelationship(SocialNetworkRelationshipType,
+	 *      String)
+	 */
+	@Test
+	public void shouldCreateARelationship() {
+
+		final SocialNetworkRelationshipType type = SocialNetworkRelationshipType.colleague;
+		final String userId = UUID.randomUUID().toString();
+		final SocialNetworkRelationship model = new SocialNetworkRelationship(type, userId);
+		assertThat(model.type).isEqualTo(type);
+		assertThat(model.userId).isEqualTo(userId);
+
+	}
 
 	/**
 	 * Register the necessary services before to test.

@@ -181,6 +181,28 @@ public class DrivingLicenseTest extends CompetenceTestCase<DrivingLicense> {
 	}
 
 	/**
+	 * Check that merge with {@code null} source.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 *
+	 * @see Car#merge(Material, String, Vertx)
+	 */
+	@Test
+	public void shouldMergeCarWithNull(Vertx vertx, VertxTestContext testContext) {
+
+		final DrivingLicense target = this.createModelExample(1);
+		target.mergeDrivingLicense(null, "codePrefix", vertx)
+				.onComplete(testContext.succeeding(merged -> testContext.verify(() -> {
+
+					assertThat(merged).isSameAs(target);
+					testContext.completeNow();
+
+				})));
+
+	}
+
+	/**
 	 * Check that merge only driving license id.
 	 *
 	 * @param vertx       event bus to use.

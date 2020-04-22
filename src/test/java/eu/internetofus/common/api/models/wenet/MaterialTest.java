@@ -27,11 +27,13 @@
 package eu.internetofus.common.api.models.wenet;
 
 import static eu.internetofus.common.api.models.MergesTest.assertCanMerge;
+import static eu.internetofus.common.api.models.ValidationsTest.assertIsNotValid;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import eu.internetofus.common.api.models.ValidationsTest;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
@@ -45,6 +47,38 @@ import io.vertx.junit5.VertxTestContext;
  */
 @ExtendWith(VertxExtension.class)
 public class MaterialTest {
+
+	/**
+	 * Check that the mode is not valid with an identifier.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 *
+	 * @see Material#merge(Material, String, Vertx)
+	 */
+	@Test
+	public void shouldNotBeValidWithIdentifier(Vertx vertx, VertxTestContext testContext) {
+
+		final Material model = new Material();
+		model.id = "Target_Id";
+		assertIsNotValid(model, "id", vertx, testContext);
+	}
+
+	/**
+	 * Check that the mode is not valid with a large identifier.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 *
+	 * @see Material#merge(Material, String, Vertx)
+	 */
+	@Test
+	public void shouldNotBeValidWithLargeIdentifier(Vertx vertx, VertxTestContext testContext) {
+
+		final Material model = new Material();
+		model.id = ValidationsTest.STRING_256;
+		assertIsNotValid(model, "id", vertx, testContext);
+	}
 
 	/**
 	 * Check that merge two models.

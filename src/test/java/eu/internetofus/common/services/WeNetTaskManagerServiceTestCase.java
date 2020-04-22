@@ -55,7 +55,6 @@ public abstract class WeNetTaskManagerServiceTestCase {
 		WeNetTaskManagerService.createProxy(vertx).createTask(new JsonObject().put("undefinedField", "value"),
 				testContext.failing(handler -> {
 					testContext.completeNow();
-
 				}));
 
 	}
@@ -72,7 +71,6 @@ public abstract class WeNetTaskManagerServiceTestCase {
 		WeNetTaskManagerService.createProxy(vertx).retrieveTask("undefined-task-identifier",
 				testContext.failing(handler -> {
 					testContext.completeNow();
-
 				}));
 
 	}

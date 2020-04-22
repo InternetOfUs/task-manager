@@ -13,7 +13,7 @@ services:
     networks:
       wenet_network:
 
-  wenet_profile_manager_api:
+  wenet_profile_manager_api_0_11_0:
     image: wenet/profile-manager:0.11.0
     restart: always
     depends_on:
@@ -32,6 +32,25 @@ services:
     ports:
       - ${PROFILE_MANAGER_API_PORT:-8081}:8080
 
+  wenet_profile_manager_api_0_12_0:
+    image: wenet/profile-manager:0.12.0
+    restart: always
+    depends_on:
+      - wenet_profile_manager_database
+    environment:
+      DB_HOST: wenet_profile_manager_database
+      WAIT_HOSTS: wenet_profile_manager_database:27017
+      WENET_INTERACTION_PROTOCOL_ENGINE_API_HOST: localhost
+      WENET_INTERACTION_PROTOCOL_ENGINE_API_PORT: ${INTERACTION_PROTOCOL_ENGINE_API_PORT:-8083}
+      WENET_INTERACTION_PROTOCOL_ENGINE_API_PATH: ""
+      WENET_TASK_MANAGER_API_HOST: localhost
+      WENET_TASK_MANAGER_API_PORT: ${TASK_MANAGER_API_PORT:-8085}
+      WENET_TASK_MANAGER_API_PATH: ""
+    networks:
+      wenet_network:
+    ports:
+      - ${PROFILE_MANAGER_API_PORT:-8084}:8080
+
   wenet_task_manager_database:
     image: mongo:4.2.3
     restart: always
@@ -45,7 +64,7 @@ services:
     networks:
       wenet_network:
 
-  wenet_task_manager_api:
+  wenet_task_manager_api_0_3_0:
     image: wenet/task-manager:0.3.0
     restart: always
     depends_on:
@@ -60,6 +79,22 @@ services:
       wenet_network:
     ports:
       - ${TASK_MANAGER_API_PORT:-8082}:8080
+
+  wenet_task_manager_api_0_4_0:
+    image: wenet/task-manager:0.4.0
+    restart: always
+    depends_on:
+      - wenet_task_manager_database
+    environment:
+      DB_HOST: wenet_task_manager_database
+      WENET_PROFILE_MANAGER_API_HOST: localhost
+      WENET_PROFILE_MANAGER_API_PORT: ${PROFILE_MANAGER_API_PORT:-8084}
+      WENET_PROFILE_MANAGER_API_PATH: ""
+      WAIT_HOSTS: wenet_task_manager_database:27017
+    networks:
+      wenet_network:
+    ports:
+      - ${TASK_MANAGER_API_PORT:-8085}:8080
 
   wenet_interaction_protocol_engine_database:
     image: mongo:4.2.3

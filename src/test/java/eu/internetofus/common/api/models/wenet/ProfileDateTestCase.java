@@ -29,6 +29,7 @@ package eu.internetofus.common.api.models.wenet;
 import static eu.internetofus.common.api.models.MergesTest.assertCanMerge;
 import static eu.internetofus.common.api.models.MergesTest.assertCannotMerge;
 import static eu.internetofus.common.api.models.ValidationsTest.assertIsNotValid;
+import static eu.internetofus.common.api.models.ValidationsTest.assertIsValid;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
@@ -72,6 +73,20 @@ public abstract class ProfileDateTestCase<T extends ProfileDate> extends ModelTe
 	 * @return the empty model.
 	 */
 	public abstract T createEmptyModel();
+
+	/**
+	 * Should empty model be valid.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 */
+	@Test
+	public void shouldEmptyModelBeValid(Vertx vertx, VertxTestContext testContext) {
+
+		final ProfileDate model = this.createEmptyModel();
+		assertIsValid(model, vertx, testContext);
+
+	}
 
 	/**
 	 * Should not be valid with a bad month.
@@ -125,6 +140,54 @@ public abstract class ProfileDateTestCase<T extends ProfileDate> extends ModelTe
 		model.month = 2;
 		model.day = 31;
 		assertIsNotValid(model, vertx, testContext);
+
+	}
+
+	/**
+	 * Should be valid without year.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 */
+	@Test
+	public void shouldBeValidWithoutYear(Vertx vertx, VertxTestContext testContext) {
+
+		final ProfileDate model = this.createEmptyModel();
+		model.month = 2;
+		model.day = 31;
+		assertIsValid(model, vertx, testContext);
+
+	}
+
+	/**
+	 * Should be valid without month.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 */
+	@Test
+	public void shouldBeValidWithoutMonth(Vertx vertx, VertxTestContext testContext) {
+
+		final ProfileDate model = this.createEmptyModel();
+		model.year = 2020;
+		model.day = 31;
+		assertIsValid(model, vertx, testContext);
+
+	}
+
+	/**
+	 * Should be valid without day.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext test context to use.
+	 */
+	@Test
+	public void shouldBeValidWithoutDay(Vertx vertx, VertxTestContext testContext) {
+
+		final ProfileDate model = this.createEmptyModel();
+		model.year = 2020;
+		model.month = 2;
+		assertIsValid(model, vertx, testContext);
 
 	}
 

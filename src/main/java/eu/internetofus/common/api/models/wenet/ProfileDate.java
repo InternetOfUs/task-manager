@@ -47,19 +47,19 @@ public class ProfileDate extends Model implements Validable, Mergeable<ProfileDa
 	 * The year of the date.
 	 */
 	@Schema(description = "The year of the date.", example = "1976")
-	public int year;
+	public Integer year;
 
 	/**
 	 * The year of the date.
 	 */
 	@Schema(description = "The month of the date,from 1 to 12 (1: Jan and 12: Dec).", example = "4")
-	public byte month;
+	public Byte month;
 
 	/**
 	 * The day of the date.
 	 */
 	@Schema(description = "The day of the date.", example = "23")
-	public byte day;
+	public Byte day;
 
 	/**
 	 * Create an empty date.
@@ -75,15 +75,15 @@ public class ProfileDate extends Model implements Validable, Mergeable<ProfileDa
 	public Future<Void> validate(String codePrefix, Vertx vertx) {
 
 		final Promise<Void> promise = Promise.promise();
-		if (this.month < 1 || this.month > 12) {
+		if (this.month != null && (this.month < 1 || this.month > 12)) {
 
 			promise.fail(new ValidationErrorException(codePrefix + ".month", "The month has to be on the range [1,12]"));
 
-		} else if (this.day < 1 || this.day > 31) {
+		} else if (this.day != null && (this.day < 1 || this.day > 31)) {
 
 			promise.fail(new ValidationErrorException(codePrefix + ".day", "The day has to be on the range [1,31]"));
 
-		} else {
+		} else if (this.year != null && this.month != null && this.day != null) {
 
 			try {
 
@@ -94,6 +94,10 @@ public class ProfileDate extends Model implements Validable, Mergeable<ProfileDa
 
 				promise.fail(new ValidationErrorException(codePrefix, exception));
 			}
+
+		} else {
+			// not enough data to check the date
+			promise.complete();
 		}
 
 		return promise.future();
@@ -109,7 +113,7 @@ public class ProfileDate extends Model implements Validable, Mergeable<ProfileDa
 		if (source != null) {
 
 			final ProfileDate merged = new ProfileDate();
-			if (source.year != 0) {
+			if (source.year != null) {
 
 				merged.year = source.year;
 
@@ -117,7 +121,7 @@ public class ProfileDate extends Model implements Validable, Mergeable<ProfileDa
 
 				merged.year = this.year;
 			}
-			if (source.month != 0) {
+			if (source.month != null) {
 
 				merged.month = source.month;
 
@@ -125,7 +129,7 @@ public class ProfileDate extends Model implements Validable, Mergeable<ProfileDa
 
 				merged.month = this.month;
 			}
-			if (source.day != 0) {
+			if (source.day != null) {
 
 				merged.day = source.day;
 

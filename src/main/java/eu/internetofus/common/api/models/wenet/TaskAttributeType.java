@@ -38,24 +38,73 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 
 /**
- * Describe the current value of a task attribute.
+ * Describe a type of task that can be done by the users.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-@Schema(description = "Describe the current value of a task attribute.")
-public class TaskAttribute extends Model implements Validable, Mergeable<TaskAttribute> {
+@Schema(
+		hidden = true,
+		name = "TaskAttributeType",
+		description = "Describe an attribute that has to be initialized when start a task of an specific type.")
+public class TaskAttributeType extends Model implements Validable, Mergeable<TaskAttributeType> {
 
 	/**
-	 * The name of the attribute.
+	 * The name of the string type.
+	 */
+	public static final String STRING_TYPE_NAME = "string";
+
+	/**
+	 * The name of the number type.
+	 */
+	public static final String NUMBER_TYPE_NAME = "number";
+
+	/**
+	 * The name of the boolean type.
+	 */
+	public static final String BOOLEAN_TYPE_NAME = "boolean";
+
+	/**
+	 * The name of the profile identifier.
+	 */
+	public static final String PROFILE_ID_TYPE_NAME = "profileId";
+
+	/**
+	 * The name of the allowed types.
+	 */
+	public static final String[] TYPE_NAMES = { STRING_TYPE_NAME, NUMBER_TYPE_NAME, BOOLEAN_TYPE_NAME,
+			PROFILE_ID_TYPE_NAME };
+
+	/**
+	 * A name that identify the type.
 	 */
 	@Schema(description = "The name of the attribute.", example = "communityId")
 	public String name;
 
 	/**
-	 * The value of the attribute.
+	 * A name that identify the type.
 	 */
-	@Schema(description = "The value of the attribute.", example = "2d1x4g3jsuy")
-	public Object value;
+	@Schema(description = "A human readable description of the attribute.", example = "The identifier of the community.")
+	public String description;
+
+	/**
+	 * A name that identify the type.
+	 */
+	@Schema(
+			description = "The type of the attribute values. It can be:\n\t* 'string' - If it is a string value.\n"
+					+ "\t* 'number' - If it is a number value.\n\t* 'boolean' - If it is a boolean value.\n"
+					+ "\t* 'profileId' - If it represent the identifier of a WeNet user.",
+			example = "string",
+			allowableValues = { STRING_TYPE_NAME, NUMBER_TYPE_NAME, BOOLEAN_TYPE_NAME, PROFILE_ID_TYPE_NAME })
+	public String type;
+
+	/**
+	 * A name that identify the type.
+	 */
+	@Schema(
+			description = "This is 'true' if the attribute is an array of values of the specified type.",
+			example = "e56whjt8s09t",
+			defaultValue = "false")
+	public boolean isArray;
 
 	/**
 	 * {@inheritDoc}
@@ -67,6 +116,8 @@ public class TaskAttribute extends Model implements Validable, Mergeable<TaskAtt
 		try {
 
 			this.name = Validations.validateStringField(codePrefix, "name", 255, this.name);
+			this.description = Validations.validateNullableStringField(codePrefix, "description", 1023, this.description);
+			this.type = Validations.validateStringField(codePrefix, "type", 50, this.type, TYPE_NAMES);
 			promise.complete();
 
 		} catch (final ValidationErrorException validationError) {
@@ -81,23 +132,29 @@ public class TaskAttribute extends Model implements Validable, Mergeable<TaskAtt
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Future<TaskAttribute> merge(TaskAttribute source, String codePrefix, Vertx vertx) {
+	public Future<TaskAttributeType> merge(TaskAttributeType source, String codePrefix, Vertx vertx) {
 
-		final Promise<TaskAttribute> promise = Promise.promise();
-		Future<TaskAttribute> future = promise.future();
+		final Promise<TaskAttributeType> promise = Promise.promise();
+		Future<TaskAttributeType> future = promise.future();
 		if (source != null) {
 
-			final TaskAttribute merged = new TaskAttribute();
+			final TaskAttributeType merged = new TaskAttributeType();
 			merged.name = source.name;
 			if (merged.name == null) {
 
 				merged.name = this.name;
 			}
-			merged.value = source.value;
-			if (merged.value == null) {
+			merged.description = source.description;
+			if (merged.description == null) {
 
-				merged.value = this.value;
+				merged.description = this.description;
 			}
+			merged.type = source.type;
+			if (merged.type == null) {
+
+				merged.type = this.type;
+			}
+			merged.isArray = source.isArray;
 
 			promise.complete(merged);
 

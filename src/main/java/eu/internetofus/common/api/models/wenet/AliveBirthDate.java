@@ -49,19 +49,26 @@ public class AliveBirthDate extends ProfileDate {
 		return super.validate(codePrefix, vertx).compose(mapper -> {
 
 			final Promise<Void> promise = Promise.promise();
-			final LocalDate birthDate = LocalDate.of(this.year, this.month, this.day);
-			if (birthDate.isAfter(LocalDate.now())) {
+			if (this.year == null || this.month == null || this.day == null) {
 
-				promise.fail(new ValidationErrorException(codePrefix, "The birth date can not be on the future"));
-
-			} else if (birthDate.isBefore(LocalDate.of(1903, 1, 2))) {
-
-				promise.fail(new ValidationErrorException(codePrefix,
-						"The user can not be born before Kane Tanake, the oldest living person on earth"));
+				promise.complete();
 
 			} else {
 
-				promise.complete();
+				final LocalDate birthDate = LocalDate.of(this.year, this.month, this.day);
+				if (birthDate.isAfter(LocalDate.now())) {
+
+					promise.fail(new ValidationErrorException(codePrefix, "The birth date can not be on the future"));
+
+				} else if (birthDate.isBefore(LocalDate.of(1903, 1, 2))) {
+
+					promise.fail(new ValidationErrorException(codePrefix,
+							"The user can not be born before Kane Tanake, the oldest living person on earth"));
+
+				} else {
+
+					promise.complete();
+				}
 			}
 			return promise.future();
 

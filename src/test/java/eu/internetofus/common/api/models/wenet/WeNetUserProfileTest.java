@@ -42,7 +42,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import eu.internetofus.common.api.models.Model;
 import eu.internetofus.common.api.models.ModelTestCase;
 import eu.internetofus.common.api.models.ValidationsTest;
 import eu.internetofus.common.services.WeNetProfileManagerService;
@@ -132,42 +131,6 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 	}
 
 	/**
-	 * Store an empty profile.
-	 *
-	 * @param vertx        event bus to use.
-	 * @param testContext  test context to use.
-	 * @param storeHandler the component that will manage the stored model.
-	 */
-	public void storeEmptyProfile(Vertx vertx, VertxTestContext testContext,
-			Handler<AsyncResult<WeNetUserProfile>> storeHandler) {
-
-		final WeNetUserProfile profile = new WeNetUserProfile();
-		this.storeProfile(profile, vertx, testContext, storeHandler);
-
-	}
-
-	/**
-	 * Store an empty profile.
-	 *
-	 * @param profile      to store.
-	 * @param vertx        event bus to use.
-	 * @param testContext  test context to use.
-	 * @param storeHandler the component that will manage the stored model.
-	 */
-	public void storeProfile(WeNetUserProfile profile, Vertx vertx, VertxTestContext testContext,
-			Handler<AsyncResult<WeNetUserProfile>> storeHandler) {
-
-		WeNetProfileManagerService.createProxy(vertx).createProfile(profile.toJsonObject(),
-				testContext.succeeding(created -> {
-
-					final WeNetUserProfile result = Model.fromJsonObject(created, WeNetUserProfile.class);
-					storeHandler.handle(Future.succeededFuture(result));
-
-				}));
-
-	}
-
-	/**
 	 * Create an example model that has the specified index.
 	 *
 	 * @param index         to use in the example.
@@ -178,9 +141,9 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 	public void createModelExample(int index, Vertx vertx, VertxTestContext testContext,
 			Handler<AsyncResult<WeNetUserProfile>> createHandler) {
 
-		this.storeEmptyProfile(vertx, testContext, testContext.succeeding(stored1 -> {
+		StoreServices.storeProfile(new WeNetUserProfile(), vertx, testContext, testContext.succeeding(stored1 -> {
 
-			this.storeEmptyProfile(vertx, testContext, testContext.succeeding(stored2 -> {
+			StoreServices.storeProfile(new WeNetUserProfile(), vertx, testContext, testContext.succeeding(stored2 -> {
 
 				final WeNetUserProfile profile = this.createModelExample(index);
 
@@ -570,7 +533,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 	@Test
 	public void shouldNotBeValidWithADuplicatedRelationships(Vertx vertx, VertxTestContext testContext) {
 
-		this.storeEmptyProfile(vertx, testContext, testContext.succeeding(stored -> {
+		StoreServices.storeProfile(new WeNetUserProfile(), vertx, testContext, testContext.succeeding(stored -> {
 
 			final WeNetUserProfile model = new WeNetUserProfile();
 			model.relationships = new ArrayList<>();
@@ -597,7 +560,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 	@Test
 	public void shouldBeValidWithSomeRelationships(Vertx vertx, VertxTestContext testContext) {
 
-		this.storeEmptyProfile(vertx, testContext, testContext.succeeding(stored -> {
+		StoreServices.storeProfile(new WeNetUserProfile(), vertx, testContext, testContext.succeeding(stored -> {
 
 			final WeNetUserProfile model = new WeNetUserProfile();
 			model.relationships = new ArrayList<>();
@@ -923,7 +886,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 	}
 
 	/**
-	 * Check merge social practices profiles.
+	 * Check merge model norms.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext context to test.
@@ -1183,7 +1146,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 	@Test
 	public void shouldNotMergeWithDuplicatedRelationships(Vertx vertx, VertxTestContext testContext) {
 
-		this.storeEmptyProfile(vertx, testContext, testContext.succeeding(stored -> {
+		StoreServices.storeProfile(new WeNetUserProfile(), vertx, testContext, testContext.succeeding(stored -> {
 
 			final WeNetUserProfile source = new WeNetUserProfile();
 			source.relationships = new ArrayList<>();
@@ -1210,7 +1173,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 	@Test
 	public void shouldMergeRelationships(Vertx vertx, VertxTestContext testContext) {
 
-		this.storeEmptyProfile(vertx, testContext, testContext.succeeding(stored -> {
+		StoreServices.storeProfile(new WeNetUserProfile(), vertx, testContext, testContext.succeeding(stored -> {
 
 			final WeNetUserProfile target = new WeNetUserProfile();
 			target.relationships = new ArrayList<>();
@@ -1523,11 +1486,11 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 
 		this.createModelExample(1, vertx, testContext, testContext.succeeding(targetToStore -> {
 
-			this.storeProfile(targetToStore, vertx, testContext, testContext.succeeding(target -> {
+			StoreServices.storeProfile(targetToStore, vertx, testContext, testContext.succeeding(target -> {
 
 				this.createModelExample(2, vertx, testContext, testContext.succeeding(sourceToStore -> {
 
-					this.storeProfile(sourceToStore, vertx, testContext, testContext.succeeding(source -> {
+					StoreServices.storeProfile(sourceToStore, vertx, testContext, testContext.succeeding(source -> {
 
 						assertCanMerge(target, source, vertx, testContext, merged -> {
 
@@ -1940,7 +1903,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 
 			assertIsValid(created, vertx, testContext, () -> {
 
-				this.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
+				StoreServices.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
 
 					final WeNetUserProfile source = new WeNetUserProfile();
 					source.plannedActivities = new ArrayList<>();
@@ -1975,7 +1938,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 
 			assertIsValid(created, vertx, testContext, () -> {
 
-				this.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
+				StoreServices.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
 
 					final WeNetUserProfile source = new WeNetUserProfile();
 					source.plannedActivities = new ArrayList<>();
@@ -2007,7 +1970,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 
 			assertIsValid(created, vertx, testContext, () -> {
 
-				this.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
+				StoreServices.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
 
 					final WeNetUserProfile source = new WeNetUserProfile();
 					source.plannedActivities = new ArrayList<>();
@@ -2037,7 +2000,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 
 			assertIsValid(created, vertx, testContext, () -> {
 
-				this.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
+				StoreServices.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
 
 					final WeNetUserProfile source = new WeNetUserProfile();
 					source.plannedActivities = new ArrayList<>();
@@ -2077,7 +2040,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 
 			assertIsValid(created, vertx, testContext, () -> {
 
-				this.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
+				StoreServices.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
 
 					final WeNetUserProfile source = new WeNetUserProfile();
 					source.relevantLocations = new ArrayList<>();
@@ -2108,7 +2071,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 
 			assertIsValid(created, vertx, testContext, () -> {
 
-				this.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
+				StoreServices.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
 
 					final WeNetUserProfile source = new WeNetUserProfile();
 					source.relevantLocations = new ArrayList<>();
@@ -2137,7 +2100,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 
 			assertIsValid(created, vertx, testContext, () -> {
 
-				this.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
+				StoreServices.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
 
 					final WeNetUserProfile source = new WeNetUserProfile();
 					source.relevantLocations = new ArrayList<>();
@@ -2165,7 +2128,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 
 			assertIsValid(created, vertx, testContext, () -> {
 
-				this.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
+				StoreServices.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
 
 					final WeNetUserProfile source = new WeNetUserProfile();
 					source.relevantLocations = new ArrayList<>();
@@ -2202,7 +2165,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 
 			assertIsValid(created, vertx, testContext, () -> {
 
-				this.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
+				StoreServices.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
 
 					final WeNetUserProfile source = new WeNetUserProfile();
 					source.socialPractices = new ArrayList<>();
@@ -2234,7 +2197,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 
 			assertIsValid(created, vertx, testContext, () -> {
 
-				this.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
+				StoreServices.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
 
 					final WeNetUserProfile source = new WeNetUserProfile();
 					source.socialPractices = new ArrayList<>();
@@ -2263,7 +2226,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 
 			assertIsValid(created, vertx, testContext, () -> {
 
-				this.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
+				StoreServices.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
 
 					final WeNetUserProfile source = new WeNetUserProfile();
 					source.socialPractices = new ArrayList<>();
@@ -2291,7 +2254,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 
 			assertIsValid(created, vertx, testContext, () -> {
 
-				this.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
+				StoreServices.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
 
 					final WeNetUserProfile source = new WeNetUserProfile();
 					source.socialPractices = new ArrayList<>();
@@ -2328,7 +2291,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 
 			assertIsValid(created, vertx, testContext, () -> {
 
-				this.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
+				StoreServices.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
 
 					final WeNetUserProfile source = new WeNetUserProfile();
 					source.personalBehaviors = new ArrayList<>();
@@ -2360,7 +2323,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 
 			assertIsValid(created, vertx, testContext, () -> {
 
-				this.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
+				StoreServices.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
 
 					final WeNetUserProfile source = new WeNetUserProfile();
 					source.personalBehaviors = new ArrayList<>();
@@ -2389,7 +2352,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 
 			assertIsValid(created, vertx, testContext, () -> {
 
-				this.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
+				StoreServices.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
 
 					final WeNetUserProfile source = new WeNetUserProfile();
 					source.personalBehaviors = new ArrayList<>();
@@ -2416,7 +2379,7 @@ public class WeNetUserProfileTest extends ModelTestCase<WeNetUserProfile> {
 
 			assertIsValid(created, vertx, testContext, () -> {
 
-				this.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
+				StoreServices.storeProfile(created, vertx, testContext, testContext.succeeding(target -> {
 
 					final WeNetUserProfile source = new WeNetUserProfile();
 					source.personalBehaviors = new ArrayList<>();
