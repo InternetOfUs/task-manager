@@ -93,13 +93,13 @@ public interface Tasks {
 			required = true,
 			content = @Content(
 					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/9f1b7c5f64a5bb13c37601f0a7d63f2da399b7ee/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
+							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
 	@ApiResponse(
 			responseCode = "200",
 			description = "The created task",
 			content = @Content(
 					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/9f1b7c5f64a5bb13c37601f0a7d63f2da399b7ee/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
+							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
 	@ApiResponse(
 			responseCode = "400",
 			description = "Bad task",
@@ -126,7 +126,7 @@ public interface Tasks {
 			description = "The task associated to the identifier",
 			content = @Content(
 					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/9f1b7c5f64a5bb13c37601f0a7d63f2da399b7ee/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
+							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
 	@ApiResponse(
 			responseCode = "404",
 			description = "Not found task",
@@ -156,13 +156,13 @@ public interface Tasks {
 			required = true,
 			content = @Content(
 					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/9f1b7c5f64a5bb13c37601f0a7d63f2da399b7ee/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
+							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
 	@ApiResponse(
 			responseCode = "200",
 			description = "The updated task",
 			content = @Content(
 					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/9f1b7c5f64a5bb13c37601f0a7d63f2da399b7ee/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
+							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
 	@ApiResponse(
 			responseCode = "400",
 			description = "Bad task",

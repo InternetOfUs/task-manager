@@ -64,6 +64,19 @@ public interface TasksRepository {
 	}
 
 	/**
+	 * Register this service.
+	 *
+	 * @param vertx that contains the event bus to use.
+	 * @param pool  to create the database connections.
+	 */
+	static void register(Vertx vertx, MongoClient pool) {
+
+		new ServiceBinder(vertx).setAddress(TasksRepository.ADDRESS).register(TasksRepository.class,
+				new TasksRepositoryImpl(pool));
+
+	}
+	
+	/**
 	 * Search for the task with the specified identifier.
 	 *
 	 * @param id            identifier of the task to search.
@@ -102,18 +115,6 @@ public interface TasksRepository {
 	 */
 	void searchTaskObject(String id, Handler<AsyncResult<JsonObject>> searchHandler);
 
-	/**
-	 * Register this service.
-	 *
-	 * @param vertx that contains the event bus to use.
-	 * @param pool  to create the database connections.
-	 */
-	static void register(Vertx vertx, MongoClient pool) {
-
-		new ServiceBinder(vertx).setAddress(TasksRepository.ADDRESS).register(TasksRepository.class,
-				new TasksRepositoryImpl(pool));
-
-	}
 
 	/**
 	 * Store a task.
@@ -180,6 +181,7 @@ public interface TasksRepository {
 
 			this.updateTask(object, updateHandler);
 		}
+		
 	}
 
 	/**
