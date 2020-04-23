@@ -75,7 +75,7 @@ public interface TasksRepository {
 				new TasksRepositoryImpl(pool));
 
 	}
-	
+
 	/**
 	 * Search for the task with the specified identifier.
 	 *
@@ -114,7 +114,6 @@ public interface TasksRepository {
 	 * @param searchHandler handler to manage the search.
 	 */
 	void searchTaskObject(String id, Handler<AsyncResult<JsonObject>> searchHandler);
-
 
 	/**
 	 * Store a task.
@@ -181,7 +180,7 @@ public interface TasksRepository {
 
 			this.updateTask(object, updateHandler);
 		}
-		
+
 	}
 
 	/**

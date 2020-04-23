@@ -46,6 +46,11 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 	public static final String TASKS_COLLECTION = "tasks";
 
 	/**
+	 * The name of the collection that contains the historic tasks.
+	 */
+	public static final String HISTORIC_TASKS_COLLECTION = "historicTasks";
+
+	/**
 	 * Create a new service.
 	 *
 	 * @param pool to create the connections.

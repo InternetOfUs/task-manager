@@ -50,6 +50,11 @@ import io.vertx.ext.web.api.OperationResponse;
 public class TasksResource implements Tasks {
 
 	/**
+	 * The event bus that is using.
+	 */
+	protected Vertx vertx;
+
+	/**
 	 * The repository to manage the tasks.
 	 */
 	protected TasksRepository repository;
@@ -73,6 +78,7 @@ public class TasksResource implements Tasks {
 	 */
 	public TasksResource(Vertx vertx) {
 
+		this.vertx = vertx;
 		this.repository = TasksRepository.createProxy(vertx);
 		this.profileManager = WeNetProfileManagerService.createProxy(vertx);
 	}
@@ -117,33 +123,32 @@ public class TasksResource implements Tasks {
 
 		} else {
 
-			// task.validate("bad_task", this.profileManager).setHandler(validation -> {
-			//
-			// if (validation.failed()) {
-			//
-			// final Throwable cause = validation.cause();
-			// Logger.debug(cause, "The {} is not valid.", task);
-			// OperationReponseHandlers.responseFailedWith(resultHandler,
-			// Status.BAD_REQUEST, cause);
-			//
-			// } else {
+			task.validate("bad_task", this.vertx).setHandler(validation -> {
 
-			this.repository.storeTask(task, stored -> {
+				if (validation.failed()) {
 
-				if (stored.failed()) {
-
-					final Throwable cause = stored.cause();
-					Logger.debug(cause, "Cannot store  {}.", task);
+					final Throwable cause = validation.cause();
+					Logger.debug(cause, "The {} is not valid.", task);
 					OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
 				} else {
 
-					OperationReponseHandlers.responseOk(resultHandler, stored.result());
+					this.repository.storeTask(task, stored -> {
+
+						if (stored.failed()) {
+
+							final Throwable cause = validation.cause();
+							Logger.debug(cause, "Cannot store {}.", task);
+							OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+
+						} else {
+
+							OperationReponseHandlers.responseOk(resultHandler, stored.result());
+						}
+					});
 				}
+
 			});
-			// }
-			//
-			// });
 		}
 
 	}
@@ -171,51 +176,48 @@ public class TasksResource implements Tasks {
 
 					Logger.debug(search.cause(), "Not found task {} to update", taskId);
 					OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND, "not_found_task_to_update",
-							"You can not update the task '" + taskId + "', because it does not exist.");
+							"You can not update the task of the task '" + taskId + "', because it does not exist.");
 
 				} else {
 
-					// target.merge(source, "bad_new_task", this.profileManager).setHandler(merge ->
-					// {
-					//
-					// if (merge.failed()) {
-					//
-					// final Throwable cause = merge.cause();
-					// Logger.debug(cause, "Cannot update {} with {}.", target, source);
-					// OperationReponseHandlers.responseFailedWith(resultHandler,
-					// Status.BAD_REQUEST, cause);
-					//
-					// } else {
-					//
-					// final Task merged = merge.result();
-					// if (merged.equals(target)) {
-					//
-					// OperationReponseHandlers.responseWithErrorMessage(resultHandler,
-					// Status.BAD_REQUEST,
-					// "task_to_update_equal_to_original", "You can not update the task '" + taskId
-					// + "', because the new values is equals to the current one.");
-					//
-					// } else {
-					this.repository.updateTask(source, update -> {
+					target.merge(source, "bad_new_task", this.vertx).setHandler(merge -> {
 
-						if (update.failed()) {
+						if (merge.failed()) {
 
-							final Throwable cause = update.cause();
-							Logger.debug(cause, "Cannot update  {}.", target);
+							final Throwable cause = merge.cause();
+							Logger.debug(cause, "Cannot update {} with {}.", target, source);
 							OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
 						} else {
 
-							OperationReponseHandlers.responseOk(resultHandler, source);
+							final Task merged = merge.result();
+							if (merged.equals(target)) {
 
+								OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST,
+										"task_to_update_equal_to_original", "You can not update the task of the task '" + taskId
+												+ "', because the new values is equals to the current one.");
+
+							} else {
+								this.repository.updateTask(merged, update -> {
+
+									if (update.failed()) {
+
+										final Throwable cause = update.cause();
+										Logger.debug(cause, "Cannot update {}.", target);
+										OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+
+									} else {
+
+										OperationReponseHandlers.responseOk(resultHandler, merged);
+
+									}
+
+								});
+							}
 						}
+					}
 
-					});
-					// }
-					// }
-					// }
-					//
-					// );
+					);
 
 				}
 			});
