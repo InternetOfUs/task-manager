@@ -50,7 +50,7 @@ public class ServicesVerticle extends AbstractServicesVerticle {
 		WeNetProfileManagerService.register(this.vertx, this.client, profileManagerConf);
 
 		// register the service to interact with the service Api
-		final JsonObject serviceApiConf = serviceConf.getJsonObject("serviceApi", new JsonObject());
+		final JsonObject serviceApiConf = serviceConf.getJsonObject("service", new JsonObject());
 		WeNetServiceApiService.register(this.vertx, this.client, serviceApiConf);
 
 	}

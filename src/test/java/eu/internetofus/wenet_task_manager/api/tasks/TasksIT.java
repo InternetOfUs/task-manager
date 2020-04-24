@@ -30,7 +30,6 @@ import static eu.internetofus.common.api.HttpResponses.assertThatBodyIs;
 import static io.vertx.junit5.web.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.ArrayList;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response.Status;
@@ -39,8 +38,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import eu.internetofus.common.api.models.ErrorMessage;
-import eu.internetofus.common.api.models.wenet.Norm;
+import eu.internetofus.common.api.models.wenet.StoreServices;
 import eu.internetofus.common.api.models.wenet.Task;
+import eu.internetofus.common.api.models.wenet.TaskGoalTest;
 import eu.internetofus.common.api.models.wenet.TaskTest;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
@@ -70,7 +70,7 @@ public class TasksIT {
 	 *      io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldNotFoundTaskWithAnUndefinedId(WebClient client, VertxTestContext testContext) {
+	public void shouldNotFoundTaskWithAnUndefinedTaskId(WebClient client, VertxTestContext testContext) {
 
 		testRequest(client, HttpMethod.GET, Tasks.PATH + "/undefined-task-identifier").expect(res -> {
 
@@ -86,7 +86,7 @@ public class TasksIT {
 	/**
 	 * Verify that return a defined task.
 	 *
-	 * @param repository  to access the tasks.
+	 * @param vertx       event bus to use.
 	 * @param client      to connect to the server.
 	 * @param testContext context to test.
 	 *
@@ -94,9 +94,9 @@ public class TasksIT {
 	 *      io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldFoundTask(TasksRepository repository, WebClient client, VertxTestContext testContext) {
+	public void shouldFoundTask(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
-		repository.storeTask(new TaskTest().createModelExample(1), testContext.succeeding(task -> {
+		TasksRepository.createProxy(vertx).storeTask(new Task(), testContext.succeeding(task -> {
 
 			testRequest(client, HttpMethod.GET, Tasks.PATH + "/" + task.id).expect(res -> testContext.verify(() -> {
 
@@ -137,59 +137,27 @@ public class TasksIT {
 	/**
 	 * Verify that can not store a bad task.
 	 *
-	 * @param client      to connect to the server.
-	 * @param testContext context to test.
-	 *
-	 * @see Tasks#createTask(io.vertx.core.json.JsonObject,
-	 *      io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
-	 */
-	@Test
-	public void shouldNotStoreBadTask(WebClient client, VertxTestContext testContext) {
-
-		final Task task = new Task();
-		task.id = UUID.randomUUID().toString();
-		testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
-
-			assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-			final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
-			assertThat(error.code).isNotEmpty().isEqualTo("bad_task.id");
-			assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-			testContext.completeNow();
-
-		}).sendJson(task.toJsonObject(), testContext);
-	}
-
-	/**
-	 * Verify that store a task.
-	 *
-	 * @param repository  that manage the tasks.
-	 * @param client      to connect to the server.
 	 * @param vertx       event bus to use.
+	 * @param client      to connect to the server.
 	 * @param testContext context to test.
 	 *
 	 * @see Tasks#createTask(io.vertx.core.json.JsonObject,
 	 *      io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldStoreTask(TasksRepository repository, WebClient client, Vertx vertx, VertxTestContext testContext) {
+	public void shouldNotStoreTaskWithExistingId(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
-		new TaskTest().createModelExample(1, vertx, testContext, testContext.succeeding(task -> {
+		TasksRepository.createProxy(vertx).storeTask(new Task(), testContext.succeeding(created -> {
 
+			final Task task = new Task();
+			task.id = created.id;
 			testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
 
-				assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-				final Task stored = assertThatBodyIs(Task.class, res);
-				assertThat(stored).isNotNull().isNotEqualTo(task);
-				task.id = stored.id;
-				task._creationTs = stored._creationTs;
-				task.norms.get(0).id = stored.norms.get(0).id;
-				assertThat(stored).isEqualTo(task);
-				repository.searchTask(stored.id, testContext.succeeding(foundTask -> testContext.verify(() -> {
-
-					assertThat(foundTask).isEqualTo(stored);
-					testContext.completeNow();
-
-				})));
+				assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+				final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+				assertThat(error.code).isNotEmpty().isEqualTo("bad_task.id");
+				assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
+				testContext.completeNow();
 
 			}).sendJson(task.toJsonObject(), testContext);
 
@@ -197,9 +165,9 @@ public class TasksIT {
 	}
 
 	/**
-	 * Verify that store an empty task.
+	 * Verify that store a task.
 	 *
-	 * @param repository  that manage the tasks.
+	 * @param vertx       event bus to use.
 	 * @param client      to connect to the server.
 	 * @param testContext context to test.
 	 *
@@ -207,32 +175,77 @@ public class TasksIT {
 	 *      io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldStoreEmptyTask(TasksRepository repository, WebClient client, VertxTestContext testContext) {
+	public void shouldStoreTaskExample(Vertx vertx, WebClient client, VertxTestContext testContext) {
+
+		new TaskTest().createModelExample(1, vertx, testContext, testContext.succeeding(task -> {
+			testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
+
+				assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+				final Task stored = assertThatBodyIs(Task.class, res);
+				assertThat(stored).isNotNull().isNotEqualTo(task);
+				task.id = stored.id;
+				assertThat(stored).isNotEqualTo(task);
+				task._creationTs = stored._creationTs;
+				task._lastUpdateTs = stored._lastUpdateTs;
+				assertThat(stored).isNotEqualTo(task);
+				task.norms.get(0).id = stored.norms.get(0).id;
+				assertThat(stored).isEqualTo(task);
+				TasksRepository.createProxy(vertx).searchTask(stored.id,
+						testContext.succeeding(foundTask -> testContext.verify(() -> {
+
+							assertThat(foundTask).isEqualTo(stored);
+							testContext.completeNow();
+
+						})));
+
+			}).sendJson(task.toJsonObject(), testContext);
+
+		}));
+
+	}
+
+	/**
+	 * Verify that store an empty task.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param client      to connect to the server.
+	 * @param testContext context to test.
+	 *
+	 * @see Tasks#createTask(io.vertx.core.json.JsonObject,
+	 *      io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
+	 */
+	@Test
+	public void shouldStoreEmptyTask(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
 		final Task task = new Task();
+		task._creationTs = 0;
+		task._lastUpdateTs = 1;
 		testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
 
 			assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
 			final Task stored = assertThatBodyIs(Task.class, res);
 			assertThat(stored).isNotNull().isNotEqualTo(task);
 			task.id = stored.id;
+			assertThat(stored).isNotNull().isNotEqualTo(task);
 			task._creationTs = stored._creationTs;
+			task._lastUpdateTs = stored._lastUpdateTs;
 			assertThat(stored).isEqualTo(task);
-			repository.searchTask(stored.id, testContext.succeeding(foundTask -> testContext.verify(() -> {
+			TasksRepository.createProxy(vertx).searchTask(stored.id,
+					testContext.succeeding(foundTask -> testContext.verify(() -> {
 
-				assertThat(foundTask).isEqualTo(stored);
-				testContext.completeNow();
+						assertThat(foundTask).isEqualTo(stored);
+						testContext.completeNow();
 
-			})));
+					})));
 
 		}).sendJson(task.toJsonObject(), testContext);
 
 	}
 
 	/**
-	 * Verify that store a simple task.
+	 * Verify that store a task with an identifier.
 	 *
-	 * @param repository  that manage the tasks.
+	 * @param vertx       event bus to use.
 	 * @param client      to connect to the server.
 	 * @param testContext context to test.
 	 *
@@ -240,9 +253,12 @@ public class TasksIT {
 	 *      io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldStoreSimpleTask(TasksRepository repository, WebClient client, VertxTestContext testContext) {
+	public void shouldStoreTaskWithOnlyID(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
-		final Task task = new TaskTest().createModelExample(1);
+		final Task task = new Task();
+		task._creationTs = 0;
+		task._lastUpdateTs = 0;
+		task.id = UUID.randomUUID().toString();
 		testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
 
 			assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
@@ -251,14 +267,15 @@ public class TasksIT {
 			task.id = stored.id;
 			assertThat(stored).isNotNull().isNotEqualTo(task);
 			task._creationTs = stored._creationTs;
-			task.norms.get(0).id = stored.norms.get(0).id;
+			task._lastUpdateTs = stored._lastUpdateTs;
 			assertThat(stored).isEqualTo(task);
-			repository.searchTask(stored.id, testContext.succeeding(foundTask -> testContext.verify(() -> {
+			TasksRepository.createProxy(vertx).searchTask(stored.id,
+					testContext.succeeding(foundTask -> testContext.verify(() -> {
 
-				assertThat(foundTask).isEqualTo(stored);
-				testContext.completeNow();
+						assertThat(foundTask).isEqualTo(stored);
+						testContext.completeNow();
 
-			})));
+					})));
 
 		}).sendJson(task.toJsonObject(), testContext);
 
@@ -276,7 +293,8 @@ public class TasksIT {
 	@Test
 	public void shouldNotUpdateTaskThatIsNotDefined(WebClient client, VertxTestContext testContext) {
 
-		final Task task = new TaskTest().createModelExample(1);
+		final Task task = new Task();
+		task.goal = new TaskGoalTest().createModelExample(23);
 		testRequest(client, HttpMethod.PUT, Tasks.PATH + "/undefined-task-identifier").expect(res -> {
 
 			assertThat(res.statusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
@@ -291,7 +309,7 @@ public class TasksIT {
 	/**
 	 * Verify that return error when try to update with a model that is not a task.
 	 *
-	 * @param repository  that manage the tasks.
+	 * @param vertx       event bus to use.
 	 * @param client      to connect to the server.
 	 * @param testContext context to test.
 	 *
@@ -299,10 +317,9 @@ public class TasksIT {
 	 *      io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldNotUpdateTaskWithANotTaskObject(TasksRepository repository, WebClient client,
-			VertxTestContext testContext) {
+	public void shouldNotUpdateTaskWithANotTaskObject(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
-		repository.storeTask(new TaskTest().createModelExample(1), testContext.succeeding(task -> {
+		TasksRepository.createProxy(vertx).storeTask(new Task(), testContext.succeeding(task -> {
 
 			testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + task.id).expect(res -> {
 
@@ -319,7 +336,7 @@ public class TasksIT {
 	/**
 	 * Verify that not update a task if any change is done.
 	 *
-	 * @param repository  that manage the tasks.
+	 * @param vertx       event bus to use.
 	 * @param client      to connect to the server.
 	 * @param testContext context to test.
 	 *
@@ -327,10 +344,9 @@ public class TasksIT {
 	 *      io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldNotUpdateTaskBecauseNotChangesHasDone(TasksRepository repository, WebClient client,
-			VertxTestContext testContext) {
+	public void shouldNotUpdateTaskBecauseNotChangesHasDone(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
-		repository.storeTask(new TaskTest().createModelExample(1), testContext.succeeding(task -> {
+		TasksRepository.createProxy(vertx).storeTask(new Task(), testContext.succeeding(task -> {
 
 			testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + task.id).expect(res -> {
 
@@ -348,7 +364,7 @@ public class TasksIT {
 	/**
 	 * Verify that not update a task because the source is not valid.
 	 *
-	 * @param repository  that manage the tasks.
+	 * @param vertx       event bus to use.
 	 * @param client      to connect to the server.
 	 * @param testContext context to test.
 	 *
@@ -356,61 +372,56 @@ public class TasksIT {
 	 *      io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldNotUpdateTaskBecauseBadSource(TasksRepository repository, WebClient client,
-			VertxTestContext testContext) {
+	public void shouldNotUpdateTaskBecauseBadSource(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
-		repository.storeTask(new TaskTest().createModelExample(1), testContext.succeeding(task -> {
+		TasksRepository.createProxy(vertx).storeTask(new Task(), testContext.succeeding(task -> {
 
 			testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + task.id).expect(res -> {
 
 				assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
 				final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
-				assertThat(error.code).isNotEmpty().endsWith(".requesterUserId");
+				assertThat(error.code).isNotEmpty().endsWith(".taskTypeId");
 				assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 				testContext.completeNow();
 
-			}).sendJson(new JsonObject().put("requesterUserId", UUID.randomUUID().toString()), testContext);
+			}).sendJson(new TaskTest().createModelExample(1).toJsonObject(), testContext);
 		}));
 
 	}
 
 	/**
-	 * Verify that can update a complex task with another.
+	 * Verify that can update a task with another.
 	 *
-	 * @param repository  that manage the tasks.
-	 * @param client      to connect to the server.
 	 * @param vertx       event bus to use.
+	 * @param client      to connect to the server.
 	 * @param testContext context to test.
 	 *
 	 * @see Tasks#retrieveTask(String, io.vertx.ext.web.api.OperationRequest,
 	 *      io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldUpdateTask(TasksRepository repository, WebClient client, Vertx vertx,
-			VertxTestContext testContext) {
+	public void shouldUpdateExampleTaskWithAnotherExample(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
-		new TaskTest().createModelExample(23, vertx, testContext, testContext.succeeding(created -> {
+		StoreServices.storeTaskExample(1, vertx, testContext, testContext.succeeding(target -> {
 
-			testContext.assertComplete(created.validate("codePrefix", vertx)).setHandler(validation -> {
+			new TaskTest().createModelExample(2, vertx, testContext, testContext.succeeding(source -> {
 
-				repository.storeTask(created, testContext.succeeding(storedTask -> {
+				source.id = UUID.randomUUID().toString();
+				testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + target.id).expect(res -> testContext.verify(() -> {
 
-					final Task newTask = new TaskTest().createModelExample(2);
-					newTask.id = UUID.randomUUID().toString();
-					testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + storedTask.id).expect(res -> testContext.verify(() -> {
+					assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+					final Task updated = assertThatBodyIs(Task.class, res);
+					assertThat(updated).isNotEqualTo(source).isNotEqualTo(target);
+					source.id = updated.id;
+					source._creationTs = target._creationTs;
+					source._lastUpdateTs = updated._lastUpdateTs;
+					source.norms.get(0).id = updated.norms.get(0).id;
+					assertThat(updated).isEqualTo(source);
+					testContext.completeNow();
 
-						assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-						final Task updated = assertThatBodyIs(Task.class, res);
-						assertThat(updated).isNotEqualTo(storedTask).isNotEqualTo(newTask);
-						newTask.id = storedTask.id;
-						newTask._creationTs = storedTask._creationTs;
-						newTask.norms.get(0).id = updated.norms.get(0).id;
-						assertThat(updated).isEqualTo(newTask);
-						testContext.completeNow();
+				})).sendJson(source.toJsonObject(), testContext);
+			}));
 
-					})).sendJson(newTask.toJsonObject(), testContext);
-				}));
-			});
 		}));
 
 	}
@@ -425,7 +436,7 @@ public class TasksIT {
 	 *      io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldNotDeleteTaskWithAnUndefinedId(WebClient client, VertxTestContext testContext) {
+	public void shouldNotDeleteTaskWithAnUndefinedTaskId(WebClient client, VertxTestContext testContext) {
 
 		testRequest(client, HttpMethod.DELETE, Tasks.PATH + "/undefined-task-identifier").expect(res -> {
 
@@ -441,7 +452,7 @@ public class TasksIT {
 	/**
 	 * Verify that can delete a task.
 	 *
-	 * @param repository  to access the tasks.
+	 * @param vertx       event bus to use.
 	 * @param client      to connect to the server.
 	 * @param testContext context to test.
 	 *
@@ -449,14 +460,15 @@ public class TasksIT {
 	 *      io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldDeleteTask(TasksRepository repository, WebClient client, VertxTestContext testContext) {
+	public void shouldDeleteTask(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
+		final TasksRepository repository = TasksRepository.createProxy(vertx);
 		repository.storeTask(new Task(), testContext.succeeding(storedTask -> {
 
 			testRequest(client, HttpMethod.DELETE, Tasks.PATH + "/" + storedTask.id).expect(res -> testContext.verify(() -> {
 
 				assertThat(res.statusCode()).isEqualTo(Status.NO_CONTENT.getStatusCode());
-				testContext.completeNow();
+				repository.searchTask(storedTask.id, testContext.failing(error -> testContext.completeNow()));
 
 			})).send(testContext);
 
@@ -465,46 +477,36 @@ public class TasksIT {
 	}
 
 	/**
-	 * Verify that can update the norms of a task.
+	 * Verify that only update the middle name of an user.
 	 *
-	 * @param repository  to access the tasks.
-	 * @param client      to connect to the server.
 	 * @param vertx       event bus to use.
+	 * @param client      to connect to the server.
 	 * @param testContext context to test.
 	 *
-	 * @see Tasks#updateTask(String, JsonObject,
-	 *      io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
+	 * @see Tasks#retrieveTask(String, io.vertx.ext.web.api.OperationRequest,
+	 *      io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldUpdateTaskNorm(TasksRepository repository, WebClient client, Vertx vertx,
-			VertxTestContext testContext) {
+	public void shouldUpdateOnlyAppIdOnTask(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
-		new TaskTest().createModelExample(23, vertx, testContext, testContext.succeeding(created -> {
+		TasksRepository.createProxy(vertx).storeTask(new Task(), testContext.succeeding(target -> {
 
-			testContext.assertComplete(created.validate("codePrefix", vertx)).setHandler(validation -> {
+			StoreServices.storeAppExample(1, vertx, testContext, testContext.succeeding(app -> {
 
-				repository.storeTask(created, testContext.succeeding(storedTask -> {
+				final Task source = new Task();
+				source.appId = app.appId;
+				testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + target.id).expect(res -> testContext.verify(() -> {
 
-					final Task newTask = new Task();
-					newTask.norms = new ArrayList<>();
-					newTask.norms.add(new Norm());
-					newTask.norms.add(new Norm());
-					newTask.norms.get(1).id = storedTask.norms.get(0).id;
-					newTask.norms.get(1).attribute = "Attribute";
-					testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + storedTask.id).expect(res -> testContext.verify(() -> {
+					assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+					final Task updated = assertThatBodyIs(Task.class, res);
+					assertThat(updated).isNotEqualTo(target).isNotEqualTo(source);
+					target._lastUpdateTs = updated._lastUpdateTs;
+					target.appId = app.appId;
+					assertThat(updated).isEqualTo(target);
+					testContext.completeNow();
 
-						assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-						final Task updated = assertThatBodyIs(Task.class, res);
-						assertThat(updated).isNotEqualTo(storedTask).isNotEqualTo(newTask);
-
-						storedTask.norms.add(0, new Norm());
-						storedTask.norms.get(0).id = updated.norms.get(0).id;
-						storedTask.norms.get(1).attribute = "Attribute";
-						assertThat(updated).isEqualTo(storedTask);
-
-					})).sendJson(newTask.toJsonObject(), testContext);
-				}));
-			});
+				})).sendJson(source.toJsonObject(), testContext);
+			}));
 		}));
 
 	}
