@@ -39,6 +39,7 @@ import eu.internetofus.common.api.models.wenet.TaskGoalTest;
 import eu.internetofus.common.api.models.wenet.TaskTest;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
 
@@ -55,15 +56,15 @@ public class TasksRepositoryIT {
 	/**
 	 * Verify that can not found a task if it is not defined.
 	 *
-	 * @param repository  to test.
+	 * @param vertx       event bus to use.
 	 * @param testContext context that executes the test.
 	 *
 	 * @see TasksRepository#searchTask(String, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldNotFoundUndefinedTask(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldNotFoundUndefinedTask(Vertx vertx, VertxTestContext testContext) {
 
-		repository.searchTask("undefined user identifier", testContext.failing(failed -> {
+		TasksRepository.createProxy(vertx).searchTask("undefined user identifier", testContext.failing(failed -> {
 			testContext.completeNow();
 		}));
 
@@ -72,15 +73,15 @@ public class TasksRepositoryIT {
 	/**
 	 * Verify that can not found a task object if it is not defined.
 	 *
-	 * @param repository  to test.
+	 * @param vertx       event bus to use.
 	 * @param testContext context that executes the test.
 	 *
 	 * @see TasksRepository#searchTaskObject(String, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldNotFoundUndefinedTaskObject(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldNotFoundUndefinedTaskObject(Vertx vertx, VertxTestContext testContext) {
 
-		repository.searchTaskObject("undefined user identifier", testContext.failing(failed -> {
+		TasksRepository.createProxy(vertx).searchTaskObject("undefined user identifier", testContext.failing(failed -> {
 			testContext.completeNow();
 		}));
 
@@ -89,20 +90,21 @@ public class TasksRepositoryIT {
 	/**
 	 * Verify that can found a task.
 	 *
-	 * @param repository  to test.
+	 * @param vertx       event bus to use.
 	 * @param testContext context that executes the test.
 	 *
 	 * @see TasksRepository#searchTask(String, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldFoundTask(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldFoundTask(Vertx vertx, VertxTestContext testContext) {
 
-		repository.storeTask(new Task(), testContext.succeeding(storedTask -> {
+		TasksRepository.createProxy(vertx).storeTask(new Task(), testContext.succeeding(storedTask -> {
 
-			repository.searchTask(storedTask.id, testContext.succeeding(foundTask -> testContext.verify(() -> {
-				assertThat(foundTask).isEqualTo(storedTask);
-				testContext.completeNow();
-			})));
+			TasksRepository.createProxy(vertx).searchTask(storedTask.id,
+					testContext.succeeding(foundTask -> testContext.verify(() -> {
+						assertThat(foundTask).isEqualTo(storedTask);
+						testContext.completeNow();
+					})));
 
 		}));
 
@@ -111,17 +113,17 @@ public class TasksRepositoryIT {
 	/**
 	 * Verify that can found a task object.
 	 *
-	 * @param repository  to test.
+	 * @param vertx       event bus to use.
 	 * @param testContext context that executes the test.
 	 *
 	 * @see TasksRepository#searchTaskObject(String, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldFoundTaskObject(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldFoundTaskObject(Vertx vertx, VertxTestContext testContext) {
 
-		repository.storeTask(new JsonObject(), testContext.succeeding(storedTask -> {
+		TasksRepository.createProxy(vertx).storeTask(new JsonObject(), testContext.succeeding(storedTask -> {
 
-			repository.searchTaskObject(storedTask.getString("id"),
+			TasksRepository.createProxy(vertx).searchTaskObject(storedTask.getString("id"),
 					testContext.succeeding(foundTask -> testContext.verify(() -> {
 						assertThat(foundTask).isEqualTo(storedTask);
 						testContext.completeNow();
@@ -134,13 +136,13 @@ public class TasksRepositoryIT {
 	/**
 	 * Verify that can not store a task that can not be an object.
 	 *
-	 * @param repository  to test.
+	 * @param vertx       event bus to use.
 	 * @param testContext context that executes the test.
 	 *
 	 * @see TasksRepository#storeTask(Task, Handler)
 	 */
 	@Test
-	public void shouldNotStoreATaskThatCanNotBeAnObject(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldNotStoreATaskThatCanNotBeAnObject(Vertx vertx, VertxTestContext testContext) {
 
 		final Task task = new Task() {
 
@@ -154,7 +156,7 @@ public class TasksRepositoryIT {
 			}
 		};
 		task.id = "undefined user identifier";
-		repository.storeTask(task, testContext.failing(failed -> {
+		TasksRepository.createProxy(vertx).storeTask(task, testContext.failing(failed -> {
 			testContext.completeNow();
 		}));
 
@@ -163,19 +165,19 @@ public class TasksRepositoryIT {
 	/**
 	 * Verify that can store a task.
 	 *
-	 * @param repository  to test.
+	 * @param vertx       event bus to use.
 	 * @param testContext context that executes the test.
 	 *
 	 * @see TasksRepository#storeTask(Task, Handler)
 	 */
 	@Test
-	public void shouldStoreTask(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldStoreTask(Vertx vertx, VertxTestContext testContext) {
 
 		final Task task = new Task();
 		task._creationTs = 0;
 		task._lastUpdateTs = 1;
 		final long now = TimeManager.now();
-		repository.storeTask(task, testContext.succeeding(storedTask -> testContext.verify(() -> {
+		TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(storedTask -> testContext.verify(() -> {
 
 			assertThat(storedTask).isNotNull();
 			assertThat(storedTask.id).isNotEmpty();
@@ -189,13 +191,13 @@ public class TasksRepositoryIT {
 	/**
 	 * Verify that can store a task.
 	 *
-	 * @param repository  to test.
+	 * @param vertx       event bus to use.
 	 * @param testContext context that executes the test.
 	 *
 	 * @see TasksRepository#storeTask(Task, Handler)
 	 */
 	@Test
-	public void shouldStoreTaskWithAnId(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldStoreTaskWithAnId(Vertx vertx, VertxTestContext testContext) {
 
 		final String id = UUID.randomUUID().toString();
 		final Task task = new Task();
@@ -203,7 +205,7 @@ public class TasksRepositoryIT {
 		task._creationTs = 0;
 		task._lastUpdateTs = 1;
 		final long now = TimeManager.now();
-		repository.storeTask(task, testContext.succeeding(storedTask -> testContext.verify(() -> {
+		TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(storedTask -> testContext.verify(() -> {
 
 			assertThat(storedTask.id).isEqualTo(id);
 			assertThat(storedTask._creationTs).isNotEqualTo(0).isGreaterThanOrEqualTo(now);
@@ -216,20 +218,20 @@ public class TasksRepositoryIT {
 	/**
 	 * Verify that can store a task with an id of an stored task.
 	 *
-	 * @param repository  to test.
+	 * @param vertx       event bus to use.
 	 * @param testContext context that executes the test.
 	 *
 	 * @see TasksRepository#storeTask(Task, Handler)
 	 */
 	@Test
-	public void shouldNotStoreTwoTaskWithTheSameId(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldNotStoreTwoTaskWithTheSameId(Vertx vertx, VertxTestContext testContext) {
 
 		final String id = UUID.randomUUID().toString();
 		final Task task = new Task();
 		task.id = id;
-		repository.storeTask(task, testContext.succeeding(storedTask -> testContext.verify(() -> {
+		TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(storedTask -> testContext.verify(() -> {
 
-			repository.storeTask(task, testContext.failing(error -> testContext.completeNow()));
+			TasksRepository.createProxy(vertx).storeTask(task, testContext.failing(error -> testContext.completeNow()));
 
 		})));
 
@@ -238,41 +240,42 @@ public class TasksRepositoryIT {
 	/**
 	 * Verify that can store a task object.
 	 *
-	 * @param repository  to test.
+	 * @param vertx       event bus to use.
 	 * @param testContext context that executes the test.
 	 *
 	 * @see TasksRepository#storeTask(Task, Handler)
 	 */
 	@Test
-	public void shouldStoreTaskObject(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldStoreTaskObject(Vertx vertx, VertxTestContext testContext) {
 
 		final long now = TimeManager.now();
-		repository.storeTask(new JsonObject(), testContext.succeeding(storedTask -> testContext.verify(() -> {
+		TasksRepository.createProxy(vertx).storeTask(new JsonObject(),
+				testContext.succeeding(storedTask -> testContext.verify(() -> {
 
-			assertThat(storedTask).isNotNull();
-			final String id = storedTask.getString("id");
-			assertThat(id).isNotEmpty();
-			assertThat(storedTask.getLong("_creationTs", 0l)).isNotEqualTo(0).isGreaterThanOrEqualTo(now);
-			assertThat(storedTask.getLong("_lastUpdateTs", 1l)).isNotEqualTo(1).isGreaterThanOrEqualTo(now);
-			testContext.completeNow();
-		})));
+					assertThat(storedTask).isNotNull();
+					final String id = storedTask.getString("id");
+					assertThat(id).isNotEmpty();
+					assertThat(storedTask.getLong("_creationTs", 0l)).isNotEqualTo(0).isGreaterThanOrEqualTo(now);
+					assertThat(storedTask.getLong("_lastUpdateTs", 1l)).isNotEqualTo(1).isGreaterThanOrEqualTo(now);
+					testContext.completeNow();
+				})));
 
 	}
 
 	/**
 	 * Verify that can not update a task if it is not defined.
 	 *
-	 * @param repository  to test.
+	 * @param vertx       event bus to use.
 	 * @param testContext context that executes the test.
 	 *
 	 * @see TasksRepository#updateTask(Task, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldNotUpdateUndefinedTask(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldNotUpdateUndefinedTask(Vertx vertx, VertxTestContext testContext) {
 
 		final Task task = new Task();
 		task.id = "undefined user identifier";
-		repository.updateTask(task, testContext.failing(failed -> {
+		TasksRepository.createProxy(vertx).updateTask(task, testContext.failing(failed -> {
 			testContext.completeNow();
 		}));
 
@@ -281,16 +284,16 @@ public class TasksRepositoryIT {
 	/**
 	 * Verify that can not update a task if it is not defined.
 	 *
-	 * @param repository  to test.
+	 * @param vertx       event bus to use.
 	 * @param testContext context that executes the test.
 	 *
 	 * @see TasksRepository#updateTask(JsonObject, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldNotUpdateUndefinedTaskObject(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldNotUpdateUndefinedTaskObject(Vertx vertx, VertxTestContext testContext) {
 
 		final JsonObject task = new JsonObject().put("id", "undefined user identifier");
-		repository.updateTask(task, testContext.failing(failed -> {
+		TasksRepository.createProxy(vertx).updateTask(task, testContext.failing(failed -> {
 			testContext.completeNow();
 		}));
 
@@ -299,13 +302,13 @@ public class TasksRepositoryIT {
 	/**
 	 * Verify that can not update a task if it is not defined.
 	 *
-	 * @param repository  to test.
+	 * @param vertx       event bus to use.
 	 * @param testContext context that executes the test.
 	 *
 	 * @see TasksRepository#updateTask(Task, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldNotUpdateATaskThatCanNotBeAnObject(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldNotUpdateATaskThatCanNotBeAnObject(Vertx vertx, VertxTestContext testContext) {
 
 		final Task task = new Task() {
 
@@ -319,7 +322,7 @@ public class TasksRepositoryIT {
 			}
 		};
 		task.id = "undefined user identifier";
-		repository.updateTask(task, testContext.failing(failed -> {
+		TasksRepository.createProxy(vertx).updateTask(task, testContext.failing(failed -> {
 			testContext.completeNow();
 		}));
 
@@ -328,35 +331,36 @@ public class TasksRepositoryIT {
 	/**
 	 * Verify that can update a task.
 	 *
-	 * @param repository  to test.
+	 * @param vertx       event bus to use.
 	 * @param testContext context that executes the test.
 	 *
 	 * @see TasksRepository#updateTask(Task, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldUpdateTask(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldUpdateTask(Vertx vertx, VertxTestContext testContext) {
 
 		final Task task = new Task();
 		task.goal = new TaskGoalTest().createModelExample(23);
-		repository.storeTask(task, testContext.succeeding(stored -> testContext.verify(() -> {
+		TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(stored -> testContext.verify(() -> {
 
 			final long now = TimeManager.now();
 			final Task update = new TaskTest().createModelExample(23);
 			update.id = stored.id;
 			update._creationTs = stored._creationTs;
 			update._lastUpdateTs = 1;
-			repository.updateTask(update, testContext.succeeding(empty -> testContext.verify(() -> {
+			TasksRepository.createProxy(vertx).updateTask(update, testContext.succeeding(empty -> testContext.verify(() -> {
 
-				repository.searchTask(stored.id, testContext.succeeding(foundTask -> testContext.verify(() -> {
+				TasksRepository.createProxy(vertx).searchTask(stored.id,
+						testContext.succeeding(foundTask -> testContext.verify(() -> {
 
-					assertThat(stored).isNotNull();
-					assertThat(foundTask.id).isNotEmpty().isEqualTo(stored.id);
-					assertThat(foundTask._creationTs).isEqualTo(stored._creationTs);
-					assertThat(foundTask._lastUpdateTs).isGreaterThanOrEqualTo(now);
-					update._lastUpdateTs = foundTask._lastUpdateTs;
-					assertThat(foundTask).isEqualTo(update);
-					testContext.completeNow();
-				})));
+							assertThat(stored).isNotNull();
+							assertThat(foundTask.id).isNotEmpty().isEqualTo(stored.id);
+							assertThat(foundTask._creationTs).isEqualTo(stored._creationTs);
+							assertThat(foundTask._lastUpdateTs).isGreaterThanOrEqualTo(now);
+							update._lastUpdateTs = foundTask._lastUpdateTs;
+							assertThat(foundTask).isEqualTo(update);
+							testContext.completeNow();
+						})));
 			})));
 
 		})));
@@ -366,28 +370,30 @@ public class TasksRepositoryIT {
 	/**
 	 * Verify that update a defined task object.
 	 *
-	 * @param repository  to test.
+	 * @param vertx       event bus to use.
 	 * @param testContext context that executes the test.
 	 *
 	 * @see TasksRepository#updateTask(JsonObject, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldUpdateTaskObject(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldUpdateTaskObject(Vertx vertx, VertxTestContext testContext) {
 
-		repository.storeTask(new JsonObject().put("nationality", "Italian"),
+		TasksRepository.createProxy(vertx).storeTask(new JsonObject().put("nationality", "Italian"),
 				testContext.succeeding(stored -> testContext.verify(() -> {
 
 					final String id = stored.getString("id");
 					final JsonObject update = new JsonObject().put("id", id).put("occupation", "Unemployed");
-					repository.updateTask(update, testContext.succeeding(empty -> testContext.verify(() -> {
+					TasksRepository.createProxy(vertx).updateTask(update,
+							testContext.succeeding(empty -> testContext.verify(() -> {
 
-						repository.searchTaskObject(id, testContext.succeeding(foundTask -> testContext.verify(() -> {
-							stored.put("_lastUpdateTs", foundTask.getLong("_lastUpdateTs"));
-							stored.put("occupation", "Unemployed");
-							assertThat(foundTask).isEqualTo(stored);
-							testContext.completeNow();
-						})));
-					})));
+								TasksRepository.createProxy(vertx).searchTaskObject(id,
+										testContext.succeeding(foundTask -> testContext.verify(() -> {
+											stored.put("_lastUpdateTs", foundTask.getLong("_lastUpdateTs"));
+											stored.put("occupation", "Unemployed");
+											assertThat(foundTask).isEqualTo(stored);
+											testContext.completeNow();
+										})));
+							})));
 
 				})));
 
@@ -396,15 +402,15 @@ public class TasksRepositoryIT {
 	/**
 	 * Verify that can not delete a task if it is not defined.
 	 *
-	 * @param repository  to test.
+	 * @param vertx       event bus to use.
 	 * @param testContext context that executes the test.
 	 *
 	 * @see TasksRepository#searchTask(String, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldNotDeleteUndefinedTask(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldNotDeleteUndefinedTask(Vertx vertx, VertxTestContext testContext) {
 
-		repository.deleteTask("undefined user identifier", testContext.failing(failed -> {
+		TasksRepository.createProxy(vertx).deleteTask("undefined user identifier", testContext.failing(failed -> {
 			testContext.completeNow();
 		}));
 
@@ -413,20 +419,20 @@ public class TasksRepositoryIT {
 	/**
 	 * Verify that can delete a task.
 	 *
-	 * @param repository  to test.
+	 * @param vertx       event bus to use.
 	 * @param testContext context that executes the test.
 	 *
 	 * @see TasksRepository#updateTask(JsonObject, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldDeleteTask(TasksRepository repository, VertxTestContext testContext) {
+	public void shouldDeleteTask(Vertx vertx, VertxTestContext testContext) {
 
-		repository.storeTask(new JsonObject(), testContext.succeeding(stored -> {
+		TasksRepository.createProxy(vertx).storeTask(new JsonObject(), testContext.succeeding(stored -> {
 
 			final String id = stored.getString("id");
-			repository.deleteTask(id, testContext.succeeding(success -> {
+			TasksRepository.createProxy(vertx).deleteTask(id, testContext.succeeding(success -> {
 
-				repository.searchTaskObject(id, testContext.failing(search -> {
+				TasksRepository.createProxy(vertx).searchTaskObject(id, testContext.failing(search -> {
 
 					testContext.completeNow();
 

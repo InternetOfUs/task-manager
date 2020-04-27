@@ -27,6 +27,7 @@
 package eu.internetofus.wenet_task_manager.services;
 
 import eu.internetofus.common.services.AbstractServicesVerticle;
+import eu.internetofus.common.services.WeNetInteractionProtocolEngineService;
 import eu.internetofus.common.services.WeNetProfileManagerService;
 import eu.internetofus.common.services.WeNetServiceApiService;
 import io.vertx.core.json.JsonObject;
@@ -49,9 +50,14 @@ public class ServicesVerticle extends AbstractServicesVerticle {
 		final JsonObject profileManagerConf = serviceConf.getJsonObject("profileManager", new JsonObject());
 		WeNetProfileManagerService.register(this.vertx, this.client, profileManagerConf);
 
-		// register the service to interact with the service Api
+		// register the service to interact with the service API
 		final JsonObject serviceApiConf = serviceConf.getJsonObject("service", new JsonObject());
 		WeNetServiceApiService.register(this.vertx, this.client, serviceApiConf);
+
+		// register the service to interact with the interaction protocol engine
+		final JsonObject interactionProtocolEngineConf = serviceConf.getJsonObject("interactionProtocolEngine",
+				new JsonObject());
+		WeNetInteractionProtocolEngineService.register(this.vertx, this.client, interactionProtocolEngineConf);
 
 	}
 

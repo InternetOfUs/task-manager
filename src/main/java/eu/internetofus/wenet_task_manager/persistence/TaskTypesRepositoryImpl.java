@@ -26,7 +26,6 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
-import eu.internetofus.common.TimeManager;
 import eu.internetofus.common.persitences.Repository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -34,23 +33,23 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
 
 /**
- * Implementation of the {@link TasksRepository}.
+ * Implementation of the {@link TaskTypesRepository}.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public class TasksRepositoryImpl extends Repository implements TasksRepository {
+public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepository {
 
 	/**
-	 * The name of the collection that contains the tasks.
+	 * The name of the collection that contains the taskTypes.
 	 */
-	public static final String TASKS_COLLECTION = "tasks";
+	public static final String TASK_TYPES_COLLECTION = "taskTypes";
 
 	/**
 	 * Create a new service.
 	 *
 	 * @param pool to create the connections.
 	 */
-	public TasksRepositoryImpl(MongoClient pool) {
+	public TaskTypesRepositoryImpl(MongoClient pool) {
 
 		super(pool);
 
@@ -60,10 +59,10 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void searchTaskObject(String id, Handler<AsyncResult<JsonObject>> searchHandler) {
+	public void searchTaskTypeObject(String id, Handler<AsyncResult<JsonObject>> searchHandler) {
 
 		final JsonObject query = new JsonObject().put("_id", id);
-		this.findOneDocument(TASKS_COLLECTION, query, null, found -> {
+		this.findOneDocument(TASK_TYPES_COLLECTION, query, null, found -> {
 			final String _id = (String) found.remove("_id");
 			return found.put("id", _id);
 		}, searchHandler);
@@ -74,17 +73,17 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void storeTask(JsonObject task, Handler<AsyncResult<JsonObject>> storeHandler) {
+	public void storeTaskType(JsonObject taskType, Handler<AsyncResult<JsonObject>> storeHandler) {
 
-		final String id = (String) task.remove("id");
+		final String id = (String) taskType.remove("id");
 		if (id != null) {
 
-			task.put("_id", id);
+			taskType.put("_id", id);
 		}
-		final long now = TimeManager.now();
-		task.put("_creationTs", now);
-		task.put("_lastUpdateTs", now);
-		this.storeOneDocument(TASKS_COLLECTION, task, stored -> {
+		// final long now = TimeManager.now();
+		// taskType.put("_creationTs", now);
+		// taskType.put("_lastUpdateTs", now);
+		this.storeOneDocument(TASK_TYPES_COLLECTION, taskType, stored -> {
 
 			final String _id = (String) stored.remove("_id");
 			return stored.put("id", _id);
@@ -97,13 +96,13 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void updateTask(JsonObject task, Handler<AsyncResult<Void>> updateHandler) {
+	public void updateTaskType(JsonObject taskType, Handler<AsyncResult<Void>> updateHandler) {
 
-		final Object id = task.remove("id");
+		final Object id = taskType.remove("id");
 		final JsonObject query = new JsonObject().put("_id", id);
-		final long now = TimeManager.now();
-		task.put("_lastUpdateTs", now);
-		this.updateOneDocument(TASKS_COLLECTION, query, task, updateHandler);
+		// final long now = TimeManager.now();
+		// taskType.put("_lastUpdateTs", now);
+		this.updateOneDocument(TASK_TYPES_COLLECTION, query, taskType, updateHandler);
 
 	}
 
@@ -111,10 +110,10 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void deleteTask(String id, Handler<AsyncResult<Void>> deleteHandler) {
+	public void deleteTaskType(String id, Handler<AsyncResult<Void>> deleteHandler) {
 
 		final JsonObject query = new JsonObject().put("_id", id);
-		this.deleteOneDocument(TASKS_COLLECTION, query, deleteHandler);
+		this.deleteOneDocument(TASK_TYPES_COLLECTION, query, deleteHandler);
 
 	}
 

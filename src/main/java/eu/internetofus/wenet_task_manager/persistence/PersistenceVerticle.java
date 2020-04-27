@@ -42,6 +42,7 @@ public class PersistenceVerticle extends AbstractPersistenceVerticle {
 	protected void registerRepositories() throws Exception {
 
 		TasksRepository.register(this.vertx, this.pool);
+		TaskTypesRepository.register(this.vertx, this.pool);
 
 	}
 

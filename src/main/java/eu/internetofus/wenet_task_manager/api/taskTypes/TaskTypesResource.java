@@ -24,7 +24,9 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.wenet_task_manager.api.tasks;
+package eu.internetofus.wenet_task_manager.api.taskTypes;
+
+import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
@@ -32,9 +34,9 @@ import org.tinylog.Logger;
 
 import eu.internetofus.common.api.OperationReponseHandlers;
 import eu.internetofus.common.api.models.Model;
-import eu.internetofus.common.api.models.wenet.Task;
+import eu.internetofus.common.api.models.wenet.TaskType;
 import eu.internetofus.common.services.WeNetProfileManagerService;
-import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
+import eu.internetofus.wenet_task_manager.persistence.TaskTypesRepository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -43,11 +45,11 @@ import io.vertx.ext.web.api.OperationRequest;
 import io.vertx.ext.web.api.OperationResponse;
 
 /**
- * Resource that provide the methods for the {@link Tasks}.
+ * Resource that provide the methods for the {@link TaskTypes}.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public class TasksResource implements Tasks {
+public class TaskTypesResource implements TaskTypes {
 
 	/**
 	 * The event bus that is using.
@@ -55,31 +57,31 @@ public class TasksResource implements Tasks {
 	protected Vertx vertx;
 
 	/**
-	 * The repository to manage the tasks.
+	 * The repository to manage the taskTypes.
 	 */
-	protected TasksRepository repository;
+	protected TaskTypesRepository repository;
 
 	/**
-	 * The repository to manage the tasks.
+	 * The repository to manage the taskTypes.
 	 */
 	protected WeNetProfileManagerService profileManager;
 
 	/**
 	 * Create an empty resource. This is only used for unit tests.
 	 */
-	protected TasksResource() {
+	protected TaskTypesResource() {
 
 	}
 
 	/**
-	 * Create a new instance to provide the services of the {@link Tasks}.
+	 * Create a new instance to provide the services of the {@link TaskTypes}.
 	 *
 	 * @param vertx where resource is defined.
 	 */
-	public TasksResource(Vertx vertx) {
+	public TaskTypesResource(Vertx vertx) {
 
 		this.vertx = vertx;
-		this.repository = TasksRepository.createProxy(vertx);
+		this.repository = TaskTypesRepository.createProxy(vertx);
 		this.profileManager = WeNetProfileManagerService.createProxy(vertx);
 	}
 
@@ -87,21 +89,21 @@ public class TasksResource implements Tasks {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void retrieveTask(String taskId, OperationRequest context,
+	public void retrieveTaskType(String taskTypeId, OperationRequest context,
 			Handler<AsyncResult<OperationResponse>> resultHandler) {
 
-		this.repository.searchTaskObject(taskId, search -> {
+		this.repository.searchTaskTypeObject(taskTypeId, search -> {
 
-			final JsonObject task = search.result();
-			if (task == null) {
+			final JsonObject taskType = search.result();
+			if (taskType == null) {
 
-				Logger.debug(search.cause(), "Not found task for {}", taskId);
-				OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND, "not_found_task",
-						"Does not exist a task associated to '" + taskId + "'.");
+				Logger.debug(search.cause(), "Not found task type type for {}", taskTypeId);
+				OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND, "not_found_task_type",
+						"Does not exist a task type type associated to '" + taskTypeId + "'.");
 
 			} else {
 
-				OperationReponseHandlers.responseOk(resultHandler, task);
+				OperationReponseHandlers.responseOk(resultHandler, taskType);
 
 			}
 		});
@@ -111,34 +113,34 @@ public class TasksResource implements Tasks {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void createTask(JsonObject body, OperationRequest context,
+	public void createTaskType(JsonObject body, OperationRequest context,
 			Handler<AsyncResult<OperationResponse>> resultHandler) {
 
-		final Task task = Model.fromJsonObject(body, Task.class);
-		if (task == null) {
+		final TaskType taskType = Model.fromJsonObject(body, TaskType.class);
+		if (taskType == null) {
 
-			Logger.debug("The {} is not a valid Task.", body);
-			OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task",
-					"The task is not right.");
+			Logger.debug("The {} is not a valid TaskType.", body);
+			OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task_type",
+					"The task type is not right.");
 
 		} else {
 
-			task.validate("bad_task", this.vertx).onComplete(validation -> {
+			taskType.validate("bad_task_type", this.vertx).onComplete(validation -> {
 
 				if (validation.failed()) {
 
 					final Throwable cause = validation.cause();
-					Logger.debug(cause, "The {} is not valid.", task);
+					Logger.debug(cause, "The {} is not valid.", taskType);
 					OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
 				} else {
 
-					this.repository.storeTask(task, stored -> {
+					this.repository.storeTaskType(taskType, stored -> {
 
 						if (stored.failed()) {
 
 							final Throwable cause = validation.cause();
-							Logger.debug(cause, "Cannot store {}.", task);
+							Logger.debug(cause, "Cannot store {}.", taskType);
 							OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
 						} else {
@@ -157,30 +159,31 @@ public class TasksResource implements Tasks {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void updateTask(String taskId, JsonObject body, OperationRequest context,
+	public void updateTaskType(String taskTypeId, JsonObject body, OperationRequest context,
 			Handler<AsyncResult<OperationResponse>> resultHandler) {
 
-		final Task source = Model.fromJsonObject(body, Task.class);
+		final TaskType source = Model.fromJsonObject(body, TaskType.class);
 		if (source == null) {
 
-			Logger.debug("The {} is not a valid Task to update.", body);
-			OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task_to_update",
-					"The task to update is not right.");
+			Logger.debug("The {} is not a valid TaskType to update.", body);
+			OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task_type_to_update",
+					"The task type to update is not right.");
 
 		} else {
 
-			this.repository.searchTask(taskId, search -> {
+			this.repository.searchTaskType(taskTypeId, search -> {
 
-				final Task target = search.result();
+				final TaskType target = search.result();
 				if (target == null) {
 
-					Logger.debug(search.cause(), "Not found task {} to update", taskId);
-					OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND, "not_found_task_to_update",
-							"You can not update the task '" + taskId + "', because it does not exist.");
+					Logger.debug(search.cause(), "Not found task type {} to update", taskTypeId);
+					OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND,
+							"not_found_task_type_to_update",
+							"You can not update the task type '" + taskTypeId + "', because it does not exist.");
 
 				} else {
 
-					target.merge(source, "bad_new_task", this.vertx).onComplete(merge -> {
+					target.merge(source, "bad_new_task_type", this.vertx).onComplete(merge -> {
 
 						if (merge.failed()) {
 
@@ -190,15 +193,15 @@ public class TasksResource implements Tasks {
 
 						} else {
 
-							final Task merged = merge.result();
+							final TaskType merged = merge.result();
 							if (merged.equals(target)) {
 
 								OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST,
-										"task_to_update_equal_to_original", "You can not update the task of the task '" + taskId
+										"taskType_to_update_equal_to_original", "You can not update the task type '" + taskTypeId
 												+ "', because the new values is equals to the current one.");
 
 							} else {
-								this.repository.updateTask(merged, update -> {
+								this.repository.updateTaskType(merged, update -> {
 
 									if (update.failed()) {
 
@@ -229,15 +232,15 @@ public class TasksResource implements Tasks {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void deleteTask(String taskId, OperationRequest context,
+	public void deleteTaskType(String taskTypeId, OperationRequest context,
 			Handler<AsyncResult<OperationResponse>> resultHandler) {
 
-		this.repository.deleteTask(taskId, delete -> {
+		this.repository.deleteTaskType(taskTypeId, delete -> {
 
 			if (delete.failed()) {
 
 				final Throwable cause = delete.cause();
-				Logger.debug(cause, "Cannot delete the task  {}.", taskId);
+				Logger.debug(cause, "Cannot delete the task type {}.", taskTypeId);
 				OperationReponseHandlers.responseFailedWith(resultHandler, Status.NOT_FOUND, cause);
 
 			} else {
@@ -246,6 +249,18 @@ public class TasksResource implements Tasks {
 			}
 
 		});
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void retrieveTaskTypePage(String name, String description, List<String> keywords, int offset, int limit,
+			OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler) {
+
+		OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_IMPLEMENTED, "not_implemented",
+				"It is not implemented yet");
 
 	}
 

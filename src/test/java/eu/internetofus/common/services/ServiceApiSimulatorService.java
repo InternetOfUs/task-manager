@@ -26,6 +26,7 @@
 
 package eu.internetofus.common.services;
 
+import eu.internetofus.common.WeNetModuleContext;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
@@ -35,17 +36,17 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.serviceproxy.ServiceBinder;
 
 /**
- * The class used to interact with the WeNet interaction protocol engine.
+ * The services to interact with the {@link ServiceApiSimulatorService}.
  *
  * @author UDT-IA, IIIA-CSIC
  */
 @ProxyGen
-public interface WeNetServiceApiService {
+public interface ServiceApiSimulatorService {
 
 	/**
 	 * The address of this service.
 	 */
-	String ADDRESS = "wenet_common.service.ServiceApi";
+	String ADDRESS = "wenet_common.service.ServiceApiSimulator";
 
 	/**
 	 * Create a proxy of the {@link WeNetServiceApiService}.
@@ -54,22 +55,23 @@ public interface WeNetServiceApiService {
 	 *
 	 * @return the task.
 	 */
-	static WeNetServiceApiService createProxy(Vertx vertx) {
+	static ServiceApiSimulatorService createProxy(Vertx vertx) {
 
-		return new WeNetServiceApiServiceVertxEBProxy(vertx, WeNetServiceApiService.ADDRESS);
+		return new ServiceApiSimulatorServiceVertxEBProxy(vertx, ServiceApiSimulatorService.ADDRESS);
 	}
 
 	/**
-	 * Register this service.
+	 * Create a service that will link to the simulator service.
 	 *
-	 * @param vertx  that contains the event bus to use.
-	 * @param client to do HTTP requests to other services.
-	 * @param conf   configuration to use.
+	 * @param context used to create the service.
 	 */
-	static void register(Vertx vertx, WebClient client, JsonObject conf) {
+	static void register(WeNetModuleContext context) {
 
-		new ServiceBinder(vertx).setAddress(WeNetServiceApiService.ADDRESS).register(WeNetServiceApiService.class,
-				new WeNetServiceApiServiceImpl(client, conf));
+		final WebClient client = WebClient.create(context.vertx);
+		final JsonObject conf = context.configuration.getJsonObject("wenetComponents", new JsonObject())
+				.getJsonObject("service", new JsonObject());
+		new ServiceBinder(context.vertx).setAddress(ServiceApiSimulatorService.ADDRESS)
+				.register(ServiceApiSimulatorService.class, new ServiceApiSimulatorServiceImpl(client, conf));
 
 	}
 
@@ -80,5 +82,21 @@ public interface WeNetServiceApiService {
 	 * @param retrieveHandler handler to manage the retrieve process.
 	 */
 	void retrieveApp(String id, Handler<AsyncResult<JsonObject>> retrieveHandler);
+
+	/**
+	 * Defined method only for testing and can store an APP.
+	 *
+	 * @param app           to create.
+	 * @param createHandler handler to manage the creation process.
+	 */
+	void createApp(JsonObject app, Handler<AsyncResult<JsonObject>> createHandler);
+
+	/**
+	 * Defined method only for testing and can delete an APP.
+	 *
+	 * @param id            identifier of the application to remove.
+	 * @param deleteHandler handler to manage the delete process.
+	 */
+	void deleteApp(String id, Handler<AsyncResult<Void>> deleteHandler);
 
 }

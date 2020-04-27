@@ -24,36 +24,10 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.common.services;
-
-import org.junit.jupiter.api.Test;
-
-import io.vertx.core.Vertx;
-import io.vertx.junit5.VertxTestContext;
-
 /**
- * Test the {@link WeNetServiceApiService}.
- *
- * @see WeNetServiceApiService
+ * Services to manage the
+ * {@link eu.internetofus.common.api.models.wenet.TaskType}.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public abstract class WeNetServiceApiServiceTestCase {
-
-	/**
-	 * Should not retrieve undefined app.
-	 *
-	 * @param vertx       that contains the event bus to use.
-	 * @param testContext context over the tests.
-	 */
-	@Test
-	public void shouldNotRretrieveUndefinedApp(Vertx vertx, VertxTestContext testContext) {
-
-		WeNetServiceApiService.createProxy(vertx).retrieveApp("undefined-app-identifier", testContext.failing(handler -> {
-			testContext.completeNow();
-
-		}));
-
-	}
-
-}
+package eu.internetofus.wenet_task_manager.api.taskTypes;

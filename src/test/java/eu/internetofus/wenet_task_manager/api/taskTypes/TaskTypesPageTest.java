@@ -24,36 +24,34 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.common.services;
+package eu.internetofus.wenet_task_manager.api.taskTypes;
 
-import org.junit.jupiter.api.Test;
+import java.util.ArrayList;
 
-import io.vertx.core.Vertx;
-import io.vertx.junit5.VertxTestContext;
+import eu.internetofus.common.api.models.ModelTestCase;
+import eu.internetofus.common.api.models.wenet.TaskTypeTest;
 
 /**
- * Test the {@link WeNetServiceApiService}.
+ * Test the {@link TaskTypesPage}.
  *
- * @see WeNetServiceApiService
+ * @see TaskTypesPage
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public abstract class WeNetServiceApiServiceTestCase {
+public class TaskTypesPageTest extends ModelTestCase<TaskTypesPage> {
 
 	/**
-	 * Should not retrieve undefined app.
-	 *
-	 * @param vertx       that contains the event bus to use.
-	 * @param testContext context over the tests.
+	 * {@inheritDoc}
 	 */
-	@Test
-	public void shouldNotRretrieveUndefinedApp(Vertx vertx, VertxTestContext testContext) {
+	@Override
+	public TaskTypesPage createModelExample(int index) {
 
-		WeNetServiceApiService.createProxy(vertx).retrieveApp("undefined-app-identifier", testContext.failing(handler -> {
-			testContext.completeNow();
-
-		}));
-
+		final TaskTypesPage model = new TaskTypesPage();
+		model.offset = index;
+		model.total = 100 + index;
+		model.taskTypes = new ArrayList<>();
+		model.taskTypes.add(new TaskTypeTest().createModelExample(index));
+		return model;
 	}
 
 }

@@ -24,9 +24,9 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.common;
+package eu.internetofus.common.services;
 
-import eu.internetofus.common.services.WeNetServiceApiServiceImpl;
+import eu.internetofus.common.ServiceApiSimulator;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
@@ -37,7 +37,8 @@ import io.vertx.ext.web.client.WebClient;
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public class ServiceApiSimulatorService extends WeNetServiceApiServiceImpl {
+public class ServiceApiSimulatorServiceImpl extends WeNetServiceApiServiceImpl
+		implements ServiceApiSimulatorService, WeNetServiceApiService {
 
 	/**
 	 * Create a new service to interact with the WeNet interaction protocol engine.
@@ -45,7 +46,7 @@ public class ServiceApiSimulatorService extends WeNetServiceApiServiceImpl {
 	 * @param client to interact with the other modules.
 	 * @param conf   configuration.
 	 */
-	public ServiceApiSimulatorService(WebClient client, JsonObject conf) {
+	public ServiceApiSimulatorServiceImpl(WebClient client, JsonObject conf) {
 
 		super(client, conf);
 
@@ -73,21 +74,6 @@ public class ServiceApiSimulatorService extends WeNetServiceApiServiceImpl {
 
 		this.delete("/app/" + id, deleteHandler);
 
-	}
-
-	/**
-	 * Create a service that will link to the simulator service.
-	 *
-	 * @param context used to create the service.
-	 *
-	 * @return the created service.
-	 */
-	public static ServiceApiSimulatorService create(WeNetModuleContext context) {
-
-		final WebClient client = WebClient.create(context.vertx);
-		final JsonObject conf = context.configuration.getJsonObject("wenetComponents", new JsonObject())
-				.getJsonObject("service", new JsonObject());
-		return new ServiceApiSimulatorService(client, conf);
 	}
 
 }

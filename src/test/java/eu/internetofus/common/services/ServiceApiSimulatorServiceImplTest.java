@@ -24,45 +24,45 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.common;
+package eu.internetofus.common.services;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import eu.internetofus.common.Containers;
+import eu.internetofus.common.WeNetModuleContext;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 
 /**
- * Test the {@link ServiceApiSimulatorService}
+ * Test the {@link ServiceApiSimulatorServiceImpl}
  *
- * @see ServiceApiSimulatorService
+ * @see ServiceApiSimulatorServiceImpl
  *
  * @author UDT-IA, IIIA-CSIC
  */
 @ExtendWith(VertxExtension.class)
-public class ServiceApiSimulatorServiceTest {
-
-	/**
-	 * The context that can be used to create the clients.
-	 */
-	private static WeNetModuleContext context;
+public class ServiceApiSimulatorServiceImplTest {
 
 	/**
 	 * Create the context to use.
+	 *
+	 * @param vertx that contains the event bus to use.
 	 */
-	@BeforeAll
-	public static void startServiceApiSimulator() {
+	@BeforeEach
+	public void startServiceApiSimulator(Vertx vertx) {
 
 		final int serviceApiPort = Containers.nextFreePort();
 		Containers.createAndStartServiceApiSimulator(serviceApiPort);
 		final JsonObject configuration = new JsonObject().put("wenetComponents", new JsonObject().put("service",
 				new JsonObject().put("host", "localhost").put("port", serviceApiPort).put("apiPath", "")));
-		context = new WeNetModuleContext(null, configuration);
+		final WeNetModuleContext context = new WeNetModuleContext(vertx, configuration);
+		ServiceApiSimulatorService.register(context);
 	}
 
 	/**
@@ -74,8 +74,7 @@ public class ServiceApiSimulatorServiceTest {
 	@Test
 	public void shouldCreateRetrieveAndDeleteApp(Vertx vertx, VertxTestContext testContext) {
 
-		context.vertx = vertx;
-		final ServiceApiSimulatorService service = ServiceApiSimulatorService.create(context);
+		final ServiceApiSimulatorService service = ServiceApiSimulatorService.createProxy(vertx);
 		service.createApp(new JsonObject(), testContext.succeeding(create -> {
 
 			final String id = create.getString("appId");

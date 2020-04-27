@@ -28,6 +28,8 @@ package eu.internetofus.wenet_task_manager.api;
 
 import eu.internetofus.common.api.AbstractAPIVerticle;
 import eu.internetofus.common.services.WeNetTaskManagerService;
+import eu.internetofus.wenet_task_manager.api.taskTypes.TaskTypes;
+import eu.internetofus.wenet_task_manager.api.taskTypes.TaskTypesResource;
 import eu.internetofus.wenet_task_manager.api.tasks.Tasks;
 import eu.internetofus.wenet_task_manager.api.tasks.TasksResource;
 import eu.internetofus.wenet_task_manager.api.versions.Versions;
@@ -64,6 +66,10 @@ public class APIVerticle extends AbstractAPIVerticle {
 
 		routerFactory.mountServiceInterface(Tasks.class, Tasks.ADDRESS);
 		new ServiceBinder(this.vertx).setAddress(Tasks.ADDRESS).register(Tasks.class, new TasksResource(this.vertx));
+
+		routerFactory.mountServiceInterface(TaskTypes.class, TaskTypes.ADDRESS);
+		new ServiceBinder(this.vertx).setAddress(TaskTypes.ADDRESS).register(TaskTypes.class,
+				new TaskTypesResource(this.vertx));
 
 	}
 

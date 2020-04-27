@@ -24,36 +24,42 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.common.services;
+package eu.internetofus.wenet_task_manager.api.taskTypes;
 
-import org.junit.jupiter.api.Test;
+import java.util.List;
 
-import io.vertx.core.Vertx;
-import io.vertx.junit5.VertxTestContext;
+import eu.internetofus.common.api.models.Model;
+import eu.internetofus.common.api.models.wenet.TaskType;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Test the {@link WeNetServiceApiService}.
- *
- * @see WeNetServiceApiService
+ * Contains the found task types.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public abstract class WeNetServiceApiServiceTestCase {
+@Schema(name = "TaskTypePage", description = "Contains a set of task types")
+public class TaskTypesPage extends Model {
 
 	/**
-	 * Should not retrieve undefined app.
-	 *
-	 * @param vertx       that contains the event bus to use.
-	 * @param testContext context over the tests.
+	 * The index of the first task type returned.
 	 */
-	@Test
-	public void shouldNotRretrieveUndefinedApp(Vertx vertx, VertxTestContext testContext) {
+	@Schema(description = "The index of the first task type returned.", example = "0")
+	public int offset;
 
-		WeNetServiceApiService.createProxy(vertx).retrieveApp("undefined-app-identifier", testContext.failing(handler -> {
-			testContext.completeNow();
+	/**
+	 * The number total of task type that satisfies the search.
+	 */
+	@Schema(description = "The number total of task types that satisfies the search.", example = "100")
+	public long total;
 
-		}));
-
-	}
+	/**
+	 * The found profiles.
+	 */
+	@ArraySchema(
+			schema = @Schema(
+					ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType"),
+			arraySchema = @Schema(description = "The set of task types found"))
+	public List<TaskType> taskTypes;
 
 }

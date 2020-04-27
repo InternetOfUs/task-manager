@@ -78,7 +78,7 @@ public interface Tasks {
 	String TASK_ID_PATH = "/{taskId}";
 
 	/**
-	 * Called when want to create an user task.
+	 * Called when want to create a task.
 	 *
 	 * @param body          the new task to create.
 	 * @param context       of the request.
@@ -87,7 +87,7 @@ public interface Tasks {
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Operation(summary = "Create a task", description = "Create a new WeNet user task")
+	@Operation(summary = "Create a task", description = "Create a new task")
 	@RequestBody(
 			description = "The new task to create",
 			required = true,

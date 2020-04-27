@@ -36,6 +36,7 @@ import eu.internetofus.common.AbstractMain;
 import eu.internetofus.common.AbstractWeNetModuleIntegrationExtension;
 import eu.internetofus.common.Containers;
 import eu.internetofus.common.WeNetModuleContext;
+import eu.internetofus.common.services.ServiceApiSimulatorService;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
 
 /**
@@ -44,6 +45,15 @@ import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
  * @author UDT-IA, IIIA-CSIC
  */
 public class WeNetTaskManagerIntegrationExtension extends AbstractWeNetModuleIntegrationExtension {
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void afterStarted(WeNetModuleContext context) {
+
+		ServiceApiSimulatorService.register(context);
+	}
 
 	/**
 	 * {@inheritDoc}
