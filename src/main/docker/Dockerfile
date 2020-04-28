@@ -60,10 +60,10 @@ RUN echo "{\"persistence\":{\"db_name\":\"${DEFAULT_DB_NAME}\",\"host\":\"${DEFA
 RUN echo "{\"wenetComponents\":{\"profileManager\":{\"host\":\"${DEFAULT_WENET_PROFILE_MANAGER_API_HOST}\",\"port\":${DEFAULT_WENET_PROFILE_MANAGER_API_PORT},\"apiPath\":\"${DEFAULT_WENET_PROFILE_MANAGER_API_PATH}\"}}}" > /usr/wenet/task-manager/etc/profileManagerApi.json
 
 # Create configuration for interaction protocol engine component
-RUN echo "{\"wenetComponents\":{\"interactionProtocolEngine\":{\"host\":\"${DEFAULT_WENET_INTERACTION_PROTOCOL_ENGINE_API_HOST}\",\"port\":${DEFAULT_WENET_INTERACTION_PROTOCOL_ENGINE_API_PORT},\"apiPath\":\"${DEFAULT_WENET_INTERACTION_PROTOCOL_ENGINE_API_PATH}\"}}}" > /usr/wenet/profile-manager/etc/interactionProtocolEngine.json
+RUN echo "{\"wenetComponents\":{\"interactionProtocolEngine\":{\"host\":\"${DEFAULT_WENET_INTERACTION_PROTOCOL_ENGINE_API_HOST}\",\"port\":${DEFAULT_WENET_INTERACTION_PROTOCOL_ENGINE_API_PORT},\"apiPath\":\"${DEFAULT_WENET_INTERACTION_PROTOCOL_ENGINE_API_PATH}\"}}}" > /usr/wenet/task-manager/etc/interactionProtocolEngine.json
 
 # Create configuration for service component
-RUN echo "{\"wenetComponents\":{\"service\":{\"host\":\"${DEFAULT_WENET_SERVICE_API_HOST}\",\"port\":${DEFAULT_WENET_SERVICE_API_PORT},\"apiPath\":\"${DEFAULT_WENET_SERVICE_API_PATH}\"}}}" > /usr/wenet/profile-manager/etc/serviceApi.json
+RUN echo "{\"wenetComponents\":{\"service\":{\"host\":\"${DEFAULT_WENET_SERVICE_API_HOST}\",\"port\":${DEFAULT_WENET_SERVICE_API_PORT},\"apiPath\":\"${DEFAULT_WENET_SERVICE_API_PATH}\"}}}" > /usr/wenet/task-manager/etc/serviceApi.json
 
 WORKDIR /usr/wenet/task-manager
 COPY --from=build /build/target/wenet-task-manager.jar /usr/wenet/task-manager/wenet-task-manager.jar
