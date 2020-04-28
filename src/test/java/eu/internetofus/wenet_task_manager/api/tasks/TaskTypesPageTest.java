@@ -24,42 +24,35 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.wenet_task_manager.api.taskTypes;
+package eu.internetofus.wenet_task_manager.api.tasks;
 
-import java.util.List;
+import java.util.ArrayList;
 
-import eu.internetofus.common.api.models.Model;
-import eu.internetofus.common.api.models.wenet.TaskType;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Schema;
+import eu.internetofus.common.api.models.ModelTestCase;
+import eu.internetofus.common.api.models.wenet.TaskTypeTest;
+import eu.internetofus.wenet_task_manager.api.tasks.TaskTypesPage;
 
 /**
- * Contains the found task types.
+ * Test the {@link TaskTypesPage}.
+ *
+ * @see TaskTypesPage
  *
  * @author UDT-IA, IIIA-CSIC
  */
-@Schema(name = "TaskTypePage", description = "Contains a set of task types")
-public class TaskTypesPage extends Model {
+public class TaskTypesPageTest extends ModelTestCase<TaskTypesPage> {
 
 	/**
-	 * The index of the first task type returned.
+	 * {@inheritDoc}
 	 */
-	@Schema(description = "The index of the first task type returned.", example = "0")
-	public int offset;
+	@Override
+	public TaskTypesPage createModelExample(int index) {
 
-	/**
-	 * The number total of task type that satisfies the search.
-	 */
-	@Schema(description = "The number total of task types that satisfies the search.", example = "100")
-	public long total;
-
-	/**
-	 * The found profiles.
-	 */
-	@ArraySchema(
-			schema = @Schema(
-					ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType"),
-			arraySchema = @Schema(description = "The set of task types found"))
-	public List<TaskType> taskTypes;
+		final TaskTypesPage model = new TaskTypesPage();
+		model.offset = index;
+		model.total = 100 + index;
+		model.taskTypes = new ArrayList<>();
+		model.taskTypes.add(new TaskTypeTest().createModelExample(index));
+		return model;
+	}
 
 }

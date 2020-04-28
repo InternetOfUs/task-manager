@@ -24,10 +24,42 @@
  * -----------------------------------------------------------------------------
  */
 
+package eu.internetofus.wenet_task_manager.api.tasks;
+
+import java.util.List;
+
+import eu.internetofus.common.api.models.Model;
+import eu.internetofus.common.api.models.wenet.TaskType;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
- * Services to manage the
- * {@link eu.internetofus.common.api.models.wenet.TaskType}.
+ * Contains the found task types.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-package eu.internetofus.wenet_task_manager.api.taskTypes;
+@Schema(name = "TaskTypePage", description = "Contains a set of task types")
+public class TaskTypesPage extends Model {
+
+	/**
+	 * The index of the first task type returned.
+	 */
+	@Schema(description = "The index of the first task type returned.", example = "0")
+	public int offset;
+
+	/**
+	 * The number total of task type that satisfies the search.
+	 */
+	@Schema(description = "The number total of task types that satisfies the search.", example = "100")
+	public long total;
+
+	/**
+	 * The found profiles.
+	 */
+	@ArraySchema(
+			schema = @Schema(
+					ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType"),
+			arraySchema = @Schema(description = "The set of task types found"))
+	public List<TaskType> taskTypes;
+
+}

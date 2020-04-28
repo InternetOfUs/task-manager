@@ -40,7 +40,9 @@ import org.mockito.ArgumentCaptor;
 
 import eu.internetofus.common.api.models.wenet.Task;
 import eu.internetofus.common.api.models.wenet.TaskGoalTest;
+import eu.internetofus.common.api.models.wenet.TaskType;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
+import eu.internetofus.wenet_task_manager.persistence.TaskTypesRepository;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -68,6 +70,7 @@ public class TasksResourceTest {
 
 		final TasksResource resource = new TasksResource();
 		resource.repository = mock(TasksRepository.class);
+		resource.typesRepository = mock(TaskTypesRepository.class);
 		return resource;
 
 	}
@@ -121,6 +124,58 @@ public class TasksResourceTest {
 		final ArgumentCaptor<Handler<AsyncResult<Void>>> updateHandler = ArgumentCaptor.forClass(Handler.class);
 		verify(resource.repository, times(1)).updateTask(any(Task.class), updateHandler.capture());
 		updateHandler.getValue().handle(Future.failedFuture("Update task  error"));
+
+	}
+
+	/**
+	 * Check fail create task type because typesRepository can not store it.
+	 *
+	 * @param testContext test context.
+	 */
+	@Test
+	public void shouldFailCreateTaskTypeBecasuetypesRepositoryFailsToStore(VertxTestContext testContext) {
+
+		final TasksResource resource = createTasksResource();
+		final OperationRequest context = mock(OperationRequest.class);
+		resource.createTaskType(new JsonObject(), context, testContext.succeeding(create -> {
+
+			assertThat(create.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+			testContext.completeNow();
+		}));
+
+		@SuppressWarnings("unchecked")
+		final ArgumentCaptor<Handler<AsyncResult<TaskType>>> storeHandler = ArgumentCaptor.forClass(Handler.class);
+		verify(resource.typesRepository, times(1)).storeTaskType(any(), storeHandler.capture());
+		storeHandler.getValue().handle(Future.failedFuture("Store task type error"));
+
+	}
+
+	/**
+	 * Check fail update task type because typesRepository can not update it.
+	 *
+	 * @param testContext test context.
+	 */
+	@Test
+	public void shouldFailUpdateTaskTypeBecasuetypesRepositoryFailsToUpdate(VertxTestContext testContext) {
+
+		final TasksResource resource = createTasksResource();
+		final OperationRequest context = mock(OperationRequest.class);
+		final TaskType source = new TaskType();
+		source.description = "New description";
+		resource.updateTaskType("taskTypeId", source.toJsonObject(), context, testContext.succeeding(update -> {
+
+			assertThat(update.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+			testContext.completeNow();
+		}));
+
+		@SuppressWarnings("unchecked")
+		final ArgumentCaptor<Handler<AsyncResult<TaskType>>> searchHandler = ArgumentCaptor.forClass(Handler.class);
+		verify(resource.typesRepository, times(1)).searchTaskType(any(), searchHandler.capture());
+		searchHandler.getValue().handle(Future.succeededFuture(new TaskType()));
+		@SuppressWarnings("unchecked")
+		final ArgumentCaptor<Handler<AsyncResult<Void>>> updateHandler = ArgumentCaptor.forClass(Handler.class);
+		verify(resource.typesRepository, times(1)).updateTaskType(any(TaskType.class), updateHandler.capture());
+		updateHandler.getValue().handle(Future.failedFuture("Update task type error"));
 
 	}
 
