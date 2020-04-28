@@ -67,13 +67,6 @@ public class TaskTypesResource implements TaskTypes {
 	protected WeNetProfileManagerService profileManager;
 
 	/**
-	 * Create an empty resource. This is only used for unit tests.
-	 */
-	protected TaskTypesResource() {
-
-	}
-
-	/**
 	 * Create a new instance to provide the services of the {@link TaskTypes}.
 	 *
 	 * @param vertx where resource is defined.
