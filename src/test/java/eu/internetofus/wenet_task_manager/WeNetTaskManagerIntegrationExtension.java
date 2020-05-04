@@ -26,9 +26,6 @@
 
 package eu.internetofus.wenet_task_manager;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.ParameterContext;
-import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.Network;
 
@@ -37,7 +34,6 @@ import eu.internetofus.common.AbstractWeNetModuleIntegrationExtension;
 import eu.internetofus.common.Containers;
 import eu.internetofus.common.WeNetModuleContext;
 import eu.internetofus.common.services.ServiceApiSimulatorService;
-import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
 
 /**
  * Extension used to run integration tests over the WeNet task manager.
@@ -53,41 +49,6 @@ public class WeNetTaskManagerIntegrationExtension extends AbstractWeNetModuleInt
 	protected void afterStarted(WeNetModuleContext context) {
 
 		ServiceApiSimulatorService.register(context);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
-			throws ParameterResolutionException {
-
-		final Class<?> type = parameterContext.getParameter().getType();
-		return super.supportsParameter(parameterContext, extensionContext) || type == TasksRepository.class;
-
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext)
-			throws ParameterResolutionException {
-
-		final Class<?> type = parameterContext.getParameter().getType();
-		if (type == TasksRepository.class) {
-
-			return extensionContext.getStore(ExtensionContext.Namespace.create(this.getClass().getName()))
-					.getOrComputeIfAbsent(TasksRepository.class.getName(), key -> {
-
-						final WeNetModuleContext context = this.getContext();
-						return TasksRepository.createProxy(context.vertx);
-					}, TasksRepository.class);
-
-		} else {
-
-			return super.resolveParameter(parameterContext, extensionContext);
-		}
 	}
 
 	/**

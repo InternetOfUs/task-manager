@@ -27,12 +27,10 @@
 package eu.internetofus.wenet_task_manager;
 
 import eu.internetofus.common.AbstractMainVerticle;
-import eu.internetofus.common.api.AbstractAPIVerticle;
-import eu.internetofus.common.persitences.AbstractPersistenceVerticle;
-import eu.internetofus.common.services.AbstractServicesVerticle;
 import eu.internetofus.wenet_task_manager.api.APIVerticle;
 import eu.internetofus.wenet_task_manager.persistence.PersistenceVerticle;
 import eu.internetofus.wenet_task_manager.services.ServicesVerticle;
+import io.vertx.core.AbstractVerticle;
 
 /**
  * The Main verticle that deploy the necessary verticles for the WeNet task
@@ -44,38 +42,12 @@ public class MainVerticle extends AbstractMainVerticle {
 
 	/**
 	 * {@inheritDoc}
-	 *
-	 * @see ServicesVerticle
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
-	protected Class<? extends AbstractServicesVerticle> getServiceVerticleClass() {
+	protected Class<? extends AbstractVerticle>[] getVerticleClassesToDeploy() {
 
-		return ServicesVerticle.class;
-
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see PersistenceVerticle
-	 */
-	@Override
-	protected Class<? extends AbstractPersistenceVerticle> getPersistenceVerticleClass() {
-
-		return PersistenceVerticle.class;
-
-	}
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * @see APIVerticle
-	 */
-	@Override
-	protected Class<? extends AbstractAPIVerticle> getAPIVerticleClass() {
-
-		return APIVerticle.class;
-
+		return new Class[] { ServicesVerticle.class, PersistenceVerticle.class, APIVerticle.class };
 	}
 
 }

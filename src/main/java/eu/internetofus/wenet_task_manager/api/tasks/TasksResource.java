@@ -35,7 +35,7 @@ import org.tinylog.Logger;
 import eu.internetofus.common.api.OperationReponseHandlers;
 import eu.internetofus.common.api.models.Model;
 import eu.internetofus.common.api.models.ValidationErrorException;
-import eu.internetofus.common.api.models.wenet.Message;
+import eu.internetofus.common.api.models.wenet.InteractionProtocolMessage;
 import eu.internetofus.common.api.models.wenet.Task;
 import eu.internetofus.common.api.models.wenet.TaskTransaction;
 import eu.internetofus.common.api.models.wenet.TaskType;
@@ -163,7 +163,25 @@ public class TasksResource implements Tasks {
 
 						} else {
 
-							OperationReponseHandlers.responseOk(resultHandler, stored.result());
+							final InteractionProtocolMessage message = new InteractionProtocolMessage();
+							message.taskId = task.id;
+							message.appId = task.appId;
+							message.content = "Looking for volunteers";
+							this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
+
+								if (sent.failed()) {
+
+									final Throwable cause = validation.cause();
+									Logger.debug(cause, "Cannot send message {}.", message);
+									OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+
+								} else {
+
+									OperationReponseHandlers.responseOk(resultHandler, stored.result());
+								}
+
+							});
+
 						}
 					});
 				}
@@ -485,34 +503,24 @@ public class TasksResource implements Tasks {
 						} else {
 
 							final Task task = search.result();
-							if (!task.taskTypeId.equals(taskTransaction.typeId)) {
+							final InteractionProtocolMessage message = new InteractionProtocolMessage();
+							message.taskId = task.id;
+							message.appId = task.appId;
+							message.content = taskTransaction.attributes;
+							this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
 
-								OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST,
-										new ValidationErrorException("bad_task_transaction.typeId",
-												"The task is not of the specified type"));
+								if (sent.failed()) {
 
-							} else {
+									final Throwable cause = validation.cause();
+									Logger.debug(cause, "Cannot send message {}.", message);
+									OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
-								final Message message = new Message();
-								message.taskId = task.id;
-								message.appId = task.appId;
-								message.content = taskTransaction.attributes;
-								this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
+								} else {
 
-									if (sent.failed()) {
+									OperationReponseHandlers.responseOk(resultHandler, taskTransaction.toJsonObject());
+								}
 
-										final Throwable cause = validation.cause();
-										Logger.debug(cause, "Cannot send message {}.", message);
-										OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
-
-									} else {
-
-										OperationReponseHandlers.responseOk(resultHandler, taskTransaction.toJsonObject());
-									}
-
-								});
-
-							}
+							});
 
 						}
 
