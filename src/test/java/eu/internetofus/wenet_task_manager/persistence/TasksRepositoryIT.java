@@ -341,14 +341,14 @@ public class TasksRepositoryIT {
 
 		final Task task = new Task();
 		task.goal = new TaskGoalTest().createModelExample(23);
-		TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(stored -> testContext.verify(() -> {
+		TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(stored -> {
 
 			final long now = TimeManager.now();
 			final Task update = new TaskTest().createModelExample(23);
 			update.id = stored.id;
 			update._creationTs = stored._creationTs;
 			update._lastUpdateTs = 1;
-			TasksRepository.createProxy(vertx).updateTask(update, testContext.succeeding(empty -> testContext.verify(() -> {
+			TasksRepository.createProxy(vertx).updateTask(update, testContext.succeeding(empty -> {
 
 				TasksRepository.createProxy(vertx).searchTask(stored.id,
 						testContext.succeeding(foundTask -> testContext.verify(() -> {
@@ -361,9 +361,9 @@ public class TasksRepositoryIT {
 							assertThat(foundTask).isEqualTo(update);
 							testContext.completeNow();
 						})));
-			})));
+			}));
 
-		})));
+		}));
 
 	}
 

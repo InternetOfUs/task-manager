@@ -24,22 +24,44 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.wenet_task_manager.services;
+package eu.internetofus.common.api.models.wenet;
 
-import org.junit.jupiter.api.extension.ExtendWith;
+import java.util.List;
 
-import eu.internetofus.common.services.WeNetProfileManagerServiceTestCase;
-import eu.internetofus.common.services.WeNetTaskManagerService;
-import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
+import eu.internetofus.common.api.models.Model;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Test the {@link WeNetTaskManagerService}.
- *
- * @see WeNetTaskManagerService
+ * The description of a type of task transaction.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-@ExtendWith(WeNetTaskManagerIntegrationExtension.class)
-public class WeNetProfileManagerServiceIT extends WeNetProfileManagerServiceTestCase {
+@Schema(hidden = true, name = "TaskTransactionType", description = "Describe a possible task transaction.")
+public class TaskTransactionType extends Model {
+
+	/**
+	 * A label that identify the type.
+	 */
+	@Schema(description = "A label that identify the transaction.", example = "acceptVolunteer")
+	public String label;
+
+	/**
+	 * A name that identify the type.
+	 */
+	@Schema(
+			description = "A human readable description of the task transaction type.",
+			example = "Accept to be volunteer of a task")
+	public String description;
+
+	/**
+	 * The attribute that has to be instantiated when create the task transaction of
+	 * this type.
+	 */
+	@ArraySchema(
+			schema = @Schema(implementation = TaskAttributeType.class),
+			arraySchema = @Schema(
+					description = "The attribute that has to be instantiated when create the task transaction of this type."))
+	public List<TaskAttributeType> attributes;
 
 }

@@ -91,13 +91,15 @@ public class ValidationsTest {
 		model.validate("codePrefix", vertx).onComplete(testContext.failing(error -> testContext.verify(() -> {
 
 			assertThat(error).isInstanceOf(ValidationErrorException.class);
-			String expectedCode = "codePrefix";
+			final String code = ((ValidationErrorException) error).getCode();
 			if (fieldName != null) {
 
-				expectedCode += "." + fieldName;
+				assertThat(code).isEqualTo("codePrefix." + fieldName);
 
+			} else {
+
+				assertThat(code).startsWith("codePrefix");
 			}
-			assertThat(((ValidationErrorException) error).getCode()).isEqualTo(expectedCode);
 
 			testContext.completeNow();
 

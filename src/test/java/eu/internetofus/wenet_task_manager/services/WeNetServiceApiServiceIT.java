@@ -28,7 +28,7 @@ package eu.internetofus.wenet_task_manager.services;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import eu.internetofus.common.services.WeNetProfileManagerServiceTestCase;
+import eu.internetofus.common.services.WeNetServiceApiServiceTestCase;
 import eu.internetofus.common.services.WeNetTaskManagerService;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 
@@ -40,6 +40,6 @@ import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
  * @author UDT-IA, IIIA-CSIC
  */
 @ExtendWith(WeNetTaskManagerIntegrationExtension.class)
-public class WeNetProfileManagerServiceIT extends WeNetProfileManagerServiceTestCase {
+public class WeNetServiceApiServiceIT extends WeNetServiceApiServiceTestCase {
 
 }

@@ -88,8 +88,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 		model.norms.add(new NormTest().createModelExample(index));
 		model.attributes = new ArrayList<>();
 		model.attributes.add(new TaskAttributeTypeTest().createModelExample(index));
-		model.constants = new ArrayList<>();
-		model.constants.add(new TaskAttributeTest().createModelExample(index));
+		model.constants = new JsonObject().put("index", index);
 		return model;
 
 	}
@@ -333,26 +332,6 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 		model.attributes.add(new TaskAttributeTypeTest().createModelExample(2));
 		model.attributes.add(new TaskAttributeType());
 		assertIsNotValid(model, "attributes[2].name", vertx, testContext);
-
-	}
-
-	/**
-	 * Check that not accept profiles with bad constants.
-	 *
-	 * @param vertx       event bus to use.
-	 * @param testContext context to test.
-	 *
-	 * @see TaskType#validate(String, Vertx)
-	 */
-	@Test
-	public void shouldNotBeValidWithABadConstants(Vertx vertx, VertxTestContext testContext) {
-
-		final TaskType model = new TaskType();
-		model.constants = new ArrayList<>();
-		model.constants.add(new TaskAttributeTest().createModelExample(1));
-		model.constants.add(new TaskAttribute());
-		model.constants.add(new TaskAttributeTest().createModelExample(2));
-		assertIsNotValid(model, "constants[1].name", vertx, testContext);
 
 	}
 
@@ -624,55 +603,6 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 					.contains(source.attributes.get(0), atIndex(0)).contains(source.attributes.get(2), atIndex(2));
 			target.attributes.get(0).description = "NEW DESCRIPTION";
 			assertThat(merged.attributes.get(1)).isEqualTo(target.attributes.get(0));
-
-		});
-
-	}
-
-	/**
-	 * Check that not accept model with bad constants.
-	 *
-	 * @param vertx       event bus to use.
-	 * @param testContext context to test.
-	 *
-	 * @see TaskType#merge(TaskType, String, Vertx)
-	 */
-	@Test
-	public void shouldNotMergeWithABadConstants(Vertx vertx, VertxTestContext testContext) {
-
-		final TaskType source = new TaskType();
-		source.constants = new ArrayList<>();
-		source.constants.add(new TaskAttributeTest().createModelExample(1));
-		source.constants.add(new TaskAttribute());
-		source.constants.add(new TaskAttributeTest().createModelExample(2));
-		assertCannotMerge(new TaskType(), source, "constants[1].name", vertx, testContext);
-
-	}
-
-	/**
-	 * Check merge constants.
-	 *
-	 * @param vertx       event bus to use.
-	 * @param testContext context to test.
-	 *
-	 * @see TaskType#merge(TaskType, String, Vertx)
-	 */
-	@Test
-	public void shouldMergeWithConstants(Vertx vertx, VertxTestContext testContext) {
-
-		final TaskType target = new TaskType();
-		target.constants = new ArrayList<>();
-		target.constants.add(new TaskAttributeTest().createModelExample(1));
-		final TaskType source = new TaskType();
-		source.constants = new ArrayList<>();
-		source.constants.add(new TaskAttributeTest().createModelExample(2));
-		source.constants.add(new TaskAttribute());
-		source.constants.get(1).name = target.constants.get(0).name;
-		source.constants.get(1).value = "NEW VALUE";
-		source.constants.add(new TaskAttributeTest().createModelExample(3));
-		assertCanMerge(target, source, vertx, testContext, merged -> {
-
-			assertThat(merged.constants).isNotEqualTo(target.constants).isEqualTo(source.constants);
 
 		});
 
