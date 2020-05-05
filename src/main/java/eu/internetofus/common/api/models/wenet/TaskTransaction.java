@@ -77,7 +77,7 @@ public class TaskTransaction extends Model implements Validable {
 		try {
 
 			this.taskId = Validations.validateStringField(codePrefix, "taskId", 255, this.taskId);
-			this.typeId = Validations.validateNullableStringField(codePrefix, "typeId", 255, this.typeId);
+			this.typeId = Validations.validateStringField(codePrefix, "typeId", 255, this.typeId);
 			future = future.compose(Validations.validate(this.attributes, codePrefix + ".attributes", vertx));
 			promise.complete();
 

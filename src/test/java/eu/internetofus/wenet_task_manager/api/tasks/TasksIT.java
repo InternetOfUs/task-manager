@@ -1049,35 +1049,4 @@ public class TasksIT {
 
 	}
 
-	/**
-	 * Verify that can not do a transaction if type not match the type of the task.
-	 *
-	 * @param vertx       event bus to use.
-	 * @param client      to connect to the server.
-	 * @param testContext context to test.
-	 *
-	 * @see Tasks#doTaskTransaction(JsonObject,
-	 *      io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
-	 */
-	@Test
-	public void shouldNotDoTransactionIfTaskTypeIsDifferent(Vertx vertx, WebClient client, VertxTestContext testContext) {
-
-		StoreServices.storeTaskExample(1, vertx, testContext, testContext.succeeding(task -> {
-
-			final TaskTransaction taskTransaction = new TaskTransactionTest().createModelExample(1);
-			taskTransaction.taskId = task.id;
-			testRequest(client, HttpMethod.POST, Tasks.PATH + Tasks.TRANSACTIONS_PATH).expect(res -> {
-
-				assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-				final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
-				assertThat(error.code).isNotEmpty().isEqualTo("bad_task_transaction.typeId");
-				assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-				testContext.completeNow();
-
-			}).sendJson(taskTransaction.toJsonObject(), testContext);
-
-		}));
-
-	}
-
 }

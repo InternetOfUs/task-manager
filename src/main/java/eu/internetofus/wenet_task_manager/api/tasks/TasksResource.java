@@ -166,7 +166,7 @@ public class TasksResource implements Tasks {
 							final InteractionProtocolMessage message = new InteractionProtocolMessage();
 							message.taskId = task.id;
 							message.appId = task.appId;
-							message.content = "Looking for volunteers";
+							message.content = new JsonObject().put("message", "Looking for volunteers");
 							this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
 
 								if (sent.failed()) {

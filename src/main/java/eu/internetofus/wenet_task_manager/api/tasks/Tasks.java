@@ -78,7 +78,7 @@ public interface Tasks {
 	/**
 	 * The sub path to retrieve a task.
 	 */
-	String TASK_ID_PATH = "/{taskId}";
+	String TASK_ID_PATH = "/{taskId:^(?![types|transactions])}";
 
 	/**
 	 * The path to the task types resource.

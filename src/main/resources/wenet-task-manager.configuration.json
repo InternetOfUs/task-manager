@@ -23,16 +23,19 @@
 		"profileManager": {
       "host": "wenet.u-hopper.com",
       "port": 443,
+      "ssl": true,
       "apiPath": "/profile_manager"
 		},
     "interactionProtocolEngine": {
       "host": "wenet.u-hopper.com",
       "port": 443,
+      "ssl": true,
       "apiPath": "/interaction_protocol_engine"
     },
 		"service": {
       "host": "wenet.u-hopper.com",
       "port": 443,
+      "ssl": true,
       "apiPath": "/service"
     }
 	}

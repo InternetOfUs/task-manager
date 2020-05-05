@@ -78,7 +78,7 @@ public class InteractionProtocolMessage extends Model implements Validable {
 	/**
 	 * The content of the message.
 	 */
-	@Schema(description = "The content of the message.", example = "Hi!")
+	@Schema(description = "The content of the message.", example = "Hi!", type = "object")
 	public Object content;
 
 	/**
