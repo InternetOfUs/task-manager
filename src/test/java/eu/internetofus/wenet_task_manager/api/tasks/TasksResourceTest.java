@@ -34,21 +34,27 @@ import static org.mockito.Mockito.verify;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 
+import eu.internetofus.common.api.models.wenet.StoreServices;
 import eu.internetofus.common.api.models.wenet.Task;
 import eu.internetofus.common.api.models.wenet.TaskGoalTest;
+import eu.internetofus.common.api.models.wenet.TaskTest;
 import eu.internetofus.common.api.models.wenet.TaskType;
-import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
+import eu.internetofus.common.services.ServiceApiSimulatorServiceOnMemory;
+import eu.internetofus.common.services.WeNetProfileManagerServiceOnMemory;
+import eu.internetofus.common.services.WeNetTaskManagerServiceOnMemory;
 import eu.internetofus.wenet_task_manager.persistence.TaskTypesRepository;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.Vertx;
 import io.vertx.ext.web.api.OperationRequest;
+import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 
 /**
@@ -58,8 +64,22 @@ import io.vertx.junit5.VertxTestContext;
  *
  * @author UDT-IA, IIIA-CSIC
  */
-@ExtendWith(WeNetTaskManagerIntegrationExtension.class)
+@ExtendWith(VertxExtension.class)
 public class TasksResourceTest {
+
+	/**
+	 * Register the necessary services before to test.
+	 *
+	 * @param vertx event bus to register the necessary services.
+	 */
+	@BeforeEach
+	public void registerServices(Vertx vertx) {
+
+		WeNetProfileManagerServiceOnMemory.register(vertx);
+		WeNetTaskManagerServiceOnMemory.register(vertx);
+		ServiceApiSimulatorServiceOnMemory.register(vertx);
+
+	}
 
 	/**
 	 * Create a resource where the repository is a mocked class.
@@ -78,75 +98,88 @@ public class TasksResourceTest {
 	/**
 	 * Check fail create task because repository can not store it.
 	 *
+	 * @param vertx       event bus to use.
 	 * @param testContext test context.
 	 */
 	@Test
-	public void shouldFailCreateTaskBecasueRepositoryFailsToStore(VertxTestContext testContext) {
+	public void shouldFailCreateTaskBecasueRepositoryFailsToStore(Vertx vertx, VertxTestContext testContext) {
 
-		final TasksResource resource = createTasksResource();
-		final OperationRequest context = mock(OperationRequest.class);
-		resource.createTask(new JsonObject(), context, testContext.succeeding(create -> {
+		new TaskTest().createModelExample(1, vertx, testContext, testContext.succeeding(task -> {
 
-			assertThat(create.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-			testContext.completeNow();
+			final TasksResource resource = createTasksResource();
+			final OperationRequest context = mock(OperationRequest.class);
+			resource.createTask(task.toJsonObject(), context, testContext.succeeding(create -> {
+
+				assertThat(create.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+				testContext.completeNow();
+			}));
+
+			@SuppressWarnings("unchecked")
+			final ArgumentCaptor<Handler<AsyncResult<Task>>> storeHandler = ArgumentCaptor.forClass(Handler.class);
+			verify(resource.repository, times(1)).storeTask(any(), storeHandler.capture());
+			storeHandler.getValue().handle(Future.failedFuture("Search task error"));
+
 		}));
-
-		@SuppressWarnings("unchecked")
-		final ArgumentCaptor<Handler<AsyncResult<Task>>> storeHandler = ArgumentCaptor.forClass(Handler.class);
-		verify(resource.repository, times(1)).storeTask(any(), storeHandler.capture());
-		storeHandler.getValue().handle(Future.failedFuture("Search task error"));
-
 	}
 
 	/**
 	 * Check fail update task because repository can not update it.
 	 *
+	 * @param vertx       event bus to use.
 	 * @param testContext test context.
 	 */
 	@Test
-	public void shouldFailUpdateTaskBecasueRepositoryFailsToUpdate(VertxTestContext testContext) {
+	public void shouldFailUpdateTaskBecasueRepositoryFailsToUpdate(Vertx vertx, VertxTestContext testContext) {
 
-		final TasksResource resource = createTasksResource();
-		final OperationRequest context = mock(OperationRequest.class);
-		final Task source = new Task();
-		source.goal = new TaskGoalTest().createModelExample(1);
-		resource.updateTask("taskId", source.toJsonObject(), context, testContext.succeeding(update -> {
+		StoreServices.storeTaskExample(2, vertx, testContext, testContext.succeeding(created -> {
 
-			assertThat(update.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-			testContext.completeNow();
+			final TasksResource resource = createTasksResource();
+			final OperationRequest context = mock(OperationRequest.class);
+			final Task source = new Task();
+			source.goal = new TaskGoalTest().createModelExample(1);
+			resource.updateTask("taskId", source.toJsonObject(), context, testContext.succeeding(update -> {
+
+				assertThat(update.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+				testContext.completeNow();
+			}));
+
+			@SuppressWarnings("unchecked")
+			final ArgumentCaptor<Handler<AsyncResult<Task>>> searchHandler = ArgumentCaptor.forClass(Handler.class);
+			verify(resource.repository, times(1)).searchTask(any(), searchHandler.capture());
+			searchHandler.getValue().handle(Future.succeededFuture(created));
+			@SuppressWarnings("unchecked")
+			final ArgumentCaptor<Handler<AsyncResult<Void>>> updateHandler = ArgumentCaptor.forClass(Handler.class);
+			verify(resource.repository, times(1)).updateTask(any(Task.class), updateHandler.capture());
+			updateHandler.getValue().handle(Future.failedFuture("Update task  error"));
+
 		}));
-
-		@SuppressWarnings("unchecked")
-		final ArgumentCaptor<Handler<AsyncResult<Task>>> searchHandler = ArgumentCaptor.forClass(Handler.class);
-		verify(resource.repository, times(1)).searchTask(any(), searchHandler.capture());
-		searchHandler.getValue().handle(Future.succeededFuture(new Task()));
-		@SuppressWarnings("unchecked")
-		final ArgumentCaptor<Handler<AsyncResult<Void>>> updateHandler = ArgumentCaptor.forClass(Handler.class);
-		verify(resource.repository, times(1)).updateTask(any(Task.class), updateHandler.capture());
-		updateHandler.getValue().handle(Future.failedFuture("Update task  error"));
 
 	}
 
 	/**
 	 * Check fail create task type because typesRepository can not store it.
 	 *
+	 * @param vertx       event bus to use.
 	 * @param testContext test context.
 	 */
 	@Test
-	public void shouldFailCreateTaskTypeBecasuetypesRepositoryFailsToStore(VertxTestContext testContext) {
+	public void shouldFailCreateTaskTypeBecasuetypesRepositoryFailsToStore(Vertx vertx, VertxTestContext testContext) {
 
-		final TasksResource resource = createTasksResource();
-		final OperationRequest context = mock(OperationRequest.class);
-		resource.createTaskType(new JsonObject(), context, testContext.succeeding(create -> {
+		new TaskTest().createModelExample(1, vertx, testContext, testContext.succeeding(task -> {
+			final TasksResource resource = createTasksResource();
+			final OperationRequest context = mock(OperationRequest.class);
+			resource.createTaskType(task.toJsonObject(), context, testContext.succeeding(create -> {
 
-			assertThat(create.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-			testContext.completeNow();
+				assertThat(create.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+				testContext.completeNow();
+			}));
+
+			@SuppressWarnings("unchecked")
+			final ArgumentCaptor<Handler<AsyncResult<TaskType>>> storeHandler = ArgumentCaptor.forClass(Handler.class);
+			verify(resource.typesRepository, times(1)).storeTaskType(any(), storeHandler.capture());
+			storeHandler.getValue().handle(Future.failedFuture("Store task type error"));
+
 		}));
-
-		@SuppressWarnings("unchecked")
-		final ArgumentCaptor<Handler<AsyncResult<TaskType>>> storeHandler = ArgumentCaptor.forClass(Handler.class);
-		verify(resource.typesRepository, times(1)).storeTaskType(any(), storeHandler.capture());
-		storeHandler.getValue().handle(Future.failedFuture("Store task type error"));
 
 	}
 

@@ -123,13 +123,14 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	@Test
 	public void shouldNotBeValidWithAnExistingId(Vertx vertx, VertxTestContext testContext) {
 
-		WeNetTaskManagerService.createProxy(vertx).createTaskType(new JsonObject(), testContext.succeeding(created -> {
+		WeNetTaskManagerService.createProxy(vertx).createTaskType(this.createModelExample(1),
+				testContext.succeeding(created -> {
 
-			final TaskType model = new TaskType();
-			model.id = created.getString("id");
-			assertIsNotValid(model, "id", vertx, testContext);
+					final TaskType model = new TaskType();
+					model.id = created.id;
+					assertIsNotValid(model, "id", vertx, testContext);
 
-		}));
+				}));
 
 	}
 

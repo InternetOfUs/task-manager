@@ -33,7 +33,7 @@ import eu.internetofus.common.services.WeNetTaskManagerService;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 
 /**
- * Test the {@link WeNetTaskManagerService}.
+ * Integration test over the {@link WeNetTaskManagerService}.
  *
  * @see WeNetTaskManagerService
  *
