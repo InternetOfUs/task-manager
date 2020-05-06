@@ -30,9 +30,12 @@ import java.util.List;
 
 import eu.internetofus.common.api.models.Model;
 import eu.internetofus.common.api.models.Validable;
+import eu.internetofus.common.api.models.ValidationErrorException;
+import eu.internetofus.common.api.models.Validations;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 
 /**
@@ -96,8 +99,32 @@ public class InteractionProtocolMessage extends Model implements Validable {
 	@Override
 	public Future<Void> validate(String codePrefix, Vertx vertx) {
 
-		// TODO Auto-generated method stub
-		return null;
+		final Promise<Void> promise = Promise.promise();
+		Future<Void> future = promise.future();
+		try {
+
+			this.appId = Validations.validateNullableStringField(codePrefix, "appId", 255, this.appId);
+			this.communityId = Validations.validateNullableStringField(codePrefix, "communityId", 255, this.communityId);
+			this.taskId = Validations.validateNullableStringField(codePrefix, "taskId", 255, this.taskId);
+			this.senderId = Validations.validateNullableStringField(codePrefix, "senderId", 255, this.senderId);
+			if (this.content == null) {
+
+				promise.fail(new ValidationErrorException(codePrefix + ".content", "You must to define a content"));
+
+			} else {
+
+				future = future.compose(Validations.validate(this.norms, codePrefix + ".norms", vertx));
+				promise.complete();
+
+			}
+
+		} catch (final ValidationErrorException validationError) {
+
+			promise.fail(validationError);
+		}
+
+		return future;
+
 	}
 
 }

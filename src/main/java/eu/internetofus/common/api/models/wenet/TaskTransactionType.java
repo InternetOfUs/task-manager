@@ -28,9 +28,13 @@ package eu.internetofus.common.api.models.wenet;
 
 import java.util.List;
 
+import eu.internetofus.common.api.models.Mergeable;
 import eu.internetofus.common.api.models.Model;
+import eu.internetofus.common.api.models.Validable;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 
 /**
  * The description of a type of task transaction.
@@ -38,7 +42,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @author UDT-IA, IIIA-CSIC
  */
 @Schema(hidden = true, name = "TaskTransactionType", description = "Describe a possible task transaction.")
-public class TaskTransactionType extends Model {
+public class TaskTransactionType extends Model implements Validable, Mergeable<TaskTransactionType> {
 
 	/**
 	 * A label that identify the type.
@@ -63,5 +67,25 @@ public class TaskTransactionType extends Model {
 			arraySchema = @Schema(
 					description = "The attribute that has to be instantiated when create the task transaction of this type."))
 	public List<TaskAttributeType> attributes;
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Future<TaskTransactionType> merge(TaskTransactionType source, String codePrefix, Vertx vertx) {
+
+		// TODO Auto-generated method stub
+		return Future.succeededFuture(source);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Future<Void> validate(String codePrefix, Vertx vertx) {
+
+		// TODO Auto-generated method stub
+		return Future.succeededFuture();
+	}
 
 }
