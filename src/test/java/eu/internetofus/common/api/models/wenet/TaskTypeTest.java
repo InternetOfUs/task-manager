@@ -88,6 +88,8 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 		model.norms.add(new NormTest().createModelExample(index));
 		model.attributes = new ArrayList<>();
 		model.attributes.add(new TaskAttributeTypeTest().createModelExample(index));
+		model.transactions = new ArrayList<>();
+		model.transactions.add(new TaskTransactionTypeTest().createModelExample(index));
 		model.constants = new JsonObject().put("index", index);
 		return model;
 
@@ -126,7 +128,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 		WeNetTaskManagerService.createProxy(vertx).createTaskType(this.createModelExample(1),
 				testContext.succeeding(created -> {
 
-					final TaskType model = new TaskType();
+					final TaskType model = this.createModelExample(1);
 					model.id = created.id;
 					assertIsNotValid(model, "id", vertx, testContext);
 
@@ -145,7 +147,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	@Test
 	public void shouldBeValidWithAnNotExistingId(Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType model = new TaskType();
+		final TaskType model = this.createModelExample(1);
 		model.id = UUID.randomUUID().toString();
 		assertIsValid(model, vertx, testContext);
 
@@ -186,7 +188,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	}
 
 	/**
-	 * Check that the name is not valid if has a large name.
+	 * Check that the model is not valid if has a large name.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
@@ -196,14 +198,14 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	@Test
 	public void shouldNotBeValidWithALargeName(Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType model = new TaskType();
+		final TaskType model = this.createModelExample(1);
 		model.name = ValidationsTest.STRING_256;
 		assertIsNotValid(model, "name", vertx, testContext);
 
 	}
 
 	/**
-	 * Check that the name is not valid if has a large name.
+	 * Check that the model is not valid if has a large name.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
@@ -213,14 +215,14 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	@Test
 	public void shouldBeValidANameWithSpaces(Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType model = new TaskType();
+		final TaskType model = this.createModelExample(1);
 		model.name = "   1234567890   ";
 		assertIsValid(model, vertx, testContext, () -> assertThat(model.name).isEqualTo("1234567890"));
 
 	}
 
 	/**
-	 * Check that the description is not valid if has a large description.
+	 * Check that the model is not valid if has a large description.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
@@ -230,14 +232,14 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	@Test
 	public void shouldNotBeValidWithALargeDescription(Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType model = new TaskType();
+		final TaskType model = this.createModelExample(1);
 		model.description = ValidationsTest.STRING_1024;
 		assertIsNotValid(model, "description", vertx, testContext);
 
 	}
 
 	/**
-	 * Check that the description is not valid if has a large description.
+	 * Check that the model is not valid if has a large description.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
@@ -247,14 +249,14 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	@Test
 	public void shouldBeValidADescriptionWithSpaces(Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType model = new TaskType();
+		final TaskType model = this.createModelExample(1);
 		model.description = "   " + ValidationsTest.STRING_256 + "   ";
 		assertIsValid(model, vertx, testContext, () -> assertThat(model.description).isEqualTo(ValidationsTest.STRING_256));
 
 	}
 
 	/**
-	 * Check that the keyword is not valid if has a large keyword.
+	 * Check that the model is not valid if has a large keyword.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
@@ -264,7 +266,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	@Test
 	public void shouldNotBeValidWithALargeKeyword(Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType model = new TaskType();
+		final TaskType model = this.createModelExample(1);
 		model.keywords = new ArrayList<>();
 		model.keywords.add("    ");
 		model.keywords.add(ValidationsTest.STRING_256);
@@ -273,7 +275,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	}
 
 	/**
-	 * Check that the keyword is not valid if has a large keyword.
+	 * Check that the model is not valid if has a large keyword.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
@@ -283,7 +285,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	@Test
 	public void shouldBeValidAKeywordWithSpaces(Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType model = new TaskType();
+		final TaskType model = this.createModelExample(1);
 		model.keywords = new ArrayList<>();
 		model.keywords.add(null);
 		model.keywords.add("   1234567890   ");
@@ -296,7 +298,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	}
 
 	/**
-	 * Check that not accept profiles with bad norms.
+	 * Check that the model is not valid with a bad norms
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext context to test.
@@ -304,9 +306,9 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	 * @see TaskType#validate(String, Vertx)
 	 */
 	@Test
-	public void shouldNotBeValidWithABadNorms(Vertx vertx, VertxTestContext testContext) {
+	public void shouldNotBeValidWithABadNorm(Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType model = new TaskType();
+		final TaskType model = this.createModelExample(1);
 		model.norms = new ArrayList<>();
 		model.norms.add(new Norm());
 		model.norms.add(new Norm());
@@ -317,7 +319,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	}
 
 	/**
-	 * Check that not accept profiles with bad attributes.
+	 * Check that the model is not valid with a bad attribute.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext context to test.
@@ -325,9 +327,9 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	 * @see TaskType#validate(String, Vertx)
 	 */
 	@Test
-	public void shouldNotBeValidWithABadAttributes(Vertx vertx, VertxTestContext testContext) {
+	public void shouldNotBeValidWithABadAttribute(Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType model = new TaskType();
+		final TaskType model = this.createModelExample(1);
 		model.attributes = new ArrayList<>();
 		model.attributes.add(new TaskAttributeTypeTest().createModelExample(1));
 		model.attributes.add(new TaskAttributeTypeTest().createModelExample(2));
@@ -337,7 +339,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	}
 
 	/**
-	 * Check that the name is not merge if has a large name.
+	 * Check that the model does not merge if has a large name.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
@@ -347,7 +349,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	@Test
 	public void shouldNotMergeWithALargeName(Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType target = new TaskType();
+		final TaskType target = this.createModelExample(1);
 		final TaskType source = new TaskType();
 		source.name = ValidationsTest.STRING_256;
 		assertCannotMerge(target, source, "name", vertx, testContext);
@@ -355,7 +357,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	}
 
 	/**
-	 * Check that the name is not merge if has a large name.
+	 * Check that the model does not merge if has a large name.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
@@ -365,7 +367,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	@Test
 	public void shouldMergeANameWithSpaces(Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType target = new TaskType();
+		final TaskType target = this.createModelExample(1);
 		final TaskType source = new TaskType();
 		source.name = "   1234567890   ";
 		assertCanMerge(target, source, vertx, testContext, merged -> assertThat(merged.name).isEqualTo("1234567890"));
@@ -373,7 +375,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	}
 
 	/**
-	 * Check that the description is not merge if has a large description.
+	 * Check that the model does not merge if has a large description.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
@@ -383,7 +385,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	@Test
 	public void shouldNotMergeWithALargeDescription(Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType target = new TaskType();
+		final TaskType target = this.createModelExample(1);
 		target.name = "name";
 		final TaskType source = new TaskType();
 		source.description = ValidationsTest.STRING_1024;
@@ -392,7 +394,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	}
 
 	/**
-	 * Check that the description is not merge if has a large description.
+	 * Check that the model does not merge if has a large description.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
@@ -402,7 +404,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	@Test
 	public void shouldMergeADescriptionWithSpaces(Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType target = new TaskType();
+		final TaskType target = this.createModelExample(1);
 		target.name = "name";
 		final TaskType source = new TaskType();
 		source.description = "   " + ValidationsTest.STRING_256 + "   ";
@@ -412,7 +414,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	}
 
 	/**
-	 * Check that the keyword is not merge if has a large keyword.
+	 * Check that the model does not merge if has a large keyword.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
@@ -422,7 +424,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	@Test
 	public void shouldNotMergeWithALargeKeyword(Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType target = new TaskType();
+		final TaskType target = this.createModelExample(1);
 		final TaskType source = new TaskType();
 		source.keywords = new ArrayList<>();
 		source.keywords.add(null);
@@ -433,7 +435,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	}
 
 	/**
-	 * Check that the keyword is not merge if has a large keyword.
+	 * Check that the model does not merge if has a large keyword.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
@@ -443,7 +445,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	@Test
 	public void shouldMergeAKeywordWithSpaces(Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType target = new TaskType();
+		final TaskType target = this.createModelExample(1);
 		final TaskType source = new TaskType();
 		source.keywords = new ArrayList<>();
 		source.keywords.add("");
@@ -458,7 +460,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	}
 
 	/**
-	 * Check that not accept profiles with bad norms.
+	 * Check that the model does not with bad norm.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext context to test.
@@ -466,7 +468,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	 * @see TaskType#merge(TaskType, String, Vertx)
 	 */
 	@Test
-	public void shouldNotMergeWithABadNorms(Vertx vertx, VertxTestContext testContext) {
+	public void shouldNotMergeWithABadNorm(Vertx vertx, VertxTestContext testContext) {
 
 		final TaskType source = new TaskType();
 		source.norms = new ArrayList<>();
@@ -474,12 +476,13 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 		source.norms.add(new Norm());
 		source.norms.add(new Norm());
 		source.norms.get(1).attribute = ValidationsTest.STRING_256;
-		assertCannotMerge(new TaskType(), source, "norms[1].attribute", vertx, testContext);
+		final TaskType target = this.createModelExample(1);
+		assertCannotMerge(target, source, "norms[1].attribute", vertx, testContext);
 
 	}
 
 	/**
-	 * Check that not merge profiles with duplicated social practice identifiers.
+	 * Check that the model does not with duplicated norm.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext context to test.
@@ -496,16 +499,16 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 		source.norms.add(new Norm());
 		source.norms.get(1).id = "1";
 		source.norms.get(2).id = "1";
-		final TaskType target = new TaskType();
+		final TaskType target = this.createModelExample(1);
 		target.norms = new ArrayList<>();
 		target.norms.add(new Norm());
 		target.norms.get(0).id = "1";
-		assertCannotMerge(target, source, "norms[2].id", vertx, testContext);
+		assertCannotMerge(target, source, "norms[2]", vertx, testContext);
 
 	}
 
 	/**
-	 * Check that not merge profiles with not defined social practice id.
+	 * Check that the model does not with not defined norm id.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext context to test.
@@ -521,12 +524,13 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 		source.norms.add(new Norm());
 		source.norms.add(new Norm());
 		source.norms.get(1).id = "1";
-		assertCannotMerge(new TaskType(), source, "norms[1].id", vertx, testContext);
+		final TaskType target = this.createModelExample(1);
+		assertCannotMerge(target, source, "norms[1].id", vertx, testContext);
 
 	}
 
 	/**
-	 * Check merge social practices profiles.
+	 * Check that the model merges with norm.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext context to test.
@@ -536,7 +540,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	@Test
 	public void shouldMergeWithNorms(Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType target = new TaskType();
+		final TaskType target = this.createModelExample(1);
 		target.norms = new ArrayList<>();
 		target.norms.add(new Norm());
 		target.norms.get(0).id = "1";
@@ -558,7 +562,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	}
 
 	/**
-	 * Check that not accept model with bad attributes.
+	 * Check that the model does not merge with bad attribute.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext context to test.
@@ -566,19 +570,20 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	 * @see TaskType#merge(TaskType, String, Vertx)
 	 */
 	@Test
-	public void shouldNotMergeWithABadAttributes(Vertx vertx, VertxTestContext testContext) {
+	public void shouldNotMergeWithABadAttribute(Vertx vertx, VertxTestContext testContext) {
 
 		final TaskType source = new TaskType();
 		source.attributes = new ArrayList<>();
 		source.attributes.add(new TaskAttributeTypeTest().createModelExample(1));
 		source.attributes.add(new TaskAttributeType());
 		source.attributes.add(new TaskAttributeTypeTest().createModelExample(2));
-		assertCannotMerge(new TaskType(), source, "attributes[1].name", vertx, testContext);
+		final TaskType target = this.createModelExample(1);
+		assertCannotMerge(target, source, "attributes[1].name", vertx, testContext);
 
 	}
 
 	/**
-	 * Check merge attributes.
+	 * Check that the model merges attributes.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param testContext context to test.
@@ -588,7 +593,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 	@Test
 	public void shouldMergeWithAttributes(Vertx vertx, VertxTestContext testContext) {
 
-		final TaskType target = new TaskType();
+		final TaskType target = this.createModelExample(1);
 		target.attributes = new ArrayList<>();
 		target.attributes.add(new TaskAttributeTypeTest().createModelExample(1));
 		final TaskType source = new TaskType();
@@ -609,4 +614,25 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 
 	}
 
+	/**
+	 * Check that the model does not with duplicated attributes.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext context to test.
+	 *
+	 * @see TaskType#merge(TaskType, String, Vertx)
+	 */
+	@Test
+	public void shouldNotMergeWithDuplicatedAtttributes(Vertx vertx, VertxTestContext testContext) {
+
+		final TaskType source = new TaskType();
+		source.attributes = new ArrayList<>();
+		source.attributes.add(new TaskAttributeTypeTest().createModelExample(1));
+		source.attributes.add(new TaskAttributeTypeTest().createModelExample(2));
+		source.attributes.add(new TaskAttributeTypeTest().createModelExample(1));
+
+		final TaskType target = this.createModelExample(1);
+		assertCannotMerge(target, source, "attributes[2]", vertx, testContext);
+
+	}
 }

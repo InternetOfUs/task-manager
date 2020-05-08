@@ -29,11 +29,15 @@ package eu.internetofus.common.api.models.wenet;
 import java.util.List;
 
 import eu.internetofus.common.api.models.Mergeable;
+import eu.internetofus.common.api.models.Merges;
 import eu.internetofus.common.api.models.Model;
 import eu.internetofus.common.api.models.Validable;
+import eu.internetofus.common.api.models.ValidationErrorException;
+import eu.internetofus.common.api.models.Validations;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 
 /**
@@ -74,8 +78,35 @@ public class TaskTransactionType extends Model implements Validable, Mergeable<T
 	@Override
 	public Future<TaskTransactionType> merge(TaskTransactionType source, String codePrefix, Vertx vertx) {
 
-		// TODO Auto-generated method stub
-		return Future.succeededFuture(source);
+		final Promise<TaskTransactionType> promise = Promise.promise();
+		Future<TaskTransactionType> future = promise.future();
+		if (source != null) {
+
+			final TaskTransactionType merged = new TaskTransactionType();
+			merged.label = source.label;
+			if (merged.label == null) {
+
+				merged.label = this.label;
+			}
+			merged.description = source.description;
+			if (merged.description == null) {
+
+				merged.description = this.description;
+			}
+
+			future = future.compose(Merges.validateMerged(codePrefix, vertx));
+			future = future.compose(Merges.mergeTaskAttributeTypes(this.attributes, source.attributes,
+					codePrefix + ".attributes", vertx, (model, mergedAttributes) -> {
+						model.attributes = mergedAttributes;
+					}));
+
+			promise.complete(merged);
+
+		} else {
+
+			promise.complete(this);
+		}
+		return future;
 	}
 
 	/**
@@ -84,8 +115,23 @@ public class TaskTransactionType extends Model implements Validable, Mergeable<T
 	@Override
 	public Future<Void> validate(String codePrefix, Vertx vertx) {
 
-		// TODO Auto-generated method stub
-		return Future.succeededFuture();
+		final Promise<Void> promise = Promise.promise();
+		Future<Void> future = promise.future();
+		try {
+
+			this.label = Validations.validateStringField(codePrefix, "label", 255, this.label);
+			this.description = Validations.validateNullableStringField(codePrefix, "description", 1023, this.description);
+			future = future.compose(
+					Validations.validate(this.attributes, (a, b) -> a.name.equals(b.name), codePrefix + ".attributes", vertx));
+
+			promise.complete();
+
+		} catch (final ValidationErrorException validationError) {
+
+			promise.fail(validationError);
+		}
+
+		return future;
 	}
 
 }

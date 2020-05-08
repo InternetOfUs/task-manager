@@ -399,7 +399,7 @@ public class TasksResource implements Tasks {
 							if (merged.equals(target)) {
 
 								OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST,
-										"taskType_to_update_equal_to_original", "You can not update the task type '" + taskTypeId
+										"task_type_to_update_equal_to_original", "You can not update the task type '" + taskTypeId
 												+ "', because the new values is equals to the current one.");
 
 							} else {

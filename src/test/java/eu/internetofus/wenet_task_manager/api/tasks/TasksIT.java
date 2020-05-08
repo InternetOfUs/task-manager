@@ -555,7 +555,7 @@ public class TasksIT {
 
 		TaskTypesRepository.createProxy(vertx).storeTaskType(new TaskType(), testContext.succeeding(created -> {
 
-			final TaskType taskType = new TaskType();
+			final TaskType taskType = new TaskTypeTest().createModelExample(1);
 			taskType.id = created.id;
 			testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + Tasks.TYPES_PATH).expect(res -> {
 
@@ -609,7 +609,7 @@ public class TasksIT {
 	}
 
 	/**
-	 * Verify that store an empty taskType.
+	 * Verify that not store an empty task type.
 	 *
 	 * @param vertx       event bus to use.
 	 * @param client      to connect to the server.
@@ -619,28 +619,13 @@ public class TasksIT {
 	 *      io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
 	 */
 	@Test
-	public void shouldStoreEmptyTaskType(Vertx vertx, WebClient client, VertxTestContext testContext) {
+	public void shouldNotStoreEmptyTaskType(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
 		final TaskType taskType = new TaskType();
-		// taskType._creationTs = 0;
-		// taskType._lastUpdateTs = 1;
 		testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + Tasks.TYPES_PATH).expect(res -> {
 
-			assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-			final TaskType stored = assertThatBodyIs(TaskType.class, res);
-			assertThat(stored).isNotNull().isNotEqualTo(taskType);
-			taskType.id = stored.id;
-			// assertThat(stored).isNotNull().isNotEqualTo(taskType);
-			// taskType._creationTs = stored._creationTs;
-			// taskType._lastUpdateTs = stored._lastUpdateTs;
-			assertThat(stored).isEqualTo(taskType);
-			TaskTypesRepository.createProxy(vertx).searchTaskType(stored.id,
-					testContext.succeeding(foundTaskType -> testContext.verify(() -> {
-
-						assertThat(foundTaskType).isEqualTo(stored);
-						testContext.completeNow();
-
-					})));
+			assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+			testContext.completeNow();
 
 		}).sendJson(taskType.toJsonObject(), testContext);
 
@@ -659,7 +644,7 @@ public class TasksIT {
 	@Test
 	public void shouldStoreTaskTypeWithOnlyID(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
-		final TaskType taskType = new TaskType();
+		final TaskType taskType = new TaskTypeTest().createModelExample(1);
 		// taskType._creationTs = 0;
 		// taskType._lastUpdateTs = 0;
 		taskType.id = UUID.randomUUID().toString();
@@ -671,6 +656,7 @@ public class TasksIT {
 			// assertThat(stored).isNotNull().isNotEqualTo(taskType);
 			// taskType._creationTs = stored._creationTs;
 			// taskType._lastUpdateTs = stored._lastUpdateTs;
+			taskType.norms.get(0).id = stored.norms.get(0).id;
 			assertThat(stored).isEqualTo(taskType);
 			TaskTypesRepository.createProxy(vertx).searchTaskType(stored.id,
 					testContext.succeeding(foundTaskType -> testContext.verify(() -> {
@@ -901,7 +887,7 @@ public class TasksIT {
 	@Test
 	public void shouldUpdateOnlyNameOnTaskType(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
-		TaskTypesRepository.createProxy(vertx).storeTaskType(new TaskType(), testContext.succeeding(target -> {
+		StoreServices.storeTaskTypeExample(1, vertx, testContext, testContext.succeeding(target -> {
 
 			final TaskType source = new TaskType();
 			source.name = "NEW task type name";
@@ -914,6 +900,36 @@ public class TasksIT {
 						// target._lastUpdateTs = updated._lastUpdateTs;
 						target.name = "NEW task type name";
 						assertThat(updated).isEqualTo(target);
+						testContext.completeNow();
+
+					})).sendJson(source.toJsonObject(), testContext);
+		}));
+
+	}
+
+	/**
+	 * Verify that not update the task type because it not produce any change.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param client      to connect to the server.
+	 * @param testContext context to test.
+	 *
+	 * @see Tasks#retrieveTaskType(String, io.vertx.ext.web.api.OperationRequest,
+	 *      io.vertx.core.Handler)
+	 */
+	@Test
+	public void shouldNotUpdateBecasueNotChangedOnTaskType(Vertx vertx, WebClient client, VertxTestContext testContext) {
+
+		StoreServices.storeTaskTypeExample(1, vertx, testContext, testContext.succeeding(target -> {
+
+			final TaskType source = new TaskType();
+			testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/" + target.id)
+					.expect(res -> testContext.verify(() -> {
+
+						assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+						final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+						assertThat(error.code).isNotEmpty().isEqualTo("task_type_to_update_equal_to_original");
+						assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 						testContext.completeNow();
 
 					})).sendJson(source.toJsonObject(), testContext);

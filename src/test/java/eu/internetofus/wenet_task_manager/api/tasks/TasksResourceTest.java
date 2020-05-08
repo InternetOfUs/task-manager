@@ -44,6 +44,7 @@ import eu.internetofus.common.api.models.wenet.Task;
 import eu.internetofus.common.api.models.wenet.TaskGoalTest;
 import eu.internetofus.common.api.models.wenet.TaskTest;
 import eu.internetofus.common.api.models.wenet.TaskType;
+import eu.internetofus.common.api.models.wenet.TaskTypeTest;
 import eu.internetofus.common.services.ServiceApiSimulatorServiceOnMemory;
 import eu.internetofus.common.services.WeNetProfileManagerServiceOnMemory;
 import eu.internetofus.common.services.WeNetTaskManagerServiceOnMemory;
@@ -204,7 +205,7 @@ public class TasksResourceTest {
 		@SuppressWarnings("unchecked")
 		final ArgumentCaptor<Handler<AsyncResult<TaskType>>> searchHandler = ArgumentCaptor.forClass(Handler.class);
 		verify(resource.typesRepository, times(1)).searchTaskType(any(), searchHandler.capture());
-		searchHandler.getValue().handle(Future.succeededFuture(new TaskType()));
+		searchHandler.getValue().handle(Future.succeededFuture(new TaskTypeTest().createModelExample(1)));
 		@SuppressWarnings("unchecked")
 		final ArgumentCaptor<Handler<AsyncResult<Void>>> updateHandler = ArgumentCaptor.forClass(Handler.class);
 		verify(resource.typesRepository, times(1)).updateTaskType(any(TaskType.class), updateHandler.capture());

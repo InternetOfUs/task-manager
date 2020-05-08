@@ -168,7 +168,7 @@ public class TaskTest extends ModelTestCase<Task> {
 
 		StoreServices.storeProfile(new WeNetUserProfile(), vertx, testContext, testContext.succeeding(profile -> {
 
-			StoreServices.storeTaskType(new TaskType(), vertx, testContext, testContext.succeeding(taskType -> {
+			StoreServices.storeTaskTypeExample(index, vertx, testContext, testContext.succeeding(taskType -> {
 
 				StoreServices.storeApp(new App(), vertx, testContext, testContext.succeeding(app -> {
 

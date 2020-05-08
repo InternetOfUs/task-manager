@@ -148,11 +148,26 @@ public class TaskType extends Model implements Validable, Mergeable<TaskType> {
 				});
 			}
 
-			this.name = Validations.validateNullableStringField(codePrefix, "name", 255, this.name);
+			this.name = Validations.validateStringField(codePrefix, "name", 255, this.name);
 			this.description = Validations.validateNullableStringField(codePrefix, "description", 1023, this.description);
 			this.keywords = Validations.validateNullableListStringField(codePrefix, "keywords", 255, this.keywords);
-			future = future.compose(Validations.validate(this.norms, codePrefix + ".norms", vertx));
-			future = future.compose(Validations.validate(this.attributes, codePrefix + ".attributes", vertx));
+			future = future.compose(Validations.validate(this.norms, (a, b) -> a.equals(b), codePrefix + ".norms", vertx));
+			future = future.compose(
+					Validations.validate(this.attributes, (a, b) -> a.name.equals(b.name), codePrefix + ".attributes", vertx));
+			future = future.compose(Validations.validate(this.transactions, (a, b) -> a.label.equals(b.label),
+					codePrefix + ".transactions", vertx));
+			future = future.compose(mapper -> {
+
+				if (this.transactions == null || this.transactions.isEmpty()) {
+
+					return Future.failedFuture(new ValidationErrorException(codePrefix + ".transactions",
+							"You must to define at least one transaction."));
+
+				} else {
+
+					return Future.succeededFuture();
+				}
+			});
 
 			promise.complete();
 
@@ -175,28 +190,36 @@ public class TaskType extends Model implements Validable, Mergeable<TaskType> {
 		if (source != null) {
 
 			final TaskType merged = new TaskType();
-			merged.name = source.name;
-			if (merged.name == null) {
+			future = future.compose(Merges.mergeTaskTransactionTypes(this.transactions, source.transactions,
+					codePrefix + ".transactions", vertx, (model, mergedTransactions) -> {
+						model.transactions = mergedTransactions;
+					})).map(model -> {
 
-				merged.name = this.name;
-			}
-			merged.description = source.description;
-			if (merged.description == null) {
+						model.name = source.name;
+						if (model.name == null) {
 
-				merged.description = this.description;
-			}
+							model.name = this.name;
+						}
+						model.description = source.description;
+						if (model.description == null) {
 
-			merged.keywords = source.keywords;
-			if (merged.keywords == null) {
+							model.description = this.description;
+						}
 
-				merged.keywords = this.keywords;
-			}
+						model.keywords = source.keywords;
+						if (model.keywords == null) {
 
-			merged.constants = source.constants;
-			if (merged.constants == null) {
+							model.keywords = this.keywords;
+						}
 
-				merged.constants = this.constants;
-			}
+						model.constants = source.constants;
+						if (model.constants == null) {
+
+							model.constants = this.constants;
+						}
+
+						return model;
+					});
 
 			future = future.compose(Merges.validateMerged(codePrefix, vertx));
 			future = future

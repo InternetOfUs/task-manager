@@ -221,7 +221,7 @@ public class Task extends CreateUpdateTsDetails implements Validable, Mergeable<
 					Long.MAX_VALUE, true);
 			this.deadlineTs = Validations.validateNullableTimeStamp(codePrefix, "deadlineTs", this.deadlineTs, this.startTs,
 					false, this.endTs, false);
-			future = future.compose(Validations.validate(this.norms, codePrefix + ".norms", vertx));
+			future = future.compose(Validations.validate(this.norms, (a, b) -> a.equals(b), codePrefix + ".norms", vertx));
 
 			// TODO check the attributes fetch the attributes on the type
 

@@ -113,7 +113,7 @@ public class InteractionProtocolMessage extends Model implements Validable {
 
 			} else {
 
-				future = future.compose(Validations.validate(this.norms, codePrefix + ".norms", vertx));
+				future = future.compose(Validations.validate(this.norms, (a, b) -> a.equals(b), codePrefix + ".norms", vertx));
 				promise.complete();
 
 			}

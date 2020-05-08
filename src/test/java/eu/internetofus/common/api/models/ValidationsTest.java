@@ -855,14 +855,15 @@ public class ValidationsTest {
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
 	 *
-	 * @see Validations#validate(List, String, Vertx)
+	 * @see Validations#validate(List, java.util.function.BiPredicate, String,
+	 *      Vertx)
 	 */
 	@Test
 	public void shouldNullListOfModelsBeValid(Vertx vertx, VertxTestContext testContext) {
 
 		final Promise<Void> promise = Promise.promise();
 		final Future<Void> future = promise.future();
-		future.compose(Validations.validate(null, "codePrefix", vertx))
+		future.compose(Validations.validate(null, (a, b) -> a.equals(b), "codePrefix", vertx))
 				.onComplete(testContext.succeeding(empty -> testContext.completeNow()));
 		promise.complete();
 	}
@@ -873,14 +874,15 @@ public class ValidationsTest {
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
 	 *
-	 * @see Validations#validate(List, String, Vertx)
+	 * @see Validations#validate(List, java.util.function.BiPredicate, String,
+	 *      Vertx)
 	 */
 	@Test
 	public void shouldEmptyListOfModelsBeValid(Vertx vertx, VertxTestContext testContext) {
 
 		final Promise<Void> promise = Promise.promise();
 		final Future<Void> future = promise.future();
-		future.compose(Validations.validate(new ArrayList<>(), "codePrefix", vertx))
+		future.compose(Validations.validate(new ArrayList<>(), (a, b) -> a.equals(b), "codePrefix", vertx))
 				.onComplete(testContext.succeeding(empty -> testContext.completeNow()));
 		promise.complete();
 	}
@@ -891,7 +893,8 @@ public class ValidationsTest {
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
 	 *
-	 * @see Validations#validate(List, String, Vertx)
+	 * @see Validations#validate(List, java.util.function.BiPredicate, String,
+	 *      Vertx)
 	 */
 	@Test
 	public void shouldListWithNullModelsBeValid(Vertx vertx, VertxTestContext testContext) {
@@ -904,7 +907,7 @@ public class ValidationsTest {
 		models.add(null);
 		final Promise<Void> promise = Promise.promise();
 		final Future<Void> future = promise.future();
-		future.compose(Validations.validate(models, "codePrefix", vertx))
+		future.compose(Validations.validate(models, (a, b) -> a.equals(b), "codePrefix", vertx))
 				.onComplete(testContext.succeeding(empty -> testContext.verify(() -> {
 					assertThat(models).isEmpty();
 					testContext.completeNow();
@@ -918,7 +921,8 @@ public class ValidationsTest {
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
 	 *
-	 * @see Validations#validate(List, String, Vertx)
+	 * @see Validations#validate(List, java.util.function.BiPredicate, String,
+	 *      Vertx)
 	 */
 	@Test
 	public void shouldListWithValidModelsBeValid(Vertx vertx, VertxTestContext testContext) {
@@ -947,7 +951,7 @@ public class ValidationsTest {
 		models.add(model4);
 		final Promise<Void> promise = Promise.promise();
 		final Future<Void> future = promise.future();
-		future.compose(Validations.validate(models, "codePrefix", vertx))
+		future.compose(Validations.validate(models, (a, b) -> a.equals(b), "codePrefix", vertx))
 				.onComplete(testContext.succeeding(empty -> testContext.verify(() -> {
 					assertThat(models).hasSize(2).contains(model1, atIndex(0)).contains(model4, atIndex(1));
 					testContext.completeNow();
@@ -961,7 +965,8 @@ public class ValidationsTest {
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
 	 *
-	 * @see Validations#validate(List, String, Vertx)
+	 * @see Validations#validate(List, java.util.function.BiPredicate, String,
+	 *      Vertx)
 	 */
 	@Test
 	public void shouldListWithValidAndInvalidModelsBeNotValid(Vertx vertx, VertxTestContext testContext) {
@@ -992,7 +997,7 @@ public class ValidationsTest {
 		models.add(model4);
 		final Promise<Void> promise = Promise.promise();
 		final Future<Void> future = promise.future();
-		future.compose(Validations.validate(models, "codePrefix", vertx))
+		future.compose(Validations.validate(models, (a, b) -> a.equals(b), "codePrefix", vertx))
 				.onComplete(testContext.failing(error -> testContext.verify(() -> {
 					assertThat(error).isEqualTo(validationError);
 					assertThat(models).hasSize(2).contains(model1, atIndex(0)).contains(model4, atIndex(1));
@@ -1007,7 +1012,8 @@ public class ValidationsTest {
 	 * @param vertx       event bus to use.
 	 * @param testContext test context to use.
 	 *
-	 * @see Validations#validate(List, String, Vertx)
+	 * @see Validations#validate(List, java.util.function.BiPredicate, String,
+	 *      Vertx)
 	 */
 	@Test
 	public void shouldListWithValidModelsBeNotValidBecauseExistoneDuplicatedOne(Vertx vertx,
@@ -1057,10 +1063,10 @@ public class ValidationsTest {
 		models.add(model4);
 		final Promise<Void> promise = Promise.promise();
 		final Future<Void> future = promise.future();
-		future.compose(Validations.validate(models, "codePrefix", vertx))
+		future.compose(Validations.validate(models, (a, b) -> a.equals(b), "codePrefix", vertx))
 				.onComplete(testContext.failing(error -> testContext.verify(() -> {
 					assertThat(error).isInstanceOf(ValidationErrorException.class);
-					assertThat(((ValidationErrorException) error).getCode()).isEqualTo("codePrefix[1]");
+					assertThat(((ValidationErrorException) error).getCode()).isEqualTo("codePrefix[2]");
 					assertThat(models).hasSize(3).contains(model1, atIndex(0)).contains(model3, atIndex(1)).contains(model4,
 							atIndex(2));
 					testContext.completeNow();
