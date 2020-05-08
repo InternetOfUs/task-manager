@@ -153,26 +153,26 @@ public class TasksResource implements Tasks {
 
 				} else {
 
-					this.repository.storeTask(task, stored -> {
+					final InteractionProtocolMessage message = new InteractionProtocolMessage();
+					message.taskId = task.id;
+					message.appId = task.appId;
+					message.content = new JsonObject().put("message", "Looking for volunteers");
+					this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
 
-						if (stored.failed()) {
+						if (sent.failed()) {
 
 							final Throwable cause = validation.cause();
-							Logger.debug(cause, "Cannot store {}.", task);
+							Logger.debug(cause, "Cannot send message {}.", message);
 							OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
 						} else {
 
-							final InteractionProtocolMessage message = new InteractionProtocolMessage();
-							message.taskId = task.id;
-							message.appId = task.appId;
-							message.content = new JsonObject().put("message", "Looking for volunteers");
-							this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
+							this.repository.storeTask(task, stored -> {
 
-								if (sent.failed()) {
+								if (stored.failed()) {
 
 									final Throwable cause = validation.cause();
-									Logger.debug(cause, "Cannot send message {}.", message);
+									Logger.debug(cause, "Cannot store {}.", task);
 									OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
 								} else {
