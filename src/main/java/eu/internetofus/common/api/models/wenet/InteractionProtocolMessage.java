@@ -28,6 +28,9 @@ package eu.internetofus.common.api.models.wenet;
 
 import java.util.List;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+import eu.internetofus.common.api.models.JsonObjectDeserializer;
 import eu.internetofus.common.api.models.Model;
 import eu.internetofus.common.api.models.Validable;
 import eu.internetofus.common.api.models.ValidationErrorException;
@@ -82,6 +85,7 @@ public class InteractionProtocolMessage extends Model implements Validable {
 	 * The content of the message.
 	 */
 	@Schema(description = "The content of the message.", example = "Hi!", type = "object")
+	@JsonDeserialize(using = JsonObjectDeserializer.class)
 	public Object content;
 
 	/**

@@ -39,6 +39,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import eu.internetofus.common.api.models.ModelTestCase;
 import eu.internetofus.common.api.models.ValidationsTest;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
 
@@ -63,7 +64,7 @@ public class InteractionProtocolMessageTest extends ModelTestCase<InteractionPro
 		model.communityId = "communityId_" + index;
 		model.senderId = "senderId_" + index;
 		model.taskId = "taskId_" + index;
-		model.content = "Content_" + index;
+		model.content = new JsonObject().put("Content", index);
 		model.norms = new ArrayList<>();
 		model.norms.add(new NormTest().createModelExample(index));
 		return model;
