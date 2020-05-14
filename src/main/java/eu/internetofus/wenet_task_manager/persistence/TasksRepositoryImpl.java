@@ -31,6 +31,7 @@ import eu.internetofus.common.persitences.Repository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.mongo.FindOptions;
 import io.vertx.ext.mongo.MongoClient;
 
 /**
@@ -53,6 +54,22 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 	public TasksRepositoryImpl(MongoClient pool) {
 
 		super(pool);
+		// pool.listIndexes(collection, resultHandler)
+		// final IndexOptions options = new IndexOptions();
+		// options.unique(true);
+		// pool.createIndexWithOptions(TASKS_COLLECTION, new JsonObject().put("id", 1),
+		// options, resultHandler -> {
+		//
+		// if (resultHandler.failed()) {
+		//
+		// Logger.error(resultHandler.cause(), "Can not create index for the tasks
+		// collection");
+		// } else {
+		//
+		// Logger.debug(resultHandler.cause(), "created index for task collection");
+		// }
+		//
+		// });
 
 	}
 
@@ -115,6 +132,23 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 
 		final JsonObject query = new JsonObject().put("_id", id);
 		this.deleteOneDocument(TASKS_COLLECTION, query, deleteHandler);
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void retrieveTasksPageObject(JsonObject query, int offset, int limit,
+			Handler<AsyncResult<JsonObject>> searchHandler) {
+
+		final FindOptions options = new FindOptions();
+		options.setSkip(offset);
+		options.setLimit(limit);
+		this.searchPageObject(TASKS_COLLECTION, query, options, "tasks", searchHandler);
+		//
+		// final , query, options, "tasks", task -> task.put("id", task.remove("_id")),
+		// searchHandler);
 
 	}
 

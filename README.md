@@ -1,30 +1,37 @@
-# wenet-task-manager
+# WeNet - Task manager
 
-This project will be used to provide the API to manage the WeNet user tasks.
+## Introduction
 
- - [License](LICENSE)
- - [Changes](CHANGELOG)
- - [Repository](https://rosell@bitbucket.org/wenet/wenet-task-manager-engine.git)
- - [Servers](#servers)
- - [Deploy with docker](#deploy-with-docker)
- - [Developing](#developing)
- - [Contact](#contact)
-
-## Servers
-
-  - **Sever for the latest API** [http://ardid.iiia.csic.es/wenet-task-manager/latest/](http://ardid.iiia.csic.es/wenet-task-manager/latest/) Linked with [wenet-profile-manager latest](http://ardid.iiia.csic.es/wenet-profile-manager/latest/)
-  - **Sever for the API 0.1.0** [http://ardid.iiia.csic.es/dev-wenet-task-manager/](http://ardid.iiia.csic.es/dev-wenet-task-manager/) Linked with [wenet-profile-manager 0.9.0](http://ardid.iiia.csic.es/dev-wenet-profile-manager/)
-  - **Sever for the API 0.2.0** [http://ardid.iiia.csic.es/wenet-task-manager/0.2.0/](http://ardid.iiia.csic.es/wenet-task-manager/0.2.0/) Linked with [wenet-profile-manager 0.10.0](http://ardid.iiia.csic.es/wenet-profile-manager/0.10.0/)
-  - **Sever for the API 0.3.0** [http://ardid.iiia.csic.es/wenet-task-manager/0.3.0/](http://ardid.iiia.csic.es/wenet-task-manager/0.2.0/) Linked with [wenet-profile-manager 0.10.0](http://ardid.iiia.csic.es/wenet-profile-manager/0.10.0/)
+The task manager component is the one responsible for storing and maintaining the task done by the WeNet users.
 
 
-## Deploy with docker
+## Setup and configuration
 
-  You must install [docker](https://docs.docker.com/install/) and
-  [docker compose](https://docs.docker.com/compose/install/) to deploy
-  the **wenet-task-manager**.
+### Installation
 
-### Create docker image
+The task manager component required [Java version 11](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html) or higher.
+
+All required java packages will be automatic installed by the compilation tool (`./mvnw clean install`).
+
+### Requirements
+
+The task manager component requires:
+
+ - [MongoDB](https://docs.mongodb.com/manual/installation/)
+ - [WeNet - Profile manager](https://bitbucket.org/wenet/profile-manager/)
+ - [WeNet - Interaction protocol engine](https://bitbucket.org/wenet/wenet-interaction-protocol-engine/)
+ - [WeNet - Service API](https://bitbucket.org/wenet/wenet-service-api/)
+
+
+### Docker support
+
+To use this feature you must to install the next software.
+
+ - [docker](https://docs.docker.com/install/)
+ - [docker compose](https://docs.docker.com/compose/install/)
+
+
+#### Create docker image
 
 If you want to create an image execute the next command.
 
@@ -41,14 +48,14 @@ You can use the next arguments:
  - **DEFAULT_DB_NAME** to define the default mongo database name. By default is **wenetTaskManagerDB**.
  - **DEFAULT_DB_USER_NAME** to define the default mongo database user name. By default is **wenetTaskManager**.
  - **DEFAULT_DB_USER_PASSWORD** to define the default mongo database user password. By default is **password**.
- - **DEFAULT_WENET_PROFILE_MANAGER_API_HOST** to define the default host of the WeNet profile manager API to use. By default is **ardid.iiia.csic.es**.
- - **DEFAULT_WENET_PROFILE_MANAGER_API_PORT** to define the default port of the WeNet profile manager API to use. By default is **80**.
- - **DEFAULT_WENET_PROFILE_MANAGER_API_PATH** to define the default path of the WeNet profile manager API to use. By default is **/dev-wenet-profile-manager**.
+ - **DEFAULT_WENET_PROFILE_MANAGER_API** to define the path to the profile manager component to use. By default is **https://wenet.u-hopper.com/profile_manager**.
+ - **DEFAULT_WENET_INTERACTION_PROTOCOL_ENGINE_API** to define the path to the interaction protocol engine component to use. By default is **https://wenet.u-hopper.com/interaction_protocol_engine**.
+ - **DEFAULT_WENET_SERVICE_API** to define the path to the service component to use. By default is **https://wenet.u-hopper.com/service**.
 
 This arguments are used to create a configurations files at **/usr/wenet/task-manager/etc**.
 So you can mount a volume to this if you want to modify any configuration property at runtime.
 
-### Run docker image
+#### Run docker image
 
 To run a the created docker image, run the next command:
 
@@ -65,75 +72,84 @@ You can modify use the next environment properties to modify some parameters of 
  - **DB_NAME** to define the mongo database name. By default is **wenetTaskManagerDB**.
  - **DB_USER_NAME** to define the mongo database user name. By default is **wenetTaskManager**.
  - **DB_USER_PASSWORD** to define the mongo database user password. By default is **password**.
- - **WENET_PROFILE_MANAGER_API_HOST** to define the WeNet profile manager API host. By default is **ardid.iiia.csic.es**.
- - **WENET_PROFILE_MANAGER_API_PORT** to define the WeNet profile manager API port. By default is **80**.
- - **WENET_PROFILE_MANAGER_API_PATH** to define the WeNet profile manager API path. By default is **/dev-wenet-profile-manager**.
+ - **WENET_PROFILE_MANAGER_API** to define the path to the profile manager component to use. By default is **https://wenet.u-hopper.com/profile_manager**.
+ - **WENET_INTERACTION_PROTOCOL_ENGINE_API** to define the path to the interaction protocol engine component to use. By default is **https://wenet.u-hopper.com/interaction_protocol_engine**.
+ - **WENET_SERVICE_API** to define the path to the service component to use. By default is **https://wenet.u-hopper.com/service**.
 
 Also you can define your own configuration that modify this properties and mount to  **/usr/wenet/task-manager/etc**.
 
-If you want to start also a database and link both you can execute:
-
-```
-docker-compose -f src/main/docker/docker-compose.yml up -d
-```
+If you want to start also a database and link both you can use the docker compose (`docker-compose -f src/main/docker/docker-compose.yml up -d`):
 
 After that you can interact with the API at **http://localhost:80**. You can modify the listening port
 with the next environment properties:
 
  - **API_PORT** to define the port where the API has to bind to the localhost. By default is **80**.
 
+When the container is ready you can access the logs of the component, following the next steps:
 
-## Developing
-
-To develop you need the next software:
-
- - [JDK 11](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)
- - [docker](https://docs.docker.com/install/)
- - [docker compose](https://docs.docker.com/compose/install/)
- - [Postman](https://www.postman.com/downloads/)
- - [The docker image wenet/profile-manager:0.11.0](https://bitbucket.org/wenet/wenet-profile-manager/src/master/README.md#deploy-with-docker)
-
-After that you can compile the source, pass the tests and calculate the test coverage with:
-
-```
-./mvnw clean install
-```
-
-This process generate the next files:
-
- - The OpenAPI description of the web services at **target/classes/wenet-task_manager-openapi.yml**
- - The execution java package at **target/wenet-task-manager-VERSION.jar** where **VERSION** is the version of the software.
- - The java dependencies at **target/lib**.
+ - Discover the identifier of the container of the component (`docker container ls`).
+ - Open a shell to the container of the component (`docker exec -it c82f8f4a136c /bin/bash`).
+ - The logs are on the directory **/usr/wenet/task-manager/var/log**.
 
 
-If you go to the **target** directory you can run the application with:
+## Usage
 
-```
-java -jar wenet-task-manager-VERSION.jar
-```
+The project use the [Apache maven](https://maven.apache.org/) tool to solve the dependencies,
+generate the Open API documentation, compile the component and run the test.
 
-With the **-h** option you can see the arguments.
-
-```
-user@host:~/git/wenet-task-manager/target$ java -jar wenet-task-manager-VERSION.jar -h
-usage: wenet-task-manager
- -c,--confDir <<etc>>         Define a directory where the configuration
-                              files are defined.
- -h,--help                    Show this help message.
- -p,--property <name=value>   Define a directory where the configuration
-                              files are defined.
- -v,--version                 Show the software version.
-```
+ - Use `./mvnw dependency:list` to show the component dependencies.
+ - Use `./mvnw compile` to compile and generate the Open API documentation (**target/classes/wenet-task_manager-openapi.yml**).
+ - Use `./mvnw tests` to run the test.
+ - Use `./mvnw site` to generate a HTML page (**target/site/index.html**) with all the reports (test, javadoc, PMD,CPD and coverage).
 
 
-# Contact
+### Run and configure
 
-## Researcher
+We encourage you to use the docker image of this component instead the next commands, because it is easier to use.
 
- - [Nardine Osman](http://www.iiia.csic.es/~nardine/) ( [IIIA-CSIC](http://www.iiia.csic.es) ) nardine (at) iiia.csic.es
- - [Carles Sierra](http://www.iiia.csic.es/~sierra/) ( [IIIA-CSIC](http://www.iiia.csic.es) ) sierra (at) iiia.csic.es
+If you want to run this component you must to follow the next steps:
 
-## Developers
+ - Compile the project (`./mvnw clean install`)
+ - On the directory where you want to install the component (for example **~/task-manager**) create the directories **etc** and **lib**.
+ - Copy the compiled jar (`cp target/wenet-task-manager-VERSION.jar ~/task-manager/.`).
+ - Copy the jar dependencies (`cp target/lib/* ~/task-manager/lib/.`).
+ - Copy the default logging configuration (`cp src/main/resources/tinylog.properties ~/task-manager/etc/log_configuration.properties.`).
+ - Copy the default component configuration (`cp src/main/resources/wenet-task-manager.configuration.json ~/task-manager/etc/configuration.conf.`).
+ - Edit the component configuration to fix the URL of the other components and the database connection.
+ - Go to the install directory and execute the command `java -jar -Dtinylog.configuration=etc/log_configuration.properties wenet-task-manager-VERSION.jar -c etc`.
 
- - Joan Jené ( [UDT-IA, IIIA-CSIC](http://www.iiia.csic.es) ) jjene (at) iiia.csic.es
- - Bruno Rosell i Gui ( [UDT-IA, IIIA-CSIC](http://www.iiia.csic.es) ) rosell (at) iiia.csic.es
+
+## Documentation
+
+The latest APIs documentation is available [here](http://swagger.u-hopper.com/?url=https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-task_manager-openapi.yaml).
+
+
+## Instances
+
+The task manager has the next available instances:
+
+ - WeNet production task manager API is available at [https://wenet.u-hopper.com/task_manager](https://wenet.u-hopper.com/task_manager).
+ - WeNet development task manager API is available at [https://wenet.u-hopper.com/dev/task_manager](https://wenet.u-hopper.com/dev/task_manager).
+ - The IIIA stable task manager API is available at [https://wenet.u-hopper.com/dev/task_manager](https://wenet.u-hopper.com/dev/task_manager).
+ - The IIIA development task manager API is available at [https://wenet.u-hopper.com/dev/task_manager](https://wenet.u-hopper.com/dev/task_manager).
+ - The task manager API 0.3.0 is available at [http://ardid.iiia.csic.es/wenet/task-manager/0.3.0/](http://ardid.iiia.csic.es/wenet/task-manager/0.3.0/).
+ - The task manager API 0.2.0 is available at [http://ardid.iiia.csic.es/wenet/task-manager/0.2.0/](http://ardid.iiia.csic.es/wenet/task-manager/0.2.0/).
+ - The task manager API 0.1.0 (Dummy version) is available at [http://ardid.iiia.csic.es/dev-wenet-task-manager/](http://ardid.iiia.csic.es/dev-wenet-task-manager/](http://ardid.iiia.csic.es/dev-wenet-task-manager/](http://ardid.iiia.csic.es/dev-wenet-task-manager/).
+
+
+## License
+
+This software is under the [MIT license](LICENSE)
+
+
+## Contact
+
+### Researcher
+
+ - [Nardine Osman](http://www.iiia.csic.es/~nardine/) ( [IIIA-CSIC](https://www.iiia.csic.es/~nardine/) ) nardine (at) iiia.csic.es
+ - [Carles Sierra](http://www.iiia.csic.es/~sierra/) ( [IIIA-CSIC](https://www.iiia.csic.es/~sierra/) ) sierra (at) iiia.csic.es
+
+### Developers
+
+ - Joan Jené ( [UDT-IA, IIIA-CSIC](https://www.iiia.csic.es/people/person/?person_id=19) ) jjene (at) iiia.csic.es
+ - Bruno Rosell i Gui ( [UDT-IA, IIIA-CSIC](https://www.iiia.csic.es/people/person/?person_id=27) ) rosell (at) iiia.csic.es

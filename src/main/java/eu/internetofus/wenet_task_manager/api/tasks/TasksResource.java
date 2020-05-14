@@ -33,6 +33,7 @@ import javax.ws.rs.core.Response.Status;
 import org.tinylog.Logger;
 
 import eu.internetofus.common.api.OperationReponseHandlers;
+import eu.internetofus.common.api.OperationRequests;
 import eu.internetofus.common.api.models.Model;
 import eu.internetofus.common.api.models.ValidationErrorException;
 import eu.internetofus.common.api.models.wenet.InteractionProtocolMessage;
@@ -529,6 +530,46 @@ public class TasksResource implements Tasks {
 
 			});
 		}
+
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void retrieveTasksPage(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler) {
+
+		final JsonObject params = OperationRequests.getQueryParamters(context);
+		final String appId = params.getString("appId", null);
+		final String requesterId = params.getString("requesterId", null);
+		final String goalName = params.getString("goalName", null);
+		final String goalDescription = params.getString("goalDescription", null);
+		final Long startFrom = params.getLong("startFrom", null);
+		final Long startTo = params.getLong("startTo", null);
+		final Long endFrom = params.getLong("endFrom", null);
+		final Long endTo = params.getLong("endTo", null);
+		final Long deadlineFrom = params.getLong("deadlineFrom", null);
+		final Long deadlineTo = params.getLong("deadlineTo", null);
+		final JsonObject query = TasksRepository.creteTasksPageQuery(appId, requesterId, goalName, goalDescription,
+				startFrom, startTo, deadlineFrom, deadlineTo, endFrom, endTo);
+		final int offset = params.getInteger("offset", 0);
+		final int limit = params.getInteger("limit", 10);
+		this.repository.retrieveTasksPageObject(query, offset, limit, retrieve -> {
+
+			if (retrieve.failed()) {
+
+				final Throwable cause = retrieve.cause();
+				Logger.debug(cause, "GET /tasks with {} => Retrieve error", query);
+				OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+
+			} else {
+
+				final JsonObject tasksPage = retrieve.result();
+				Logger.debug("GET /tasks with {} => {}.", query, tasksPage);
+				OperationReponseHandlers.responseOk(resultHandler, tasksPage);
+			}
+
+		});
 
 	}
 

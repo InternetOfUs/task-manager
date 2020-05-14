@@ -28,6 +28,9 @@ package eu.internetofus.wenet_task_manager.persistence;
 
 import eu.internetofus.common.api.models.Model;
 import eu.internetofus.common.api.models.wenet.Task;
+import eu.internetofus.common.api.models.wenet.TaskGoal;
+import eu.internetofus.common.persitences.QueryBuilder;
+import eu.internetofus.wenet_task_manager.api.tasks.TasksPage;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.core.AsyncResult;
@@ -198,5 +201,81 @@ public interface TasksRepository {
 	 * @param deleteHandler handler to manage the delete result.
 	 */
 	void deleteTask(String id, Handler<AsyncResult<Void>> deleteHandler);
+
+	/**
+	 * Create the query to ask about some tasks.
+	 *
+	 * @param appId           the pattern to match the {@link Task#appId}.
+	 * @param requesterId     the pattern to match the {@link Task#requesterId}.
+	 * @param goalName        the pattern to match the {@link TaskGoal#name}.
+	 * @param goalDescription the pattern to match the {@link TaskGoal#description}.
+	 * @param startFrom       the minimum time stamp, inclusive, for the
+	 *                        {@link Task#startTs}.
+	 * @param startTo         the maximum time stamp, inclusive, for the
+	 *                        {@link Task#startTs}.
+	 * @param deadlineFrom    the minimum time stamp, inclusive, for the
+	 *                        {@link Task#deadlineTs}.
+	 * @param deadlineTo      the maximum time stamp, inclusive, for the
+	 *                        {@link Task#deadlineTs}.
+	 * @param endFrom         the minimum time stamp, inclusive, for the
+	 *                        {@link Task#endTs}.
+	 * @param endTo           the maximum time stamp, inclusive, for the
+	 *                        {@link Task#endTs}.
+	 *
+	 * @return the query that you have to use to obtains some tasks.
+	 */
+	static JsonObject creteTasksPageQuery(String appId, String requesterId, String goalName, String goalDescription,
+			Number startFrom, Number startTo, Number deadlineFrom, Number deadlineTo, Number endFrom, Number endTo) {
+
+		return new QueryBuilder().withRegex("appId", appId).withRegex("requesterId", requesterId)
+				.withRegex("goal.name", goalName).withRegex("goal.description", goalDescription)
+				.withRange("startTs", startFrom, startTo).withRange("deadlineTs", deadlineFrom, deadlineTo)
+				.withRange("endTs", endFrom, endTo).build();
+
+	}
+
+	/**
+	 * Obtain the tasks that satisfies a query.
+	 *
+	 * @param query         that define the tasks to add into the page.
+	 * @param offset        index of the first task to return.
+	 * @param limit         number maximum of tasks to return.
+	 * @param searchHandler handler to manage the search.
+	 */
+	@GenIgnore
+	default void retrieveTasksPage(JsonObject query, int offset, int limit,
+			Handler<AsyncResult<TasksPage>> searchHandler) {
+
+		this.retrieveTasksPageObject(query, offset, limit, search -> {
+
+			if (search.failed()) {
+
+				searchHandler.handle(Future.failedFuture(search.cause()));
+
+			} else {
+
+				final JsonObject value = search.result();
+				final TasksPage page = Model.fromJsonObject(value, TasksPage.class);
+				if (page == null) {
+
+					searchHandler.handle(Future.failedFuture("The stored task page is not valid."));
+
+				} else {
+
+					searchHandler.handle(Future.succeededFuture(page));
+				}
+			}
+		});
+	}
+
+	/**
+	 * Search for the task with the specified identifier.
+	 *
+	 * @param query         that define the tasks to add into the page.
+	 * @param offset        index of the first task to return.
+	 * @param limit         number maximum of tasks to return.
+	 * @param searchHandler handler to manage the search.
+	 */
+	void retrieveTasksPageObject(JsonObject query, int offset, int limit, Handler<AsyncResult<JsonObject>> searchHandler);
 
 }

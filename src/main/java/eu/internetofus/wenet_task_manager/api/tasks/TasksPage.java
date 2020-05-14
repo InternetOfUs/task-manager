@@ -24,53 +24,42 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.common.services;
+package eu.internetofus.wenet_task_manager.api.tasks;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.WebClient;
+import java.util.List;
+
+import eu.internetofus.common.api.models.Model;
+import eu.internetofus.common.api.models.wenet.Task;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * The implementation of the {@link WeNetServiceApiService}.
- *
- * @see WeNetServiceApiService
+ * Contains the found tasks.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public class WeNetServiceApiServiceImpl extends Service implements WeNetServiceApiService {
+@Schema(name = "TaskPage", description = "Contains a set of tasks")
+public class TasksPage extends Model {
 
 	/**
-	 * Create a new service to interact with the WeNet interaction protocol engine.
-	 *
-	 * @param client to interact with the other modules.
-	 * @param conf   configuration.
+	 * The index of the first task returned.
 	 */
-	public WeNetServiceApiServiceImpl(WebClient client, JsonObject conf) {
-
-		super(client, conf);
-
-	}
+	@Schema(description = "The index of the first task returned.", example = "0")
+	public int offset;
 
 	/**
-	 * {@inheritDoc}
+	 * The number total of task that satisfies the search.
 	 */
-	@Override
-	public void retrieveJsonApp(String id, Handler<AsyncResult<JsonObject>> retrieveHandler) {
-
-		this.get("/app/" + id, retrieveHandler);
-
-	}
+	@Schema(description = "The number total of tasks that satisfies the search.", example = "100")
+	public long total;
 
 	/**
-	 * {@inheritDoc}
+	 * The found profiles.
 	 */
-	@Override
-	public void retrieveJsonArrayAppUserIds(String id, Handler<AsyncResult<JsonArray>> retrieveHandler) {
-
-		this.getArray("/app/" + id + "/users", retrieveHandler);
-
-	}
+	@ArraySchema(
+			schema = @Schema(
+					ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task"),
+			arraySchema = @Schema(description = "The set of tasks found"))
+	public List<Task> tasks;
 
 }

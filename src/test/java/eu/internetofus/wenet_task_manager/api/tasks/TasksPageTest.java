@@ -24,53 +24,34 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.common.services;
+package eu.internetofus.wenet_task_manager.api.tasks;
 
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.WebClient;
+import java.util.ArrayList;
+
+import eu.internetofus.common.api.models.ModelTestCase;
+import eu.internetofus.common.api.models.wenet.TaskTest;
 
 /**
- * The implementation of the {@link WeNetServiceApiService}.
+ * Test the {@link TasksPage}.
  *
- * @see WeNetServiceApiService
+ * @see TasksPage
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public class WeNetServiceApiServiceImpl extends Service implements WeNetServiceApiService {
-
-	/**
-	 * Create a new service to interact with the WeNet interaction protocol engine.
-	 *
-	 * @param client to interact with the other modules.
-	 * @param conf   configuration.
-	 */
-	public WeNetServiceApiServiceImpl(WebClient client, JsonObject conf) {
-
-		super(client, conf);
-
-	}
+public class TasksPageTest extends ModelTestCase<TasksPage> {
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void retrieveJsonApp(String id, Handler<AsyncResult<JsonObject>> retrieveHandler) {
+	public TasksPage createModelExample(int index) {
 
-		this.get("/app/" + id, retrieveHandler);
-
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void retrieveJsonArrayAppUserIds(String id, Handler<AsyncResult<JsonArray>> retrieveHandler) {
-
-		this.getArray("/app/" + id + "/users", retrieveHandler);
-
+		final TasksPage model = new TasksPage();
+		model.offset = index;
+		model.total = 100 + index;
+		model.tasks = new ArrayList<>();
+		model.tasks.add(new TaskTest().createModelExample(index));
+		return model;
 	}
 
 }

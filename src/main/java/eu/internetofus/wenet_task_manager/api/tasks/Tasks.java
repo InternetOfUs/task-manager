@@ -43,6 +43,7 @@ import eu.internetofus.common.api.models.ErrorMessage;
 import eu.internetofus.common.api.models.wenet.Task;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -154,6 +155,100 @@ public interface Tasks {
 					description = "The identifier of the task to get",
 					example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskId,
 			@Parameter(hidden = true, required = false) OperationRequest context,
+			@Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
+
+	/**
+	 * Called when want to get the information of some tasks.
+	 *
+	 * @param context       of the request.
+	 * @param resultHandler to inform of the response.
+	 */
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Operation(
+			summary = "Return a task associated to the identifier",
+			description = "Allow to get a task associated to an identifier")
+	@Parameter(
+			in = ParameterIn.QUERY,
+			name = "appId",
+			description = "The identifier of the application where the task is created.",
+			required = false,
+			schema = @Schema(type = "string", example = "1"))
+	@Parameter(
+			in = ParameterIn.QUERY,
+			name = "requesterId",
+			description = "The identifier of the user that has created the task.",
+			required = false,
+			schema = @Schema(type = "string", example = "1e346fd440"))
+	@Parameter(
+			in = ParameterIn.QUERY,
+			name = "goalName",
+			description = "The description of the task goal name to return or a Perl compatible regular expressions (PCRE) that has to match the goal name of the tasks to return.",
+			required = false,
+			schema = @Schema(type = "string", example = ".*together.*"))
+	@Parameter(
+			in = ParameterIn.QUERY,
+			name = "goalDescription",
+			description = "The description of the task goal description to return or a Perl compatible regular expressions (PCRE) that has to match the goal description of the tasks to return.",
+			required = false,
+			schema = @Schema(type = "string", example = ".*dinner.*"))
+	@Parameter(
+			in = ParameterIn.QUERY,
+			name = "startFrom",
+			description = "The minimum time stamp inclusive that the task satrTs can be.",
+			required = false,
+			schema = @Schema(type = "integer", defaultValue = "0", example = "1457166440"))
+	@Parameter(
+			in = ParameterIn.QUERY,
+			name = "startTo",
+			description = "The The maximum time stamp inclusive that the task startTs can be.",
+			required = false,
+			schema = @Schema(type = "integer", defaultValue = "92233720368547757", example = "1571664406"))
+	@Parameter(
+			in = ParameterIn.QUERY,
+			name = "endFrom",
+			description = "The minimum time stamp inclusive that the task endTs can be.",
+			required = false,
+			schema = @Schema(type = "integer", defaultValue = "0", example = "1457166440"))
+	@Parameter(
+			in = ParameterIn.QUERY,
+			name = "endTo",
+			description = "The The maximum time stamp inclusive that the task endTs can be.",
+			required = false,
+			schema = @Schema(type = "integer", defaultValue = "92233720368547757", example = "1571664406"))
+	@Parameter(
+			in = ParameterIn.QUERY,
+			name = "deadlineFrom",
+			description = "The minimum time stamp inclusive that the task deadlineTs can be.",
+			required = false,
+			schema = @Schema(type = "integer", defaultValue = "0", example = "1457166440"))
+	@Parameter(
+			in = ParameterIn.QUERY,
+			name = "deadlineTo",
+			description = "The The maximum time stamp inclusive that the task deadlineTs can be.",
+			required = false,
+			schema = @Schema(type = "integer", defaultValue = "92233720368547757", example = "1571664406"))
+	@Parameter(
+			in = ParameterIn.QUERY,
+			name = "offset",
+			description = "The index of the first task type to return.",
+			required = false,
+			schema = @Schema(type = "integer", defaultValue = "0", example = "5"))
+	@Parameter(
+			in = ParameterIn.QUERY,
+			name = "limit",
+			description = "The number maximum of task types to return.",
+			required = false,
+			schema = @Schema(type = "integer", defaultValue = "10", example = "5"))
+	@ApiResponse(
+			responseCode = "200",
+			description = "The task associated to the identifier",
+			content = @Content(schema = @Schema(implementation = TasksPage.class)))
+	@ApiResponse(
+			responseCode = "404",
+			description = "Not found task",
+			content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+	void retrieveTasksPage(@Parameter(hidden = true, required = false) OperationRequest context,
 			@Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
 
 	/**
