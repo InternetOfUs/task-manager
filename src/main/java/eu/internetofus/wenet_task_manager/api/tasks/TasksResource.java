@@ -154,37 +154,41 @@ public class TasksResource implements Tasks {
 
 				} else {
 
-					final InteractionProtocolMessage message = new InteractionProtocolMessage();
-					message.taskId = task.id;
-					message.appId = task.appId;
-					message.content = new JsonObject().put("action", "TaskCreation");
-					this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
+					this.repository.storeTask(task, stored -> {
 
-						if (sent.failed()) {
+						if (stored.failed()) {
 
 							final Throwable cause = validation.cause();
-							Logger.debug(cause, "Cannot send message {}.", message);
+							Logger.debug(cause, "Cannot store {}.", task);
 							OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
 						} else {
 
-							this.repository.storeTask(task, stored -> {
+							OperationReponseHandlers.responseOk(resultHandler, stored.result());
 
-								if (stored.failed()) {
+							Logger.debug("Created task {}", task);
+							final InteractionProtocolMessage message = new InteractionProtocolMessage();
+							message.taskId = task.id;
+							message.appId = task.appId;
+							message.content = new JsonObject().put("action", "TaskCreation");
+							this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
+
+								if (sent.failed()) {
 
 									final Throwable cause = validation.cause();
-									Logger.debug(cause, "Cannot store {}.", task);
+									Logger.debug(cause, "Cannot send message {}.", message);
 									OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
 								} else {
 
-									OperationReponseHandlers.responseOk(resultHandler, stored.result());
+									Logger.debug("Interaction protocol engine accepted {}", task);
+
 								}
-
 							});
-
 						}
+
 					});
+
 				}
 
 			});
