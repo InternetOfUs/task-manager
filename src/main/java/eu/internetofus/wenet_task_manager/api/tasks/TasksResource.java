@@ -157,7 +157,7 @@ public class TasksResource implements Tasks {
 					final InteractionProtocolMessage message = new InteractionProtocolMessage();
 					message.taskId = task.id;
 					message.appId = task.appId;
-					message.content = new JsonObject().put("message", "Looking for volunteers");
+					message.content = new JsonObject().put("action", "TaskCreation");
 					this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
 
 						if (sent.failed()) {
@@ -507,7 +507,8 @@ public class TasksResource implements Tasks {
 							final InteractionProtocolMessage message = new InteractionProtocolMessage();
 							message.taskId = task.id;
 							message.appId = task.appId;
-							message.content = taskTransaction.attributes;
+							message.content = new JsonObject().put("action", taskTransaction.label).put("attributes",
+									taskTransaction.attributes);
 							this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
 
 								if (sent.failed()) {
