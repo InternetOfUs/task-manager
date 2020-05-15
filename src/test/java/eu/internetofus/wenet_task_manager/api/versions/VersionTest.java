@@ -26,7 +26,7 @@
 
 package eu.internetofus.wenet_task_manager.api.versions;
 
-import eu.internetofus.common.api.models.ModelTestCase;
+import eu.internetofus.common.components.ModelTestCase;
 
 /**
  * Test the {@link Version}.

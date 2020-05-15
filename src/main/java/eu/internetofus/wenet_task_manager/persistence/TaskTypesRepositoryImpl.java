@@ -26,7 +26,7 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
-import eu.internetofus.common.persitences.Repository;
+import eu.internetofus.common.vertx.Repository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;

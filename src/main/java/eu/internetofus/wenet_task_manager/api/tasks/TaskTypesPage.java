@@ -28,8 +28,8 @@ package eu.internetofus.wenet_task_manager.api.tasks;
 
 import java.util.List;
 
-import eu.internetofus.common.api.models.Model;
-import eu.internetofus.common.api.models.wenet.TaskType;
+import eu.internetofus.common.components.Model;
+import eu.internetofus.common.components.task_manager.TaskType;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 

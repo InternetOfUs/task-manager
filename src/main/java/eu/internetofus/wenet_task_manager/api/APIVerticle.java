@@ -26,8 +26,8 @@
 
 package eu.internetofus.wenet_task_manager.api;
 
-import eu.internetofus.common.api.AbstractAPIVerticle;
-import eu.internetofus.common.services.WeNetTaskManagerService;
+import eu.internetofus.common.components.task_manager.WeNetTaskManagerService;
+import eu.internetofus.common.vertx.AbstractAPIVerticle;
 import eu.internetofus.wenet_task_manager.api.tasks.Tasks;
 import eu.internetofus.wenet_task_manager.api.tasks.TasksResource;
 import eu.internetofus.wenet_task_manager.api.versions.Versions;

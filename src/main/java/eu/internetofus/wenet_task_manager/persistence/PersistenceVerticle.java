@@ -26,7 +26,7 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
-import eu.internetofus.common.persitences.AbstractPersistenceVerticle;
+import eu.internetofus.common.vertx.AbstractPersistenceVerticle;
 
 /**
  * The verticle that provide the persistence services.

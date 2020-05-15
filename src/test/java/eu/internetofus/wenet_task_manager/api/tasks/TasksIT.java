@@ -26,7 +26,7 @@
 
 package eu.internetofus.wenet_task_manager.api.tasks;
 
-import static eu.internetofus.common.api.HttpResponses.assertThatBodyIs;
+import static eu.internetofus.common.vertx.HttpResponses.assertThatBodyIs;
 import static io.vertx.junit5.web.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,16 +37,16 @@ import javax.ws.rs.core.Response.Status;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import eu.internetofus.common.api.models.ErrorMessage;
-import eu.internetofus.common.api.models.ValidationsTest;
-import eu.internetofus.common.api.models.wenet.StoreServices;
-import eu.internetofus.common.api.models.wenet.Task;
-import eu.internetofus.common.api.models.wenet.TaskGoalTest;
-import eu.internetofus.common.api.models.wenet.TaskTest;
-import eu.internetofus.common.api.models.wenet.TaskTransaction;
-import eu.internetofus.common.api.models.wenet.TaskTransactionTest;
-import eu.internetofus.common.api.models.wenet.TaskType;
-import eu.internetofus.common.api.models.wenet.TaskTypeTest;
+import eu.internetofus.common.components.ErrorMessage;
+import eu.internetofus.common.components.StoreServices;
+import eu.internetofus.common.components.ValidationsTest;
+import eu.internetofus.common.components.task_manager.Task;
+import eu.internetofus.common.components.task_manager.TaskGoalTest;
+import eu.internetofus.common.components.task_manager.TaskTest;
+import eu.internetofus.common.components.task_manager.TaskTransaction;
+import eu.internetofus.common.components.task_manager.TaskTransactionTest;
+import eu.internetofus.common.components.task_manager.TaskType;
+import eu.internetofus.common.components.task_manager.TaskTypeTest;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import eu.internetofus.wenet_task_manager.persistence.TaskTypesRepository;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;

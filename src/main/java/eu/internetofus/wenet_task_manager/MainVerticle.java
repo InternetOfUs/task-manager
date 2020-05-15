@@ -26,7 +26,7 @@
 
 package eu.internetofus.wenet_task_manager;
 
-import eu.internetofus.common.AbstractMainVerticle;
+import eu.internetofus.common.vertx.AbstractMainVerticle;
 import eu.internetofus.wenet_task_manager.api.APIVerticle;
 import eu.internetofus.wenet_task_manager.persistence.PersistenceVerticle;
 import eu.internetofus.wenet_task_manager.services.ServicesVerticle;

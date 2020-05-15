@@ -26,10 +26,10 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
-import eu.internetofus.common.api.models.Model;
-import eu.internetofus.common.api.models.wenet.Task;
-import eu.internetofus.common.api.models.wenet.TaskGoal;
-import eu.internetofus.common.persitences.QueryBuilder;
+import eu.internetofus.common.components.Model;
+import eu.internetofus.common.components.task_manager.Task;
+import eu.internetofus.common.components.task_manager.TaskGoal;
+import eu.internetofus.common.vertx.QueryBuilder;
 import eu.internetofus.wenet_task_manager.api.tasks.TasksPage;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;

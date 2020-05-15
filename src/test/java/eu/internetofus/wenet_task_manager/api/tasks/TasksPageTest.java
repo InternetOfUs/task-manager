@@ -28,8 +28,8 @@ package eu.internetofus.wenet_task_manager.api.tasks;
 
 import java.util.ArrayList;
 
-import eu.internetofus.common.api.models.ModelTestCase;
-import eu.internetofus.common.api.models.wenet.TaskTest;
+import eu.internetofus.common.components.ModelTestCase;
+import eu.internetofus.common.components.task_manager.TaskTest;
 
 /**
  * Test the {@link TasksPage}.

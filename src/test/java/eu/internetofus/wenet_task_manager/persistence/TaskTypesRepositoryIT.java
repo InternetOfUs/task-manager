@@ -33,8 +33,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import eu.internetofus.common.api.models.wenet.TaskType;
-import eu.internetofus.common.api.models.wenet.TaskTypeTest;
+import eu.internetofus.common.components.task_manager.TaskType;
+import eu.internetofus.common.components.task_manager.TaskTypeTest;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;

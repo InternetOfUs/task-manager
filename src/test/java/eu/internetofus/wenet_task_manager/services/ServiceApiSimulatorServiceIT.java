@@ -34,9 +34,9 @@ import javax.ws.rs.core.Response.Status;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import eu.internetofus.common.api.models.wenet.App;
-import eu.internetofus.common.services.ServiceApiSimulatorService;
-import eu.internetofus.common.services.ServiceApiSimulatorServiceTestCase;
+import eu.internetofus.common.components.service.App;
+import eu.internetofus.common.components.service.ServiceApiSimulatorService;
+import eu.internetofus.common.components.service.ServiceApiSimulatorServiceTestCase;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;

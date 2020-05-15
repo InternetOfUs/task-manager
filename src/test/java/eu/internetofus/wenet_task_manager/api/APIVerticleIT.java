@@ -28,7 +28,7 @@ package eu.internetofus.wenet_task_manager.api;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import eu.internetofus.common.api.AbstractAPIVerticleIntegrationTestCase;
+import eu.internetofus.common.vertx.AbstractAPIVerticleIntegrationTestCase;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import eu.internetofus.wenet_task_manager.api.tasks.Tasks;
 import io.vertx.core.json.JsonObject;

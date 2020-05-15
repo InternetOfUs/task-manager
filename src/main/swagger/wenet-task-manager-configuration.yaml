@@ -32,4 +32,4 @@ openAPI:
     - url: https://wenet.u-hopper.com/dev/task_manager
       description: WeNet development server server
     - url: http://ardid.iiia.csic.es/wenet/task-manager/0.3.0/
-      description: IIIA development Testing
+      description: IIIA development server

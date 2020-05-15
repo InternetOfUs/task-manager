@@ -26,8 +26,8 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
-import eu.internetofus.common.api.models.Model;
-import eu.internetofus.common.api.models.wenet.TaskType;
+import eu.internetofus.common.components.Model;
+import eu.internetofus.common.components.task_manager.TaskType;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.core.AsyncResult;

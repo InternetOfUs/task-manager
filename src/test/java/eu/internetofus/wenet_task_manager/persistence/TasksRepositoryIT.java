@@ -37,9 +37,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import eu.internetofus.common.TimeManager;
-import eu.internetofus.common.api.models.wenet.Task;
-import eu.internetofus.common.api.models.wenet.TaskGoalTest;
-import eu.internetofus.common.api.models.wenet.TaskTest;
+import eu.internetofus.common.components.task_manager.Task;
+import eu.internetofus.common.components.task_manager.TaskGoalTest;
+import eu.internetofus.common.components.task_manager.TaskTest;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;

@@ -25,7 +25,8 @@
  */
 
 /**
- * Services to manage the {@link eu.internetofus.common.api.models.wenet.Task}.
+ * Services to manage the
+ * {@link eu.internetofus.common.components.task_manager.Task}.
  *
  * @author UDT-IA, IIIA-CSIC
  */

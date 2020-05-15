@@ -32,16 +32,16 @@ import javax.ws.rs.core.Response.Status;
 
 import org.tinylog.Logger;
 
-import eu.internetofus.common.api.OperationReponseHandlers;
-import eu.internetofus.common.api.OperationRequests;
-import eu.internetofus.common.api.models.Model;
-import eu.internetofus.common.api.models.ValidationErrorException;
-import eu.internetofus.common.api.models.wenet.InteractionProtocolMessage;
-import eu.internetofus.common.api.models.wenet.Task;
-import eu.internetofus.common.api.models.wenet.TaskTransaction;
-import eu.internetofus.common.api.models.wenet.TaskType;
-import eu.internetofus.common.services.WeNetInteractionProtocolEngineService;
-import eu.internetofus.common.services.WeNetProfileManagerService;
+import eu.internetofus.common.components.Model;
+import eu.internetofus.common.components.ValidationErrorException;
+import eu.internetofus.common.components.interaction_protocol_engine.InteractionProtocolMessage;
+import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngineService;
+import eu.internetofus.common.components.profile_manager.WeNetProfileManagerService;
+import eu.internetofus.common.components.task_manager.Task;
+import eu.internetofus.common.components.task_manager.TaskTransaction;
+import eu.internetofus.common.components.task_manager.TaskType;
+import eu.internetofus.common.vertx.OperationReponseHandlers;
+import eu.internetofus.common.vertx.OperationRequests;
 import eu.internetofus.wenet_task_manager.persistence.TaskTypesRepository;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
 import io.vertx.core.AsyncResult;
