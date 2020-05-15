@@ -164,12 +164,13 @@ public class TasksResource implements Tasks {
 
 						} else {
 
-							OperationReponseHandlers.responseOk(resultHandler, stored.result());
+							final Task storedTask = stored.result();
+							OperationReponseHandlers.responseOk(resultHandler, storedTask);
 
-							Logger.debug("Created task {}", task);
+							Logger.debug("Created task {}", storedTask);
 							final InteractionProtocolMessage message = new InteractionProtocolMessage();
-							message.taskId = task.id;
-							message.appId = task.appId;
+							message.taskId = storedTask.id;
+							message.appId = storedTask.appId;
 							message.content = new JsonObject().put("action", "TaskCreation");
 							this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
 
