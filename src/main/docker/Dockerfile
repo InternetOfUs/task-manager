@@ -68,5 +68,5 @@ CMD /wait && java -jar wenet-task-manager.jar -c etc \
   -ppersistence.host=${DB_HOST} -ppersistence.port=${DB_PORT} -ppersistence.db_name=${DB_NAME} -ppersistence.username=${DB_USER_NAME} -ppersistence.password=${DB_USER_PASSWORD}\
   -pwenetComponents.profileManager=${WENET_PROFILE_MANAGER_API}\
   -pwenetComponents.interactionProtocolEngine=${WENET_INTERACTION_PROTOCOL_ENGINE_API}\
-  -pwenetComponents.service=${WENET_SERVICE_MANAGER_API}\
+  -pwenetComponents.service=${WENET_SERVICE_API}\
   ${RUN_ARGS}
