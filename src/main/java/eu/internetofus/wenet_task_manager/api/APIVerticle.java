@@ -78,10 +78,7 @@ public class APIVerticle extends AbstractAPIVerticle {
 	protected void startedServerAt(String host, int port) {
 
 		final JsonObject conf = new JsonObject();
-		conf.put("host", host);
-		conf.put("port", port);
-		conf.put("ssl", false);
-		conf.put("apiPath", "");
+		conf.put("taskManager", "http://" + host + ":" + port);
 		final WebClient client = WebClient.create(this.vertx);
 		WeNetTaskManagerService.register(this.vertx, client, conf);
 
