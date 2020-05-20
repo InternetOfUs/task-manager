@@ -470,6 +470,7 @@ public class TasksRepositoryIT {
 					assertThat(search).isNotNull();
 					assertThat(search.total).isEqualTo(0);
 					assertThat(search.offset).isEqualTo(0);
+					assertThat(search.tasks).isNull();
 					final List<Task> tasks = new ArrayList<>();
 					this.storeSomeTasks(vertx, testContext, task -> task.goal.name += name, 10, tasks,
 							testContext.succeeding(empty -> {
@@ -517,6 +518,7 @@ public class TasksRepositoryIT {
 			creationHandler.handle(Future.succeededFuture());
 
 		} else {
+
 			final Task task = new TaskTest().createModelExample(tasks.size());
 			change.accept(task);
 			TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(stored -> {

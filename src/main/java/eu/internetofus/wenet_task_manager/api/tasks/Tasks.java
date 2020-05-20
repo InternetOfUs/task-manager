@@ -166,66 +166,66 @@ public interface Tasks {
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Operation(
-			summary = "Return a task associated to the identifier",
-			description = "Allow to get a task associated to an identifier")
+			summary = "Return a page of task that match the query parameters",
+			description = "Allow to get a page of task with the specified query parameters")
 	@Parameter(
 			in = ParameterIn.QUERY,
 			name = "appId",
-			description = "The identifier of the application where the task is created.",
+			description = "An application identifier or or a Perl compatible regular expressions (PCRE) that has to match the application identifier of the tasks to return.",
 			required = false,
 			schema = @Schema(type = "string", example = "1"))
 	@Parameter(
 			in = ParameterIn.QUERY,
 			name = "requesterId",
-			description = "The identifier of the user that has created the task.",
+			description = "An user identifier or or a Perl compatible regular expressions (PCRE) that has to match the requester identifier of the tasks to return.",
 			required = false,
 			schema = @Schema(type = "string", example = "1e346fd440"))
 	@Parameter(
 			in = ParameterIn.QUERY,
 			name = "goalName",
-			description = "The description of the task goal name to return or a Perl compatible regular expressions (PCRE) that has to match the goal name of the tasks to return.",
+			description = "A goal name or a Perl compatible regular expressions (PCRE) that has to match the goal name of the tasks to return.",
 			required = false,
 			schema = @Schema(type = "string", example = ".*together.*"))
 	@Parameter(
 			in = ParameterIn.QUERY,
 			name = "goalDescription",
-			description = "The description of the task goal description to return or a Perl compatible regular expressions (PCRE) that has to match the goal description of the tasks to return.",
+			description = "A goal description or a Perl compatible regular expressions (PCRE) that has to match the goal name of the tasks to return.",
 			required = false,
 			schema = @Schema(type = "string", example = ".*dinner.*"))
 	@Parameter(
 			in = ParameterIn.QUERY,
 			name = "startFrom",
-			description = "The minimum time stamp inclusive that the task satrTs can be.",
+			description = "The difference, measured in seconds, between the minimum start time stamp of the task and midnight, January 1, 1970 UTC",
 			required = false,
 			schema = @Schema(type = "integer", defaultValue = "0", example = "1457166440"))
 	@Parameter(
 			in = ParameterIn.QUERY,
 			name = "startTo",
-			description = "The The maximum time stamp inclusive that the task startTs can be.",
+			description = "The difference, measured in seconds, between the maximum start time stamp of the task and midnight, January 1, 1970 UTC",
 			required = false,
 			schema = @Schema(type = "integer", defaultValue = "92233720368547757", example = "1571664406"))
 	@Parameter(
 			in = ParameterIn.QUERY,
 			name = "endFrom",
-			description = "The minimum time stamp inclusive that the task endTs can be.",
+			description = "The difference, measured in seconds, between the minimum end time stamp of the task and midnight, January 1, 1970 UTC",
 			required = false,
 			schema = @Schema(type = "integer", defaultValue = "0", example = "1457166440"))
 	@Parameter(
 			in = ParameterIn.QUERY,
 			name = "endTo",
-			description = "The The maximum time stamp inclusive that the task endTs can be.",
+			description = "The difference, measured in seconds, between the maximum end time stamp of the task and midnight, January 1, 1970 UTC",
 			required = false,
 			schema = @Schema(type = "integer", defaultValue = "92233720368547757", example = "1571664406"))
 	@Parameter(
 			in = ParameterIn.QUERY,
 			name = "deadlineFrom",
-			description = "The minimum time stamp inclusive that the task deadlineTs can be.",
+			description = "The difference, measured in seconds, between the minimum deadline time stamp of the task and midnight, January 1, 1970 UTC",
 			required = false,
 			schema = @Schema(type = "integer", defaultValue = "0", example = "1457166440"))
 	@Parameter(
 			in = ParameterIn.QUERY,
 			name = "deadlineTo",
-			description = "The The maximum time stamp inclusive that the task deadlineTs can be.",
+			description = "The difference, measured in seconds, between the maximum deadline time stamp of the task and midnight, January 1, 1970 UTC",
 			required = false,
 			schema = @Schema(type = "integer", defaultValue = "92233720368547757", example = "1571664406"))
 	@Parameter(

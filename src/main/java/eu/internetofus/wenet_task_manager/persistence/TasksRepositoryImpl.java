@@ -145,10 +145,8 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 		final FindOptions options = new FindOptions();
 		options.setSkip(offset);
 		options.setLimit(limit);
-		this.searchPageObject(TASKS_COLLECTION, query, options, "tasks", searchHandler);
-		//
-		// final , query, options, "tasks", task -> task.put("id", task.remove("_id")),
-		// searchHandler);
+		this.searchPageObject(TASKS_COLLECTION, query, options, "tasks", task -> task.put("id", task.remove("_id")),
+				searchHandler);
 
 	}
 
