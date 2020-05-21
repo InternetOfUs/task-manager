@@ -182,6 +182,12 @@ public interface Tasks {
 			schema = @Schema(type = "string", example = "1e346fd440"))
 	@Parameter(
 			in = ParameterIn.QUERY,
+			name = "taskTypeId",
+			description = "A task type identifier or or a Perl compatible regular expressions (PCRE) that has to match the task type identifier of the tasks to return.",
+			required = false,
+			schema = @Schema(type = "string", example = "1e346fd440"))
+	@Parameter(
+			in = ParameterIn.QUERY,
 			name = "goalName",
 			description = "A goal name or a Perl compatible regular expressions (PCRE) that has to match the goal name of the tasks to return.",
 			required = false,

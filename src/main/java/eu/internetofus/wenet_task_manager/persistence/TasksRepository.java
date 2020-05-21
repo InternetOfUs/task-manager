@@ -207,6 +207,7 @@ public interface TasksRepository {
 	 *
 	 * @param appId           the pattern to match the {@link Task#appId}.
 	 * @param requesterId     the pattern to match the {@link Task#requesterId}.
+	 * @param taskTypeId      the pattern to match the {@link Task#taskTypeId}.
 	 * @param goalName        the pattern to match the {@link TaskGoal#name}.
 	 * @param goalDescription the pattern to match the {@link TaskGoal#description}.
 	 * @param startFrom       the minimum time stamp, inclusive, for the
@@ -224,13 +225,14 @@ public interface TasksRepository {
 	 *
 	 * @return the query that you have to use to obtains some tasks.
 	 */
-	static JsonObject creteTasksPageQuery(String appId, String requesterId, String goalName, String goalDescription,
-			Number startFrom, Number startTo, Number deadlineFrom, Number deadlineTo, Number endFrom, Number endTo) {
+	static JsonObject creteTasksPageQuery(String appId, String requesterId, String taskTypeId, String goalName,
+			String goalDescription, Number startFrom, Number startTo, Number deadlineFrom, Number deadlineTo, Number endFrom,
+			Number endTo) {
 
 		return new QueryBuilder().withRegex("appId", appId).withRegex("requesterId", requesterId)
-				.withRegex("goal.name", goalName).withRegex("goal.description", goalDescription)
-				.withRange("startTs", startFrom, startTo).withRange("deadlineTs", deadlineFrom, deadlineTo)
-				.withRange("endTs", endFrom, endTo).build();
+				.withRegex("taskTypeId", taskTypeId).withRegex("goal.name", goalName)
+				.withRegex("goal.description", goalDescription).withRange("startTs", startFrom, startTo)
+				.withRange("deadlineTs", deadlineFrom, deadlineTo).withRange("endTs", endFrom, endTo).build();
 
 	}
 

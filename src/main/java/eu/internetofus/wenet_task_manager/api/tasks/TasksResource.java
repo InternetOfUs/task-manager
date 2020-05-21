@@ -548,6 +548,7 @@ public class TasksResource implements Tasks {
 		final JsonObject params = OperationRequests.getQueryParamters(context);
 		final String appId = params.getString("appId", null);
 		final String requesterId = params.getString("requesterId", null);
+		final String taskTypeId = params.getString("taskTypeId", null);
 		final String goalName = params.getString("goalName", null);
 		final String goalDescription = params.getString("goalDescription", null);
 		final Long startFrom = params.getLong("startFrom", null);
@@ -556,8 +557,8 @@ public class TasksResource implements Tasks {
 		final Long endTo = params.getLong("endTo", null);
 		final Long deadlineFrom = params.getLong("deadlineFrom", null);
 		final Long deadlineTo = params.getLong("deadlineTo", null);
-		final JsonObject query = TasksRepository.creteTasksPageQuery(appId, requesterId, goalName, goalDescription,
-				startFrom, startTo, deadlineFrom, deadlineTo, endFrom, endTo);
+		final JsonObject query = TasksRepository.creteTasksPageQuery(appId, requesterId, taskTypeId, goalName,
+				goalDescription, startFrom, startTo, deadlineFrom, deadlineTo, endFrom, endTo);
 		final int offset = params.getInteger("offset", 0);
 		final int limit = params.getInteger("limit", 10);
 		this.repository.retrieveTasksPageObject(query, offset, limit, retrieve -> {

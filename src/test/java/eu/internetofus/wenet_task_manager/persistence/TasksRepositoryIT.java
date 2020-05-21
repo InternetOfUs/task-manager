@@ -461,8 +461,8 @@ public class TasksRepositoryIT {
 	public void shouldRetrieveTaksByGoalName(Vertx vertx, VertxTestContext testContext) {
 
 		final String name = UUID.randomUUID().toString();
-		final JsonObject query = TasksRepository.creteTasksPageQuery(null, null, ".*" + name + ".*", null, null, null, null,
-				null, null, null);
+		final JsonObject query = TasksRepository.creteTasksPageQuery(null, null, null, ".*" + name + ".*", null, null, null,
+				null, null, null, null);
 
 		TasksRepository.createProxy(vertx).retrieveTasksPage(query, 0, 10,
 				testContext.succeeding(search -> testContext.verify(() -> {
@@ -542,8 +542,8 @@ public class TasksRepositoryIT {
 	public void shouldRetrieveTaksByGoalDescription(Vertx vertx, VertxTestContext testContext) {
 
 		final String description = UUID.randomUUID().toString();
-		final JsonObject query = TasksRepository.creteTasksPageQuery(null, null, null, ".*" + description + ".*", null,
-				null, null, null, null, null);
+		final JsonObject query = TasksRepository.creteTasksPageQuery(null, null, null, null, ".*" + description + ".*",
+				null, null, null, null, null, null);
 
 		TasksRepository.createProxy(vertx).retrieveTasksPage(query, 0, 10,
 				testContext.succeeding(search -> testContext.verify(() -> {
@@ -592,7 +592,7 @@ public class TasksRepositoryIT {
 
 		final String requesterId = UUID.randomUUID().toString();
 		final JsonObject query = TasksRepository.creteTasksPageQuery(null, ".*" + requesterId + ".*", null, null, null,
-				null, null, null, null, null);
+				null, null, null, null, null, null);
 
 		TasksRepository.createProxy(vertx).retrieveTasksPage(query, 0, 10,
 				testContext.succeeding(search -> testContext.verify(() -> {
@@ -641,7 +641,7 @@ public class TasksRepositoryIT {
 
 		final String appId = UUID.randomUUID().toString();
 		final JsonObject query = TasksRepository.creteTasksPageQuery(".*" + appId + ".*", null, null, null, null, null,
-				null, null, null, null);
+				null, null, null, null, null);
 
 		TasksRepository.createProxy(vertx).retrieveTasksPage(query, 0, 10,
 				testContext.succeeding(search -> testContext.verify(() -> {
@@ -660,17 +660,70 @@ public class TasksRepositoryIT {
 											assertThat(search2.total).isEqualTo(10);
 											assertThat(search2.offset).isEqualTo(0);
 											assertThat(search2.tasks).isEqualTo(tasks);
-											TasksRepository.createProxy(vertx).retrieveTasksPage(query, 2, 5,
-													testContext.succeeding(search3 -> testContext.verify(() -> {
+											this.storeSomeTasks(vertx, testContext, task -> {
+											}, 10, tasks, testContext.succeeding(empty2 -> {
+												TasksRepository.createProxy(vertx).retrieveTasksPage(query, 2, 5,
+														testContext.succeeding(search3 -> testContext.verify(() -> {
 
-														assertThat(search3).isNotNull();
-														assertThat(search3.total).isEqualTo(10);
-														assertThat(search3.offset).isEqualTo(2);
-														assertThat(search3.tasks).isEqualTo(tasks.subList(2, 7));
-														testContext.completeNow();
+															assertThat(search3).isNotNull();
+															assertThat(search3.total).isEqualTo(10);
+															assertThat(search3.offset).isEqualTo(2);
+															assertThat(search3.tasks).isEqualTo(tasks.subList(2, 7));
+															testContext.completeNow();
 
-													})));
+														})));
+											}));
+										})));
+							}));
+				})));
 
+	}
+
+	/**
+	 * Check that retrieve the expected tasks by task type id.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param testContext context that executes the test.
+	 *
+	 * @see TasksRepository#retrieveTasksPage(JsonObject, int, int, Handler)
+	 */
+	@Test
+	public void shouldRetrieveTaksByTaskTypeId(Vertx vertx, VertxTestContext testContext) {
+
+		final String taskTypeId = UUID.randomUUID().toString();
+		final JsonObject query = TasksRepository.creteTasksPageQuery(null, null, ".*" + taskTypeId + ".*", null, null, null,
+				null, null, null, null, null);
+
+		TasksRepository.createProxy(vertx).retrieveTasksPage(query, 0, 10,
+				testContext.succeeding(search -> testContext.verify(() -> {
+
+					assertThat(search).isNotNull();
+					assertThat(search.total).isEqualTo(0);
+					assertThat(search.offset).isEqualTo(0);
+					final List<Task> tasks = new ArrayList<>();
+					this.storeSomeTasks(vertx, testContext, task -> task.taskTypeId += taskTypeId, 10, tasks,
+							testContext.succeeding(empty -> {
+
+								TasksRepository.createProxy(vertx).retrieveTasksPage(query, 0, 10,
+										testContext.succeeding(search2 -> testContext.verify(() -> {
+
+											assertThat(search2).isNotNull();
+											assertThat(search2.total).isEqualTo(10);
+											assertThat(search2.offset).isEqualTo(0);
+											assertThat(search2.tasks).isEqualTo(tasks);
+											this.storeSomeTasks(vertx, testContext, task -> {
+											}, 10, tasks, testContext.succeeding(empty2 -> {
+												TasksRepository.createProxy(vertx).retrieveTasksPage(query, 2, 5,
+														testContext.succeeding(search3 -> testContext.verify(() -> {
+
+															assertThat(search3).isNotNull();
+															assertThat(search3.total).isEqualTo(10);
+															assertThat(search3.offset).isEqualTo(2);
+															assertThat(search3.tasks).isEqualTo(tasks.subList(2, 7));
+															testContext.completeNow();
+
+														})));
+											}));
 										})));
 							}));
 				})));

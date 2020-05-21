@@ -27,6 +27,7 @@
 package eu.internetofus.wenet_task_manager.api.tasks;
 
 import static eu.internetofus.common.vertx.HttpResponses.assertThatBodyIs;
+import static io.vertx.junit5.web.TestRequest.queryParam;
 import static io.vertx.junit5.web.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -1009,6 +1010,59 @@ public class TasksIT {
 			testContext.completeNow();
 
 		}).sendJson(taskTransaction.toJsonObject(), testContext);
+
+	}
+
+	/**
+	 * Verify that can get some tasks.
+	 *
+	 * @param vertx       event bus to use.
+	 * @param client      to connect to the server.
+	 * @param testContext context to test.
+	 */
+	public void shouldGetSomeTasks(Vertx vertx, WebClient client, VertxTestContext testContext) {
+
+		StoreServices.storeTaskExample(1, vertx, testContext, testContext.succeeding(stored1 -> {
+			StoreServices.storeTaskExample(2, vertx, testContext, testContext.succeeding(stored2 -> {
+				StoreServices.storeTaskExample(3, vertx, testContext, testContext.succeeding(stored3 -> {
+					StoreServices.storeTaskExample(4, vertx, testContext, testContext.succeeding(stored4 -> {
+						StoreServices.storeTaskExample(5, vertx, testContext, testContext.succeeding(stored5 -> {
+							StoreServices.storeTaskExample(6, vertx, testContext, testContext.succeeding(stored6 -> {
+								StoreServices.storeTaskExample(7, vertx, testContext, testContext.succeeding(stored7 -> {
+									StoreServices.storeTaskExample(8, vertx, testContext, testContext.succeeding(stored8 -> {
+
+										testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("appId", stored2.appId))
+												.expect(res -> {
+
+													assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+													final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+													assertThat(page).isNotNull();
+													assertThat(page.total).isGreaterThanOrEqualTo(1);
+													assertThat(page.tasks).isNotNull().hasSize(1).contains(stored2);
+													testRequest(client, HttpMethod.GET, Tasks.PATH)
+															.with(queryParam("appId", "[" + stored3.appId + "|" + stored7.appId + "]"))
+															.expect(res2 -> {
+
+																assertThat(res2.statusCode()).isEqualTo(Status.OK.getStatusCode());
+																final TasksPage page2 = assertThatBodyIs(TasksPage.class, res2);
+																assertThat(page2).isNotNull();
+																assertThat(page2.total).isGreaterThanOrEqualTo(2);
+																assertThat(page2.tasks).isNotNull().hasSize(1).contains(stored3);
+																assertThat(page2.tasks).isNotNull().hasSize(1).contains(stored7);
+																testContext.completeNow();
+
+															}).send(testContext);
+
+												}).send(testContext);
+
+									}));
+								}));
+							}));
+						}));
+					}));
+				}));
+			}));
+		}));
 
 	}
 
