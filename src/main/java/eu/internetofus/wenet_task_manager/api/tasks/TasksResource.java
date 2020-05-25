@@ -41,7 +41,7 @@ import eu.internetofus.common.components.task_manager.Task;
 import eu.internetofus.common.components.task_manager.TaskTransaction;
 import eu.internetofus.common.components.task_manager.TaskType;
 import eu.internetofus.common.vertx.OperationReponseHandlers;
-import eu.internetofus.common.vertx.OperationRequests;
+import eu.internetofus.common.vertx.Repository;
 import eu.internetofus.wenet_task_manager.persistence.TaskTypesRepository;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
 import io.vertx.core.AsyncResult;
@@ -95,7 +95,7 @@ public class TasksResource implements Tasks {
 	 *
 	 * @param vertx where resource is defined.
 	 */
-	public TasksResource(Vertx vertx) {
+	public TasksResource(final Vertx vertx) {
 
 		this.vertx = vertx;
 		this.repository = TasksRepository.createProxy(vertx);
@@ -108,8 +108,8 @@ public class TasksResource implements Tasks {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void retrieveTask(String taskId, OperationRequest context,
-			Handler<AsyncResult<OperationResponse>> resultHandler) {
+	public void retrieveTask(final String taskId, final OperationRequest context,
+			final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
 		this.repository.searchTaskObject(taskId, search -> {
 
@@ -132,8 +132,8 @@ public class TasksResource implements Tasks {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void createTask(JsonObject body, OperationRequest context,
-			Handler<AsyncResult<OperationResponse>> resultHandler) {
+	public void createTask(final JsonObject body, final OperationRequest context,
+			final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
 		final Task task = Model.fromJsonObject(body, Task.class);
 		if (task == null) {
@@ -178,7 +178,8 @@ public class TasksResource implements Tasks {
 
 									final Throwable cause = validation.cause();
 									Logger.debug(cause, "Cannot send message {}.", message);
-									OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+									OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST,
+											cause);
 
 								} else {
 
@@ -201,8 +202,8 @@ public class TasksResource implements Tasks {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void updateTask(String taskId, JsonObject body, OperationRequest context,
-			Handler<AsyncResult<OperationResponse>> resultHandler) {
+	public void updateTask(final String taskId, final JsonObject body, final OperationRequest context,
+			final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
 		final Task source = Model.fromJsonObject(body, Task.class);
 		if (source == null) {
@@ -219,7 +220,8 @@ public class TasksResource implements Tasks {
 				if (target == null) {
 
 					Logger.debug(search.cause(), "Not found task {} to update", taskId);
-					OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND, "not_found_task_to_update",
+					OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND,
+							"not_found_task_to_update",
 							"You can not update the task '" + taskId + "', because it does not exist.");
 
 				} else {
@@ -238,8 +240,8 @@ public class TasksResource implements Tasks {
 							if (merged.equals(target)) {
 
 								OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST,
-										"task_to_update_equal_to_original", "You can not update the task of the task '" + taskId
-												+ "', because the new values is equals to the current one.");
+										"task_to_update_equal_to_original", "You can not update the task of the task '"
+												+ taskId + "', because the new values is equals to the current one.");
 
 							} else {
 								this.repository.updateTask(merged, update -> {
@@ -248,7 +250,8 @@ public class TasksResource implements Tasks {
 
 										final Throwable cause = update.cause();
 										Logger.debug(cause, "Cannot update {}.", target);
-										OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+										OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST,
+												cause);
 
 									} else {
 
@@ -261,7 +264,7 @@ public class TasksResource implements Tasks {
 						}
 					}
 
-					);
+							);
 
 				}
 			});
@@ -273,8 +276,8 @@ public class TasksResource implements Tasks {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void deleteTask(String taskId, OperationRequest context,
-			Handler<AsyncResult<OperationResponse>> resultHandler) {
+	public void deleteTask(final String taskId, final OperationRequest context,
+			final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
 		this.repository.deleteTask(taskId, delete -> {
 
@@ -297,8 +300,8 @@ public class TasksResource implements Tasks {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void retrieveTaskType(String taskTypeId, OperationRequest context,
-			Handler<AsyncResult<OperationResponse>> resultHandler) {
+	public void retrieveTaskType(final String taskTypeId, final OperationRequest context,
+			final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
 		this.typesRepository.searchTaskTypeObject(taskTypeId, search -> {
 
@@ -306,8 +309,8 @@ public class TasksResource implements Tasks {
 			if (taskType == null) {
 
 				Logger.debug(search.cause(), "Not found task type type for {}", taskTypeId);
-				OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND, "not_found_task_type",
-						"Does not exist a task type type associated to '" + taskTypeId + "'.");
+				OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND,
+						"not_found_task_type", "Does not exist a task type type associated to '" + taskTypeId + "'.");
 
 			} else {
 
@@ -321,8 +324,8 @@ public class TasksResource implements Tasks {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void createTaskType(JsonObject body, OperationRequest context,
-			Handler<AsyncResult<OperationResponse>> resultHandler) {
+	public void createTaskType(final JsonObject body, final OperationRequest context,
+			final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
 		final TaskType taskType = Model.fromJsonObject(body, TaskType.class);
 		if (taskType == null) {
@@ -367,15 +370,15 @@ public class TasksResource implements Tasks {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void updateTaskType(String taskTypeId, JsonObject body, OperationRequest context,
-			Handler<AsyncResult<OperationResponse>> resultHandler) {
+	public void updateTaskType(final String taskTypeId, final JsonObject body, final OperationRequest context,
+			final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
 		final TaskType source = Model.fromJsonObject(body, TaskType.class);
 		if (source == null) {
 
 			Logger.debug("The {} is not a valid TaskType to update.", body);
-			OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task_type_to_update",
-					"The task type to update is not right.");
+			OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST,
+					"bad_task_type_to_update", "The task type to update is not right.");
 
 		} else {
 
@@ -405,8 +408,9 @@ public class TasksResource implements Tasks {
 							if (merged.equals(target)) {
 
 								OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST,
-										"task_type_to_update_equal_to_original", "You can not update the task type '" + taskTypeId
-												+ "', because the new values is equals to the current one.");
+										"task_type_to_update_equal_to_original",
+										"You can not update the task type '" + taskTypeId
+										+ "', because the new values is equals to the current one.");
 
 							} else {
 								this.typesRepository.updateTaskType(merged, update -> {
@@ -415,7 +419,8 @@ public class TasksResource implements Tasks {
 
 										final Throwable cause = update.cause();
 										Logger.debug(cause, "Cannot update {}.", target);
-										OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+										OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST,
+												cause);
 
 									} else {
 
@@ -428,7 +433,7 @@ public class TasksResource implements Tasks {
 						}
 					}
 
-					);
+							);
 
 				}
 			});
@@ -440,8 +445,8 @@ public class TasksResource implements Tasks {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void deleteTaskType(String taskTypeId, OperationRequest context,
-			Handler<AsyncResult<OperationResponse>> resultHandler) {
+	public void deleteTaskType(final String taskTypeId, final OperationRequest context,
+			final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
 		this.typesRepository.deleteTaskType(taskTypeId, delete -> {
 
@@ -464,8 +469,9 @@ public class TasksResource implements Tasks {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void retrieveTaskTypePage(String name, String description, List<String> keywords, int offset, int limit,
-			OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler) {
+	public void retrieveTaskTypePage(final String name, final String description, final List<String> keywords,
+			final int offset, final int limit, final OperationRequest context,
+			final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
 		OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_IMPLEMENTED, "not_implemented",
 				"It is not implemented yet");
@@ -476,8 +482,8 @@ public class TasksResource implements Tasks {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void doTaskTransaction(JsonObject body, OperationRequest context,
-			Handler<AsyncResult<OperationResponse>> resultHandler) {
+	public void doTaskTransaction(final JsonObject body, final OperationRequest context,
+			final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
 		final TaskTransaction taskTransaction = Model.fromJsonObject(body, TaskTransaction.class);
 		if (taskTransaction == null) {
@@ -520,7 +526,8 @@ public class TasksResource implements Tasks {
 
 									final Throwable cause = validation.cause();
 									Logger.debug(cause, "Cannot send message {}.", message);
-									OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+									OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST,
+											cause);
 
 								} else {
 
@@ -543,40 +550,41 @@ public class TasksResource implements Tasks {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void retrieveTasksPage(OperationRequest context, Handler<AsyncResult<OperationResponse>> resultHandler) {
+	public void retrieveTasksPage(final String appId, final String requesterId, final String taskTypeId,
+			final String goalName, final String goalDescription, final Long startFrom, final Long startTo,
+			final Long endFrom, final Long endTo, final Long deadlineFrom, final Long deadlineTo,
+			final List<String> order, final int offset, final int limit, final OperationRequest context,
+			final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
-		final JsonObject params = OperationRequests.getQueryParamters(context);
-		final String appId = params.getString("appId", null);
-		final String requesterId = params.getString("requesterId", null);
-		final String taskTypeId = params.getString("taskTypeId", null);
-		final String goalName = params.getString("goalName", null);
-		final String goalDescription = params.getString("goalDescription", null);
-		final Long startFrom = params.getLong("startFrom", null);
-		final Long startTo = params.getLong("startTo", null);
-		final Long endFrom = params.getLong("endFrom", null);
-		final Long endTo = params.getLong("endTo", null);
-		final Long deadlineFrom = params.getLong("deadlineFrom", null);
-		final Long deadlineTo = params.getLong("deadlineTo", null);
 		final JsonObject query = TasksRepository.creteTasksPageQuery(appId, requesterId, taskTypeId, goalName,
 				goalDescription, startFrom, startTo, deadlineFrom, deadlineTo, endFrom, endTo);
-		final int offset = params.getInteger("offset", 0);
-		final int limit = params.getInteger("limit", 10);
-		this.repository.retrieveTasksPageObject(query, offset, limit, retrieve -> {
 
-			if (retrieve.failed()) {
+		try {
 
-				final Throwable cause = retrieve.cause();
-				Logger.debug(cause, "GET /tasks with {} => Retrieve error", query);
-				OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+			final JsonObject sort = Repository.toSort(order, "bad_order");
+			this.repository.retrieveTasksPageObject(query, sort, offset, limit, retrieve -> {
 
-			} else {
+				if (retrieve.failed()) {
 
-				final JsonObject tasksPage = retrieve.result();
-				Logger.debug("GET /tasks with {} => {}.", query, tasksPage);
-				OperationReponseHandlers.responseOk(resultHandler, tasksPage);
-			}
+					final Throwable cause = retrieve.cause();
+					Logger.debug(cause, "GET /tasks with {} => Retrieve error", query);
+					OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
-		});
+				} else {
+
+					final JsonObject tasksPage = retrieve.result();
+					Logger.debug("GET /tasks with {} => {}.", query, tasksPage);
+					OperationReponseHandlers.responseOk(resultHandler, tasksPage);
+				}
+
+			});
+
+		} catch (final ValidationErrorException error) {
+
+			Logger.debug(error, "GET /tasks with {} => Retrieve error", query);
+			OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, error);
+
+		}
 
 	}
 

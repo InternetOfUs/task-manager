@@ -139,10 +139,11 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void retrieveTasksPageObject(JsonObject query, int offset, int limit,
+	public void retrieveTasksPageObject(JsonObject query, JsonObject order, int offset, int limit,
 			Handler<AsyncResult<JsonObject>> searchHandler) {
 
 		final FindOptions options = new FindOptions();
+		options.setSort(order);
 		options.setSkip(offset);
 		options.setLimit(limit);
 		this.searchPageObject(TASKS_COLLECTION, query, options, "tasks", task -> task.put("id", task.remove("_id")),

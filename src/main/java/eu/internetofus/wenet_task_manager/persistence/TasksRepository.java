@@ -226,8 +226,8 @@ public interface TasksRepository {
 	 * @return the query that you have to use to obtains some tasks.
 	 */
 	static JsonObject creteTasksPageQuery(String appId, String requesterId, String taskTypeId, String goalName,
-			String goalDescription, Number startFrom, Number startTo, Number deadlineFrom, Number deadlineTo, Number endFrom,
-			Number endTo) {
+			String goalDescription, Number startFrom, Number startTo, Number deadlineFrom, Number deadlineTo,
+			Number endFrom, Number endTo) {
 
 		return new QueryBuilder().withRegex("appId", appId).withRegex("requesterId", requesterId)
 				.withRegex("taskTypeId", taskTypeId).withRegex("goal.name", goalName)
@@ -240,15 +240,16 @@ public interface TasksRepository {
 	 * Obtain the tasks that satisfies a query.
 	 *
 	 * @param query         that define the tasks to add into the page.
+	 * @param order         in witch has to return the tasks.
 	 * @param offset        index of the first task to return.
 	 * @param limit         number maximum of tasks to return.
 	 * @param searchHandler handler to manage the search.
 	 */
 	@GenIgnore
-	default void retrieveTasksPage(JsonObject query, int offset, int limit,
+	default void retrieveTasksPage(JsonObject query, JsonObject order, int offset, int limit,
 			Handler<AsyncResult<TasksPage>> searchHandler) {
 
-		this.retrieveTasksPageObject(query, offset, limit, search -> {
+		this.retrieveTasksPageObject(query,order, offset, limit, search -> {
 
 			if (search.failed()) {
 
@@ -274,10 +275,12 @@ public interface TasksRepository {
 	 * Search for the task with the specified identifier.
 	 *
 	 * @param query         that define the tasks to add into the page.
+	 * @param order         in witch has to return the tasks.
 	 * @param offset        index of the first task to return.
 	 * @param limit         number maximum of tasks to return.
 	 * @param searchHandler handler to manage the search.
 	 */
-	void retrieveTasksPageObject(JsonObject query, int offset, int limit, Handler<AsyncResult<JsonObject>> searchHandler);
+	void retrieveTasksPageObject(JsonObject query, JsonObject order, int offset, int limit,
+			Handler<AsyncResult<JsonObject>> searchHandler);
 
 }

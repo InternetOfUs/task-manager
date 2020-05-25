@@ -1178,7 +1178,7 @@ public class TasksIT {
               assertThat(page.total).isGreaterThanOrEqualTo(3);
               assertThat(page.tasks).isNotNull().hasSize(3).contains(stored2);
 
-              testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", ".*" + name + ".*")).expect(res2 -> {
+              testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", ".*" + name + ".*"),queryParam("order", "goalDescription:-1")).expect(res2 -> {
 
                 assertThat(res2.statusCode()).isEqualTo(Status.OK.getStatusCode());
                 final TasksPage page2 = assertThatBodyIs(TasksPage.class, res2);
@@ -1238,13 +1238,13 @@ public class TasksIT {
               assertThat(page.total).isGreaterThanOrEqualTo(3);
               assertThat(page.tasks).isNotNull().hasSize(3).contains(stored2);
 
-              testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalDescription", ".*" + description + ".*")).expect(res2 -> {
+              testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalDescription", ".*" + description + ".*"),queryParam("order", "goalName:-1")).expect(res2 -> {
 
                 assertThat(res2.statusCode()).isEqualTo(Status.OK.getStatusCode());
                 final TasksPage page2 = assertThatBodyIs(TasksPage.class, res2);
                 assertThat(page2).isNotNull();
                 assertThat(page2.total).isGreaterThanOrEqualTo(3);
-                assertThat(page2.tasks).isNotNull().hasSize(3).contains(stored1, stored2, stored3);
+                assertThat(page2.tasks).isNotNull().hasSize(3).contains(stored3, stored2, stored1);
                 testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalDescription", description)).expect(res3 -> {
 
                   assertThat(res2.statusCode()).isEqualTo(Status.OK.getStatusCode());

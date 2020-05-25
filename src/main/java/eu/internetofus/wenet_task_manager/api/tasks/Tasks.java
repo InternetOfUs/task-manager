@@ -30,6 +30,7 @@ import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -43,7 +44,7 @@ import eu.internetofus.common.components.ErrorMessage;
 import eu.internetofus.common.components.task_manager.Task;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.enums.Explode;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -107,22 +108,9 @@ public interface Tasks {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Operation(summary = "Create a task", description = "Create a new task")
-	@RequestBody(
-			description = "The new task to create",
-			required = true,
-			content = @Content(
-					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
-	@ApiResponse(
-			responseCode = "200",
-			description = "The created task",
-			content = @Content(
-					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
-	@ApiResponse(
-			responseCode = "400",
-			description = "Bad task",
-			content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+	@RequestBody(description = "The new task to create", required = true, content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
+	@ApiResponse(responseCode = "200", description = "The created task", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
+	@ApiResponse(responseCode = "400", description = "Bad task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
 	void createTask(@Parameter(hidden = true, required = false) JsonObject body,
 			@Parameter(hidden = true, required = false) OperationRequest context,
 			@Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
@@ -137,124 +125,55 @@ public interface Tasks {
 	@GET
 	@Path(TASK_ID_PATH)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Operation(
-			summary = "Return a task associated to the identifier",
-			description = "Allow to get a task associated to an identifier")
-	@ApiResponse(
-			responseCode = "200",
-			description = "The task associated to the identifier",
-			content = @Content(
-					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
-	@ApiResponse(
-			responseCode = "404",
-			description = "Not found task",
-			content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+	@Operation(summary = "Return a task associated to the identifier", description = "Allow to get a task associated to an identifier")
+	@ApiResponse(responseCode = "200", description = "The task associated to the identifier", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
+	@ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
 	void retrieveTask(
-			@PathParam("taskId") @Parameter(
-					description = "The identifier of the task to get",
-					example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskId,
+			@PathParam("taskId") @Parameter(description = "The identifier of the task to get", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskId,
 			@Parameter(hidden = true, required = false) OperationRequest context,
 			@Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
 
 	/**
 	 * Called when want to get the information of some tasks.
 	 *
-	 * @param context       of the request.
-	 * @param resultHandler to inform of the response.
+	 * @param appId           application identifier to match for the tasks to
+	 *                        return.
+	 * @param requesterId     requester identifier to match for the tasks to return.
+	 * @param taskType        task type identifier to match for the tasks to return.
+	 * @param goalName        pattern to match with the goal name of the tasks to
+	 *                        return.
+	 * @param goalDescription pattern to match with the goal description of the
+	 *                        tasks to return.
+	 * @param startTo         minimal start time stamp of the tasks to return.
+	 * @param startFrom       maximal start time stamp of the tasks to return.
+	 * @param endTo           minimal end time stamp of the tasks to return.
+	 * @param endFrom         maximal end time stamp of the tasks to return.
+	 * @param deadlineTo      minimal deadline time stamp of the tasks to return.
+	 * @param deadlineFrom    maximal deadline time stamp of the tasks to return.
+	 * @param context         of the request.
+	 * @param resultHandler   to inform of the response.
 	 */
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
-	@Operation(
-			summary = "Return a page of task that match the query parameters",
-			description = "Allow to get a page of task with the specified query parameters")
-	@Parameter(
-			in = ParameterIn.QUERY,
-			name = "appId",
-			description = "An application identifier or or a Perl compatible regular expressions (PCRE) that has to match the application identifier of the tasks to return.",
-			required = false,
-			schema = @Schema(type = "string", example = "1"))
-	@Parameter(
-			in = ParameterIn.QUERY,
-			name = "requesterId",
-			description = "An user identifier or or a Perl compatible regular expressions (PCRE) that has to match the requester identifier of the tasks to return.",
-			required = false,
-			schema = @Schema(type = "string", example = "1e346fd440"))
-	@Parameter(
-			in = ParameterIn.QUERY,
-			name = "taskTypeId",
-			description = "A task type identifier or or a Perl compatible regular expressions (PCRE) that has to match the task type identifier of the tasks to return.",
-			required = false,
-			schema = @Schema(type = "string", example = "1e346fd440"))
-	@Parameter(
-			in = ParameterIn.QUERY,
-			name = "goalName",
-			description = "A goal name or a Perl compatible regular expressions (PCRE) that has to match the goal name of the tasks to return.",
-			required = false,
-			schema = @Schema(type = "string", example = ".*together.*"))
-	@Parameter(
-			in = ParameterIn.QUERY,
-			name = "goalDescription",
-			description = "A goal description or a Perl compatible regular expressions (PCRE) that has to match the goal name of the tasks to return.",
-			required = false,
-			schema = @Schema(type = "string", example = ".*dinner.*"))
-	@Parameter(
-			in = ParameterIn.QUERY,
-			name = "startFrom",
-			description = "The difference, measured in seconds, between the minimum start time stamp of the task and midnight, January 1, 1970 UTC",
-			required = false,
-			schema = @Schema(type = "integer", defaultValue = "0", example = "1457166440"))
-	@Parameter(
-			in = ParameterIn.QUERY,
-			name = "startTo",
-			description = "The difference, measured in seconds, between the maximum start time stamp of the task and midnight, January 1, 1970 UTC",
-			required = false,
-			schema = @Schema(type = "integer", defaultValue = "92233720368547757", example = "1571664406"))
-	@Parameter(
-			in = ParameterIn.QUERY,
-			name = "endFrom",
-			description = "The difference, measured in seconds, between the minimum end time stamp of the task and midnight, January 1, 1970 UTC",
-			required = false,
-			schema = @Schema(type = "integer", defaultValue = "0", example = "1457166440"))
-	@Parameter(
-			in = ParameterIn.QUERY,
-			name = "endTo",
-			description = "The difference, measured in seconds, between the maximum end time stamp of the task and midnight, January 1, 1970 UTC",
-			required = false,
-			schema = @Schema(type = "integer", defaultValue = "92233720368547757", example = "1571664406"))
-	@Parameter(
-			in = ParameterIn.QUERY,
-			name = "deadlineFrom",
-			description = "The difference, measured in seconds, between the minimum deadline time stamp of the task and midnight, January 1, 1970 UTC",
-			required = false,
-			schema = @Schema(type = "integer", defaultValue = "0", example = "1457166440"))
-	@Parameter(
-			in = ParameterIn.QUERY,
-			name = "deadlineTo",
-			description = "The difference, measured in seconds, between the maximum deadline time stamp of the task and midnight, January 1, 1970 UTC",
-			required = false,
-			schema = @Schema(type = "integer", defaultValue = "92233720368547757", example = "1571664406"))
-	@Parameter(
-			in = ParameterIn.QUERY,
-			name = "offset",
-			description = "The index of the first task type to return.",
-			required = false,
-			schema = @Schema(type = "integer", defaultValue = "0", example = "5"))
-	@Parameter(
-			in = ParameterIn.QUERY,
-			name = "limit",
-			description = "The number maximum of task types to return.",
-			required = false,
-			schema = @Schema(type = "integer", defaultValue = "10", example = "5"))
-	@ApiResponse(
-			responseCode = "200",
-			description = "The task associated to the identifier",
-			content = @Content(schema = @Schema(implementation = TasksPage.class)))
-	@ApiResponse(
-			responseCode = "404",
-			description = "Not found task",
-			content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
-	void retrieveTasksPage(@Parameter(hidden = true, required = false) OperationRequest context,
+	@Operation(summary = "Return a page of task that match the query parameters", description = "Allow to get a page of task with the specified query parameters")
+	@ApiResponse(responseCode = "200", description = "The task associated to the identifier", content = @Content(schema = @Schema(implementation = TasksPage.class)))
+	@ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+	void retrieveTasksPage(
+			@QueryParam(value = "appId") @Parameter(description = "An application identifier or or a Perl compatible regular expressions (PCRE) that has to match the application identifier of the tasks to return.", example = "1", required = false) String appId,
+			@QueryParam(value = "requesterId") @Parameter(description = "An user identifier or or a Perl compatible regular expressions (PCRE) that has to match the requester identifier of the tasks to return.", example = "1e346fd440", required = false) String requesterId,
+			@QueryParam(value = "taskTypeId") @Parameter(description = "A task type identifier or or a Perl compatible regular expressions (PCRE) that has to match the task type identifier of the tasks to return.", example = "1e346fd440", required = false) String taskTypeId,
+			@QueryParam(value = "goalName") @Parameter(description = "A goal name or a Perl compatible regular expressions (PCRE) that has to match the goal name of the tasks to return.", example = "1", required = false) String goalName,
+			@QueryParam(value = "goalDescription") @Parameter(description = "A goal description or a Perl compatible regular expressions (PCRE) that has to match the goal name of the tasks to return.", example = "1e346fd440", required = false) String goalDescription,
+			@QueryParam(value = "startFrom") @Parameter(description = "The difference, measured in seconds, between the minimum start time stamp of the task and midnight, January 1, 1970 UTC.", example = "1457166440", required = false) Long startFrom,
+			@QueryParam(value = "startTo") @Parameter(description = "The difference, measured in seconds, between the maximum start time stamp of the task and midnight, January 1, 1970 UTC.", example = "1571664406", required = false) Long startTo,
+			@QueryParam(value = "endFrom") @Parameter(description = "The difference, measured in seconds, between the minimum end time stamp of the task and midnight, January 1, 1970 UTC.", example = "1457166440", required = false) Long endFrom,
+			@QueryParam(value = "endTo") @Parameter(description = "The difference, measured in seconds, between the maximum end time stamp of the task and midnight, January 1, 1970 UTC.", example = "1571664406", required = false) Long endTo,
+			@QueryParam(value = "deadlineFrom") @Parameter(description = "The difference, measured in seconds, between the minimum deadline time stamp of the task and midnight, January 1, 1970 UTC.", example = "1457166440", required = false) Long deadlineFrom,
+			@QueryParam(value = "deadlineTo") @Parameter(description = "The difference, measured in seconds, between the maximum deadline time stamp of the task and midnight, January 1, 1970 UTC.", example = "1571664406", required = false) Long deadlineTo,
+			@QueryParam(value = "order") @Parameter(description = "The order in witch the task has to be returned. It has to defined by name of the field plus ':' plus '-1' to be in descendant order or '1' in ascendant order.", example = "goalName:-1", required = false, explode = Explode.TRUE) List<String> order,
+			@DefaultValue("0") @QueryParam(value = "offset") @Parameter(description = "The index of the first task type to return.", example = "4", required = false) int offset,
+			@DefaultValue("10") @QueryParam(value = "limit") @Parameter(description = "The number maximum of task types to return", example = "100", required = false) int limit,
+			@Parameter(hidden = true, required = false) OperationRequest context,
 			@Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
 
 	/**
@@ -270,30 +189,12 @@ public interface Tasks {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Operation(summary = "Modify a task", description = "Change the attributes of a task")
-	@RequestBody(
-			description = "The new values for the task",
-			required = true,
-			content = @Content(
-					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
-	@ApiResponse(
-			responseCode = "200",
-			description = "The updated task",
-			content = @Content(
-					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
-	@ApiResponse(
-			responseCode = "400",
-			description = "Bad task",
-			content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
-	@ApiResponse(
-			responseCode = "404",
-			description = "Not found task",
-			content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+	@RequestBody(description = "The new values for the task", required = true, content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
+	@ApiResponse(responseCode = "200", description = "The updated task", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
+	@ApiResponse(responseCode = "400", description = "Bad task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+	@ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
 	void updateTask(
-			@PathParam("taskId") @Parameter(
-					description = "The identifier of the task to update",
-					example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskId,
+			@PathParam("taskId") @Parameter(description = "The identifier of the task to update", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskId,
 			@Parameter(hidden = true, required = false) JsonObject body,
 			@Parameter(hidden = true, required = false) OperationRequest context,
 			@Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
@@ -308,14 +209,9 @@ public interface Tasks {
 	@DELETE
 	@Path(TASK_ID_PATH)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Operation(
-			summary = "Delete the task associated to the identifier",
-			description = "Allow to delete a task associated to an identifier")
+	@Operation(summary = "Delete the task associated to the identifier", description = "Allow to delete a task associated to an identifier")
 	@ApiResponse(responseCode = "204", description = "The task was deleted successfully")
-	@ApiResponse(
-			responseCode = "404",
-			description = "Not found task",
-			content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+	@ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
 	void deleteTask(@PathParam("taskId") @Parameter(description = "The identifier of the task to delete") String taskId,
 			@Parameter(hidden = true, required = false) OperationRequest context,
 			@Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
@@ -332,22 +228,9 @@ public interface Tasks {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Operation(summary = "Create a task type", description = "Create a new task type")
-	@RequestBody(
-			description = "The new task type to create",
-			required = true,
-			content = @Content(
-					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
-	@ApiResponse(
-			responseCode = "200",
-			description = "The created task type",
-			content = @Content(
-					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
-	@ApiResponse(
-			responseCode = "400",
-			description = "Bad task type",
-			content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+	@RequestBody(description = "The new task type to create", required = true, content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
+	@ApiResponse(responseCode = "200", description = "The created task type", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
+	@ApiResponse(responseCode = "400", description = "Bad task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
 	void createTaskType(@Parameter(hidden = true, required = false) JsonObject body,
 			@Parameter(hidden = true, required = false) OperationRequest context,
 			@Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
@@ -362,23 +245,11 @@ public interface Tasks {
 	@GET
 	@Path(TYPES_PATH + TASK_TYPE_ID_PATH)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Operation(
-			summary = "Return a task type associated to the identifier",
-			description = "Allow to get a task type associated to an identifier")
-	@ApiResponse(
-			responseCode = "200",
-			description = "The task type associated to the identifier",
-			content = @Content(
-					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
-	@ApiResponse(
-			responseCode = "404",
-			description = "Not found task",
-			content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+	@Operation(summary = "Return a task type associated to the identifier", description = "Allow to get a task type associated to an identifier")
+	@ApiResponse(responseCode = "200", description = "The task type associated to the identifier", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
+	@ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
 	void retrieveTaskType(
-			@PathParam("taskTypeId") @Parameter(
-					description = "The identifier of the task type to get",
-					example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
+			@PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to get", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
 			@Parameter(hidden = true, required = false) OperationRequest context,
 			@Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
 
@@ -398,23 +269,13 @@ public interface Tasks {
 	@GET
 	@Path(TYPES_PATH)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Operation(
-			summary = "Return a task type associated to the identifier",
-			description = "Allow to get a task type associated to an identifier")
-	@ApiResponse(
-			responseCode = "200",
-			description = "The task types that match the search.",
-			content = @Content(schema = @Schema(implementation = TaskTypesPage.class)))
-	@ApiResponse(
-			responseCode = "404",
-			description = "Not found task",
-			content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+	@Operation(summary = "Return a task type associated to the identifier", description = "Allow to get a task type associated to an identifier")
+	@ApiResponse(responseCode = "200", description = "The task types that match the search.", content = @Content(schema = @Schema(implementation = TaskTypesPage.class)))
+	@ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
 	void retrieveTaskTypePage(
 			@QueryParam("name") @Parameter(description = "The pattern to match the name of task types to return") String name,
-			@QueryParam("description") @Parameter(
-					description = "The pattern to match the description of task types to return") String description,
-			@QueryParam("keywords") @Parameter(
-					description = "The pattern to match the keywords of task types to return") List<String> keywords,
+			@QueryParam("description") @Parameter(description = "The pattern to match the description of task types to return") String description,
+			@QueryParam("keywords") @Parameter(description = "The pattern to match the keywords of task types to return") List<String> keywords,
 			@QueryParam("offset") @Parameter(description = "The index of the first task type to return") int offset,
 			@QueryParam("limit") @Parameter(description = "The number maximum of task types to return") int limit,
 			@Parameter(hidden = true, required = false) OperationRequest context,
@@ -433,30 +294,12 @@ public interface Tasks {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Operation(summary = "Modify a task type", description = "Change the attributes of a task type")
-	@RequestBody(
-			description = "The new values for the task type",
-			required = true,
-			content = @Content(
-					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
-	@ApiResponse(
-			responseCode = "200",
-			description = "The updated task type",
-			content = @Content(
-					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
-	@ApiResponse(
-			responseCode = "400",
-			description = "Bad task type",
-			content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
-	@ApiResponse(
-			responseCode = "404",
-			description = "Not found task type",
-			content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+	@RequestBody(description = "The new values for the task type", required = true, content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
+	@ApiResponse(responseCode = "200", description = "The updated task type", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
+	@ApiResponse(responseCode = "400", description = "Bad task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+	@ApiResponse(responseCode = "404", description = "Not found task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
 	void updateTaskType(
-			@PathParam("taskTypeId") @Parameter(
-					description = "The identifier of the task type to update",
-					example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
+			@PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to update", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
 			@Parameter(hidden = true, required = false) JsonObject body,
 			@Parameter(hidden = true, required = false) OperationRequest context,
 			@Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
@@ -471,14 +314,9 @@ public interface Tasks {
 	@DELETE
 	@Path(TYPES_PATH + TASK_TYPE_ID_PATH)
 	@Produces(MediaType.APPLICATION_JSON)
-	@Operation(
-			summary = "Delete the task type associated to the identifier",
-			description = "Allow to delete a task type associated to an identifier")
+	@Operation(summary = "Delete the task type associated to the identifier", description = "Allow to delete a task type associated to an identifier")
 	@ApiResponse(responseCode = "204", description = "The task type was deleted successfully")
-	@ApiResponse(
-			responseCode = "404",
-			description = "Not found task type",
-			content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+	@ApiResponse(responseCode = "404", description = "Not found task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
 	void deleteTaskType(
 			@PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to delete") String taskTypeId,
 			@Parameter(hidden = true, required = false) OperationRequest context,
@@ -496,22 +334,9 @@ public interface Tasks {
 	@Consumes(MediaType.APPLICATION_JSON)
 	@Produces(MediaType.APPLICATION_JSON)
 	@Operation(summary = "Do a task transaction", description = "Called when when to do an action over a task")
-	@RequestBody(
-			description = "The task transaction to do",
-			required = true,
-			content = @Content(
-					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskTransaction")))
-	@ApiResponse(
-			responseCode = "200",
-			description = "The started task transaction",
-			content = @Content(
-					schema = @Schema(
-							ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskTransaction")))
-	@ApiResponse(
-			responseCode = "400",
-			description = "Bad task transaction",
-			content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+	@RequestBody(description = "The task transaction to do", required = true, content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskTransaction")))
+	@ApiResponse(responseCode = "200", description = "The started task transaction", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskTransaction")))
+	@ApiResponse(responseCode = "400", description = "Bad task transaction", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
 	void doTaskTransaction(@Parameter(hidden = true, required = false) JsonObject body,
 			@Parameter(hidden = true, required = false) OperationRequest context,
 			@Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
