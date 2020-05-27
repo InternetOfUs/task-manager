@@ -20,13 +20,8 @@ services:
       - wenet_task_manager_database
     environment:
       DB_HOST: wenet_task_manager_database
-      WENET_PROFILE_MANAGER_API_HOST: localhost
-      WENET_PROFILE_MANAGER_API_PORT: ${PROFILE_MANAGER_API_PORT:-8081}
-      WENET_PROFILE_MANAGER_API_PATH: ""
-      WENET_INTERACTION_PROTOCOL_ENGINE_API_HOST: "https://wenet.u-hopper.com"
-      WENET_INTERACTION_PROTOCOL_ENGINE_API_PORT: 80
-      WENET_INTERACTION_PROTOCOL_ENGINE_API_PATH: "interaction_protocol_engine"
-
+      WENET_PROFILE_MANAGER_API: ${WENET_PROFILE_MANAGER_API:-"https://wenet.u-hopper.com/prod/profile_manager"}
+      WENET_INTERACTION_PROTOCOL_ENGINE_API: ${WENET_INTERACTION_PROTOCOL_ENGINE_API:-"https://wenet.u-hopper.com/prod/interaction_protocol_engine"}
       WAIT_HOSTS: wenet_task_manager_database:27017
     networks:
       wenet_network:

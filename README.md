@@ -2,7 +2,41 @@
 
 ## Introduction
 
-The task manager component is the one responsible for storing and maintaining the task done by the WeNet users.
+The task manager component is the one responsible for storing and maintaining the task and task types, and start the actions that can modify the task state.
+
+A task is considered an instance of a task type. This task type contains the description of the attributes necessary to define the task,
+the list of possible transactions (actions) that can be done in the task,  and a set of norms that define how the task can change its state.
+For example a simplified task type to organize a dinner with friends, can be:
+ - **Attributes**
+    - **when**: the dinner will be
+    - **where**: the dinner will be.
+ - **Transactions**
+    - **accept**: when an user accepts to attend the dinner.
+    - **decline**:when an user declines to attend the dinner.
+    - **close**: when no more users can apply to be on the dinner.
+    - **cancel**:when the user that organizes the dinner cancels.
+ - **Norms**
+    - When task created therefore notify my friends to participate and mark as open and add friends to unanswered
+    - When user accept therefore inform task requester user accepts and add user to attenders and remove from unanswered
+    - When user declines therefore inform add user to declined and remove from unanswered
+    - When requester close therefore inform to accepted friends that the dinner is set and unanswered friend that the dinner is cancelled and mark it as closed
+    - When requester cancel therefore inform to accepted and unanswered friend that the dinner is cancelled and mark it as closed
+
+So the attributes a task of this type when some users has accepted an others has declined, can be:
+ - **when**: Saturday night
+ - **where**: Giorgios restaurant on the main street
+ - **state**: Open
+ - **unanswered**: User2, User89, user78
+ - **declined**: User67
+ - **attenders**: User1, User34
+
+The transactions can be considered as asynchronous actions that can be done to change the task state.
+When an user, an application or other WeNet component wants to change the state of a task, it has to
+post a transaction to the task manager. It checks that  the transaction is correct according to
+the task type, and after that the transaction is sent to the interaction protocol engine to verify
+the task, community and user norms. In other words, the changes of the state are done by the norms
+that are evaluated on the interaction protocol engine, and not by the task manager after receiving
+a transaction.
 
 
 ## Setup and configuration
@@ -48,9 +82,9 @@ You can use the next arguments:
  - **DEFAULT_DB_NAME** to define the default mongo database name. By default is **wenetTaskManagerDB**.
  - **DEFAULT_DB_USER_NAME** to define the default mongo database user name. By default is **wenetTaskManager**.
  - **DEFAULT_DB_USER_PASSWORD** to define the default mongo database user password. By default is **password**.
- - **DEFAULT_WENET_PROFILE_MANAGER_API** to define the path to the profile manager component to use. By default is **https://wenet.u-hopper.com/profile_manager**.
- - **DEFAULT_WENET_INTERACTION_PROTOCOL_ENGINE_API** to define the path to the interaction protocol engine component to use. By default is **https://wenet.u-hopper.com/interaction_protocol_engine**.
- - **DEFAULT_WENET_SERVICE_API** to define the path to the service component to use. By default is **https://wenet.u-hopper.com/service**.
+ - **DEFAULT_WENET_PROFILE_MANAGER_API** to define the path to the profile manager component to use. By default is **https://wenet.u-hopper.com/prod/profile_manager**.
+ - **DEFAULT_WENET_INTERACTION_PROTOCOL_ENGINE_API** to define the path to the interaction protocol engine component to use. By default is **https://wenet.u-hopper.com/prod/interaction_protocol_engine**.
+ - **DEFAULT_WENET_SERVICE_API** to define the path to the service component to use. By default is **https://wenet.u-hopper.com/prod/service**.
 
 This arguments are used to create a configurations files at **/usr/wenet/task-manager/etc**.
 So you can mount a volume to this if you want to modify any configuration property at runtime.
@@ -72,9 +106,9 @@ You can modify use the next environment properties to modify some parameters of 
  - **DB_NAME** to define the mongo database name. By default is **wenetTaskManagerDB**.
  - **DB_USER_NAME** to define the mongo database user name. By default is **wenetTaskManager**.
  - **DB_USER_PASSWORD** to define the mongo database user password. By default is **password**.
- - **WENET_PROFILE_MANAGER_API** to define the path to the profile manager component to use. By default is **https://wenet.u-hopper.com/profile_manager**.
- - **WENET_INTERACTION_PROTOCOL_ENGINE_API** to define the path to the interaction protocol engine component to use. By default is **https://wenet.u-hopper.com/interaction_protocol_engine**.
- - **WENET_SERVICE_API** to define the path to the service component to use. By default is **https://wenet.u-hopper.com/service**.
+ - **WENET_PROFILE_MANAGER_API** to define the path to the profile manager component to use. By default is **https://wenet.u-hopper.com/prod/profile_manager**.
+ - **WENET_INTERACTION_PROTOCOL_ENGINE_API** to define the path to the interaction protocol engine component to use. By default is **https://wenet.u-hopper.com/prod/interaction_protocol_engine**.
+ - **WENET_SERVICE_API** to define the path to the service component to use. By default is **https://wenet.u-hopper.com/prod/service**.
 
 Also you can define your own configuration that modify this properties and mount to  **/usr/wenet/task-manager/etc**.
 
@@ -106,6 +140,9 @@ generate the Open API documentation, compile the component and run the test.
 ### Run and configure
 
 We encourage you to use the docker image of this component instead the next commands, because it is easier to use.
+
+
+### Easy way
 
 If you want to run this component you must to follow the next steps:
 

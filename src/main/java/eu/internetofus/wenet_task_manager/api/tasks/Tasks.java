@@ -124,7 +124,7 @@ public interface Tasks {
   @GET
   @Path(TASK_ID_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Operation(summary = "Return a task associated to the identifier", description = "Allow to get a task associated to an identifier")
+  @Operation(summary = "Return a task", description = "Allow to get a task with an specific identifier")
   @ApiResponse(responseCode = "200", description = "The task associated to the identifier", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
   @ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   void retrieveTask(@PathParam("taskId") @Parameter(description = "The identifier of the task to get", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskId, @Parameter(hidden = true, required = false) OperationRequest context,
@@ -153,7 +153,7 @@ public interface Tasks {
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Operation(summary = "Return a page of task that match the query parameters", description = "Allow to get a page of task with the specified query parameters")
+  @Operation(summary = "Search for some tasks", description = "Allow to get a page of task with the specified query parameters")
   @ApiResponse(responseCode = "200", description = "The task associated to the identifier", content = @Content(schema = @Schema(implementation = TasksPage.class)))
   @ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   void retrieveTasksPage(
@@ -216,6 +216,7 @@ public interface Tasks {
    * @param context       of the request.
    * @param resultHandler to inform of the response.
    */
+  @Tag(name = "Task Types")
   @POST
   @Path(TYPES_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
@@ -234,6 +235,7 @@ public interface Tasks {
    * @param context       of the request.
    * @param resultHandler to inform of the response.
    */
+  @Tag(name = "Task Types")
   @GET
   @Path(TYPES_PATH + TASK_TYPE_ID_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -254,6 +256,7 @@ public interface Tasks {
    * @param context       of the request.
    * @param resultHandler to inform of the response.
    */
+  @Tag(name = "Task Types")
   @GET
   @Path(TYPES_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -274,6 +277,7 @@ public interface Tasks {
    * @param context       of the request.
    * @param resultHandler to inform of the response.
    */
+  @Tag(name = "Task Types")
   @PUT
   @Path(TYPES_PATH + TASK_TYPE_ID_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
@@ -293,6 +297,7 @@ public interface Tasks {
    * @param context       of the request.
    * @param resultHandler to inform of the response.
    */
+  @Tag(name = "Task Types")
   @DELETE
   @Path(TYPES_PATH + TASK_TYPE_ID_PATH)
   @Produces(MediaType.APPLICATION_JSON)
@@ -309,6 +314,7 @@ public interface Tasks {
    * @param context       of the request.
    * @param resultHandler to inform of the response.
    */
+  @Tag(name = "Task Transactions")
   @POST
   @Path(TRANSACTIONS_PATH)
   @Consumes(MediaType.APPLICATION_JSON)

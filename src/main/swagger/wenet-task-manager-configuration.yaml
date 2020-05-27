@@ -7,27 +7,60 @@ openAPI:
     - name: Other
       description: Other services provided by the API.
     - name: Tasks
-      description: The functionality provided allows to access the user task.
+      description: The functionality provided allows to manage the tasks.
+    - name: Task Types
+      description: The functionality provided allows to manage the task types.
+    - name: Task Transactions
+      description: The functionality provided allows to modify a task by a transaction.
   info:
     # The verion of the API has to be synchonized with the 'api-version' property of the 'pom.xml'
     version: '0.3.0'
     title: WeNet - Task manager API
     description:  >-
-      This API will be used to storing and maintaining the WeNet user task.
-      The task is associated to the next concepts:
+      The task manager component is the one responsible for storing and maintaining the task and task types, and start the actions that can modify the task state.
 
-         * **TaskType**: describe the attributes and norms that describe the generic goal of a task.
-         * **Task**: the instance of a task type that is active.
-         * **TaskView**: maintains the state of the task instance from the point of view of an specific user.
+      A task is considered an instance of a task type. This task type contains the description of the attributes necessary to define the task,
+      the list of possible transactions (actions) that can be done in the task,  and a set of norms that define how the task can change its state.
+      For example a simplified task type to organize a dinner with friends, can be:
+       - **Attributes**
+          - **when**: the dinner will be
+          - **where**: the dinner will be.
+       - **Transactions**
+          - **accept**: when an user accepts to attend the dinner.
+          - **decline**:when an user declines to attend the dinner.
+          - **close**: when no more users can apply to be on the dinner.
+          - **cancel**:when the user that organizes the dinner cancels.
+       - **Norms**
+          - When task created therefore notify my friends to participate and mark as open and add friends to unanswered
+          - When user accept therefore inform task requester user accepts and add user to attenders and remove from unanswered
+          - When user declines therefore inform add user to declined and remove from unanswered
+          - When requester close therefore inform to accepted friends that the dinner is set and unanswered friend that the dinner is cancelled and mark it as closed
+          - When requester cancel therefore inform to accepted and unanswered friend that the dinner is cancelled and mark it as closed
+
+      So the attributes a task of this type when some users has accepted an others has declined, can be:
+       - **when**: Saturday night
+       - **where**: Giorgios restaurant on the main street
+       - **state**: Open
+       - **unanswered**: User2, User89, user78
+       - **declined**: User67
+       - **attenders**: User1, User34
+
+      The transactions can be considered as asynchronous actions that can be done to change the task state.
+      When an user, an application or other WeNet component wants to change the state of a task, it has to
+      post a transaction to the task manager. It checks that  the transaction is correct according to
+      the task type, and after that the transaction is sent to the interaction protocol engine to verify
+      the task, community and user norms. In other words, the changes of the state are done by the norms
+      that are evaluated on the interaction protocol engine, and not by the task manager after receiving
+      a transaction.
 
     contact:
       name: Bruno Rosell i Gui (UDT-IA, IIIA-CSIC)
-      email: rosell (at) iiia.csic.es
+      email: rosell@iiia.csic.es
     license:
       name: MIT
       url: https://opensource.org/licenses/MIT
   servers:
-    - url: https://wenet.u-hopper.com/task_manager
+    - url: https://wenet.u-hopper.com/prod/task_manager
       description: WeNet production server
     - url: https://wenet.u-hopper.com/dev/task_manager
       description: WeNet development server server
