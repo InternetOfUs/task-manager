@@ -49,238 +49,229 @@ import io.vertx.serviceproxy.ServiceBinder;
 @ProxyGen
 public interface TasksRepository {
 
-	/**
-	 * The address of this service.
-	 */
-	String ADDRESS = "wenet_task_manager.persistence.tasks";
+  /**
+   * The address of this service.
+   */
+  String ADDRESS = "wenet_task_manager.persistence.tasks";
 
-	/**
-	 * Create a proxy of the {@link TasksRepository}.
-	 *
-	 * @param vertx where the service has to be used.
-	 *
-	 * @return the task.
-	 */
-	static TasksRepository createProxy(Vertx vertx) {
+  /**
+   * Create a proxy of the {@link TasksRepository}.
+   *
+   * @param vertx where the service has to be used.
+   *
+   * @return the task.
+   */
+  static TasksRepository createProxy(final Vertx vertx) {
 
-		return new TasksRepositoryVertxEBProxy(vertx, TasksRepository.ADDRESS);
-	}
+    return new TasksRepositoryVertxEBProxy(vertx, TasksRepository.ADDRESS);
+  }
 
-	/**
-	 * Register this service.
-	 *
-	 * @param vertx that contains the event bus to use.
-	 * @param pool  to create the database connections.
-	 */
-	static void register(Vertx vertx, MongoClient pool) {
+  /**
+   * Register this service.
+   *
+   * @param vertx that contains the event bus to use.
+   * @param pool  to create the database connections.
+   */
+  static void register(final Vertx vertx, final MongoClient pool) {
 
-		new ServiceBinder(vertx).setAddress(TasksRepository.ADDRESS).register(TasksRepository.class,
-				new TasksRepositoryImpl(pool));
+    new ServiceBinder(vertx).setAddress(TasksRepository.ADDRESS).register(TasksRepository.class, new TasksRepositoryImpl(pool));
 
-	}
+  }
 
-	/**
-	 * Search for the task with the specified identifier.
-	 *
-	 * @param id            identifier of the task to search.
-	 * @param searchHandler handler to manage the search.
-	 */
-	@GenIgnore
-	default void searchTask(String id, Handler<AsyncResult<Task>> searchHandler) {
+  /**
+   * Search for the task with the specified identifier.
+   *
+   * @param id            identifier of the task to search.
+   * @param searchHandler handler to manage the search.
+   */
+  @GenIgnore
+  default void searchTask(final String id, final Handler<AsyncResult<Task>> searchHandler) {
 
-		this.searchTaskObject(id, search -> {
+    this.searchTaskObject(id, search -> {
 
-			if (search.failed()) {
+      if (search.failed()) {
 
-				searchHandler.handle(Future.failedFuture(search.cause()));
+        searchHandler.handle(Future.failedFuture(search.cause()));
 
-			} else {
+      } else {
 
-				final JsonObject value = search.result();
-				final Task task = Model.fromJsonObject(value, Task.class);
-				if (task == null) {
+        final JsonObject value = search.result();
+        final Task task = Model.fromJsonObject(value, Task.class);
+        if (task == null) {
 
-					searchHandler.handle(Future.failedFuture("The stored task is not valid."));
+          searchHandler.handle(Future.failedFuture("The stored task is not valid."));
 
-				} else {
+        } else {
 
-					searchHandler.handle(Future.succeededFuture(task));
-				}
-			}
-		});
-	}
+          searchHandler.handle(Future.succeededFuture(task));
+        }
+      }
+    });
+  }
 
-	/**
-	 * Search for the task with the specified identifier.
-	 *
-	 * @param id            identifier of the task to search.
-	 * @param searchHandler handler to manage the search.
-	 */
-	void searchTaskObject(String id, Handler<AsyncResult<JsonObject>> searchHandler);
+  /**
+   * Search for the task with the specified identifier.
+   *
+   * @param id            identifier of the task to search.
+   * @param searchHandler handler to manage the search.
+   */
+  void searchTaskObject(String id, Handler<AsyncResult<JsonObject>> searchHandler);
 
-	/**
-	 * Store a task.
-	 *
-	 * @param task         to store.
-	 * @param storeHandler handler to manage the store.
-	 */
-	@GenIgnore
-	default void storeTask(Task task, Handler<AsyncResult<Task>> storeHandler) {
+  /**
+   * Store a task.
+   *
+   * @param task         to store.
+   * @param storeHandler handler to manage the store.
+   */
+  @GenIgnore
+  default void storeTask(final Task task, final Handler<AsyncResult<Task>> storeHandler) {
 
-		final JsonObject object = task.toJsonObject();
-		if (object == null) {
+    final JsonObject object = task.toJsonObject();
+    if (object == null) {
 
-			storeHandler.handle(Future.failedFuture("The task can not converted to JSON."));
+      storeHandler.handle(Future.failedFuture("The task can not converted to JSON."));
 
-		} else {
+    } else {
 
-			this.storeTask(object, stored -> {
-				if (stored.failed()) {
+      this.storeTask(object, stored -> {
+        if (stored.failed()) {
 
-					storeHandler.handle(Future.failedFuture(stored.cause()));
+          storeHandler.handle(Future.failedFuture(stored.cause()));
 
-				} else {
+        } else {
 
-					final JsonObject value = stored.result();
-					final Task storedTask = Model.fromJsonObject(value, Task.class);
-					if (storedTask == null) {
+          final JsonObject value = stored.result();
+          final Task storedTask = Model.fromJsonObject(value, Task.class);
+          if (storedTask == null) {
 
-						storeHandler.handle(Future.failedFuture("The stored task is not valid."));
+            storeHandler.handle(Future.failedFuture("The stored task is not valid."));
 
-					} else {
+          } else {
 
-						storeHandler.handle(Future.succeededFuture(storedTask));
-					}
+            storeHandler.handle(Future.succeededFuture(storedTask));
+          }
 
-				}
-			});
-		}
-	}
+        }
+      });
+    }
+  }
 
-	/**
-	 * Store a task.
-	 *
-	 * @param task         to store.
-	 * @param storeHandler handler to manage the search.
-	 */
-	void storeTask(JsonObject task, Handler<AsyncResult<JsonObject>> storeHandler);
+  /**
+   * Store a task.
+   *
+   * @param task         to store.
+   * @param storeHandler handler to manage the search.
+   */
+  void storeTask(JsonObject task, Handler<AsyncResult<JsonObject>> storeHandler);
 
-	/**
-	 * Update a task.
-	 *
-	 * @param task          to update.
-	 * @param updateHandler handler to manage the update.
-	 */
-	@GenIgnore
-	default void updateTask(Task task, Handler<AsyncResult<Void>> updateHandler) {
+  /**
+   * Update a task.
+   *
+   * @param task          to update.
+   * @param updateHandler handler to manage the update.
+   */
+  @GenIgnore
+  default void updateTask(final Task task, final Handler<AsyncResult<Void>> updateHandler) {
 
-		final JsonObject object = task.toJsonObject();
-		if (object == null) {
+    final JsonObject object = task.toJsonObject();
+    if (object == null) {
 
-			updateHandler.handle(Future.failedFuture("The task can not converted to JSON."));
+      updateHandler.handle(Future.failedFuture("The task can not converted to JSON."));
 
-		} else {
+    } else {
 
-			this.updateTask(object, updateHandler);
-		}
+      this.updateTask(object, updateHandler);
+    }
 
-	}
+  }
 
-	/**
-	 * Update a task.
-	 *
-	 * @param task          to update.
-	 * @param updateHandler handler to manage the update result.
-	 */
-	void updateTask(JsonObject task, Handler<AsyncResult<Void>> updateHandler);
+  /**
+   * Update a task.
+   *
+   * @param task          to update.
+   * @param updateHandler handler to manage the update result.
+   */
+  void updateTask(JsonObject task, Handler<AsyncResult<Void>> updateHandler);
 
-	/**
-	 * Delete a task.
-	 *
-	 * @param id            identifier of the task to delete.
-	 * @param deleteHandler handler to manage the delete result.
-	 */
-	void deleteTask(String id, Handler<AsyncResult<Void>> deleteHandler);
+  /**
+   * Delete a task.
+   *
+   * @param id            identifier of the task to delete.
+   * @param deleteHandler handler to manage the delete result.
+   */
+  void deleteTask(String id, Handler<AsyncResult<Void>> deleteHandler);
 
-	/**
-	 * Create the query to ask about some tasks.
-	 *
-	 * @param appId           the pattern to match the {@link Task#appId}.
-	 * @param requesterId     the pattern to match the {@link Task#requesterId}.
-	 * @param taskTypeId      the pattern to match the {@link Task#taskTypeId}.
-	 * @param goalName        the pattern to match the {@link TaskGoal#name}.
-	 * @param goalDescription the pattern to match the {@link TaskGoal#description}.
-	 * @param startFrom       the minimum time stamp, inclusive, for the
-	 *                        {@link Task#startTs}.
-	 * @param startTo         the maximum time stamp, inclusive, for the
-	 *                        {@link Task#startTs}.
-	 * @param deadlineFrom    the minimum time stamp, inclusive, for the
-	 *                        {@link Task#deadlineTs}.
-	 * @param deadlineTo      the maximum time stamp, inclusive, for the
-	 *                        {@link Task#deadlineTs}.
-	 * @param endFrom         the minimum time stamp, inclusive, for the
-	 *                        {@link Task#endTs}.
-	 * @param endTo           the maximum time stamp, inclusive, for the
-	 *                        {@link Task#endTs}.
-	 *
-	 * @return the query that you have to use to obtains some tasks.
-	 */
-	static JsonObject creteTasksPageQuery(String appId, String requesterId, String taskTypeId, String goalName,
-			String goalDescription, Number startFrom, Number startTo, Number deadlineFrom, Number deadlineTo,
-			Number endFrom, Number endTo) {
+  /**
+   * Create the query to ask about some tasks.
+   *
+   * @param appId           the pattern to match the {@link Task#appId}.
+   * @param requesterId     the pattern to match the {@link Task#requesterId}.
+   * @param taskTypeId      the pattern to match the {@link Task#taskTypeId}.
+   * @param goalName        the pattern to match the {@link TaskGoal#name}.
+   * @param goalDescription the pattern to match the {@link TaskGoal#description}.
+   * @param startFrom       the minimum time stamp, inclusive, for the {@link Task#startTs}.
+   * @param startTo         the maximum time stamp, inclusive, for the {@link Task#startTs}.
+   * @param deadlineFrom    the minimum time stamp, inclusive, for the {@link Task#deadlineTs}.
+   * @param deadlineTo      the maximum time stamp, inclusive, for the {@link Task#deadlineTs}.
+   * @param endFrom         the minimum time stamp, inclusive, for the {@link Task#endTs}.
+   * @param endTo           the maximum time stamp, inclusive, for the {@link Task#endTs}.
+   * @param hasCloseTs      is {@code true} is the {@link Task#closeTs} has to be defined.
+   * @param closeFrom       the minimum time stamp, inclusive, for the {@link Task#closeTs}.
+   * @param closeTo         the maximum time stamp, inclusive, for the {@link Task#closeTs}.
+   *
+   * @return the query that you have to use to obtains some tasks.
+   */
+  static JsonObject creteTasksPageQuery(final String appId, final String requesterId, final String taskTypeId, final String goalName, final String goalDescription, final Number startFrom, final Number startTo, final Number deadlineFrom,
+      final Number deadlineTo, final Number endFrom, final Number endTo, final Boolean hasCloseTs, final Number closeFrom, final Number closeTo) {
 
-		return new QueryBuilder().withRegex("appId", appId).withRegex("requesterId", requesterId)
-				.withRegex("taskTypeId", taskTypeId).withRegex("goal.name", goalName)
-				.withRegex("goal.description", goalDescription).withRange("startTs", startFrom, startTo)
-				.withRange("deadlineTs", deadlineFrom, deadlineTo).withRange("endTs", endFrom, endTo).build();
+    return new QueryBuilder().withRegex("appId", appId).withRegex("requesterId", requesterId).withRegex("taskTypeId", taskTypeId).withRegex("goal.name", goalName).withRegex("goal.description", goalDescription)
+        .withRange("startTs", startFrom, startTo).withRange("deadlineTs", deadlineFrom, deadlineTo).withRange("endTs", endFrom, endTo).withExist("closeTs", hasCloseTs).withRange("closeTs", closeFrom, closeTo).build();
 
-	}
+  }
 
-	/**
-	 * Obtain the tasks that satisfies a query.
-	 *
-	 * @param query         that define the tasks to add into the page.
-	 * @param order         in witch has to return the tasks.
-	 * @param offset        index of the first task to return.
-	 * @param limit         number maximum of tasks to return.
-	 * @param searchHandler handler to manage the search.
-	 */
-	@GenIgnore
-	default void retrieveTasksPage(JsonObject query, JsonObject order, int offset, int limit,
-			Handler<AsyncResult<TasksPage>> searchHandler) {
+  /**
+   * Obtain the tasks that satisfies a query.
+   *
+   * @param query         that define the tasks to add into the page.
+   * @param order         in witch has to return the tasks.
+   * @param offset        index of the first task to return.
+   * @param limit         number maximum of tasks to return.
+   * @param searchHandler handler to manage the search.
+   */
+  @GenIgnore
+  default void retrieveTasksPage(final JsonObject query, final JsonObject order, final int offset, final int limit, final Handler<AsyncResult<TasksPage>> searchHandler) {
 
-		this.retrieveTasksPageObject(query,order, offset, limit, search -> {
+    this.retrieveTasksPageObject(query, order, offset, limit, search -> {
 
-			if (search.failed()) {
+      if (search.failed()) {
 
-				searchHandler.handle(Future.failedFuture(search.cause()));
+        searchHandler.handle(Future.failedFuture(search.cause()));
 
-			} else {
+      } else {
 
-				final JsonObject value = search.result();
-				final TasksPage page = Model.fromJsonObject(value, TasksPage.class);
-				if (page == null) {
+        final JsonObject value = search.result();
+        final TasksPage page = Model.fromJsonObject(value, TasksPage.class);
+        if (page == null) {
 
-					searchHandler.handle(Future.failedFuture("The stored task page is not valid."));
+          searchHandler.handle(Future.failedFuture("The stored task page is not valid."));
 
-				} else {
+        } else {
 
-					searchHandler.handle(Future.succeededFuture(page));
-				}
-			}
-		});
-	}
+          searchHandler.handle(Future.succeededFuture(page));
+        }
+      }
+    });
+  }
 
-	/**
-	 * Search for the task with the specified identifier.
-	 *
-	 * @param query         that define the tasks to add into the page.
-	 * @param order         in witch has to return the tasks.
-	 * @param offset        index of the first task to return.
-	 * @param limit         number maximum of tasks to return.
-	 * @param searchHandler handler to manage the search.
-	 */
-	void retrieveTasksPageObject(JsonObject query, JsonObject order, int offset, int limit,
-			Handler<AsyncResult<JsonObject>> searchHandler);
+  /**
+   * Search for the task with the specified identifier.
+   *
+   * @param query         that define the tasks to add into the page.
+   * @param order         in witch has to return the tasks.
+   * @param offset        index of the first task to return.
+   * @param limit         number maximum of tasks to return.
+   * @param searchHandler handler to manage the search.
+   */
+  void retrieveTasksPageObject(JsonObject query, JsonObject order, int offset, int limit, Handler<AsyncResult<JsonObject>> searchHandler);
 
 }

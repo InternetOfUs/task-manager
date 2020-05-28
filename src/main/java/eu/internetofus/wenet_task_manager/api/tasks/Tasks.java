@@ -145,6 +145,10 @@ public interface Tasks {
    * @param endFrom         maximal end time stamp of the tasks to return.
    * @param deadlineTo      minimal deadline time stamp of the tasks to return.
    * @param deadlineFrom    maximal deadline time stamp of the tasks to return.
+   * @param hasCloseTs      this is {@code true} if the tasks to return need to have a {@link Task#closeTs}
+   * @param closeTo         minimal close time stamp of the tasks to return, if this and the closeFomr are not defined is
+   *                        not defined.
+   * @param closeFrom       maximal close time stamp of the tasks to return.
    * @param order           of the tasks to return.
    * @param offset          index of the first task to return.
    * @param limit           number maximum of tasks to return.
@@ -153,7 +157,7 @@ public interface Tasks {
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @Operation(summary = "Search for some tasks", description = "Allow to get a page of task with the specified query parameters")
+  @Operation(summary = "Search for some tasks", description = "Allow to get a page of task with the specified query parameters.")
   @ApiResponse(responseCode = "200", description = "The task associated to the identifier", content = @Content(schema = @Schema(implementation = TasksPage.class)))
   @ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   void retrieveTasksPage(
@@ -168,6 +172,9 @@ public interface Tasks {
       @QueryParam(value = "endTo") @Parameter(description = "The difference, measured in seconds, between the maximum end time stamp of the task and midnight, January 1, 1970 UTC.", example = "1571664406", required = false) Long endTo,
       @QueryParam(value = "deadlineFrom") @Parameter(description = "The difference, measured in seconds, between the minimum deadline time stamp of the task and midnight, January 1, 1970 UTC.", example = "1457166440", required = false) Long deadlineFrom,
       @QueryParam(value = "deadlineTo") @Parameter(description = "The difference, measured in seconds, between the maximum deadline time stamp of the task and midnight, January 1, 1970 UTC.", example = "1571664406", required = false) Long deadlineTo,
+      @QueryParam(value = "hasCloseTs") @Parameter(description = "This is 'true' if the task to return has defined a 'closeTs'. Thus that the tasks are closed.", example = "false", required = false) Boolean hasCloseTs,
+      @QueryParam(value = "closeFrom") @Parameter(description = "The difference, measured in seconds, between the minimum close time stamp of the task and midnight, January 1, 1970 UTC.", example = "1457166440", required = false) Long closeFrom,
+      @QueryParam(value = "closeTo") @Parameter(description = "The difference, measured in seconds, between the maximum close time stamp of the task and midnight, January 1, 1970 UTC.", example = "1571664406", required = false) Long closeTo,
       @QueryParam(value = "order") @Parameter(description = "The order in witch the task has to be returned. It has to defined by name of the field plus ':' plus '-1' to be in descendant order or '1' in ascendant order.", example = "goalName:-1", required = false, explode = Explode.TRUE) List<String> order,
       @DefaultValue("0") @QueryParam(value = "offset") @Parameter(description = "The index of the first task type to return.", example = "4", required = false) int offset,
       @DefaultValue("10") @QueryParam(value = "limit") @Parameter(description = "The number maximum of task types to return", example = "100", required = false) int limit,

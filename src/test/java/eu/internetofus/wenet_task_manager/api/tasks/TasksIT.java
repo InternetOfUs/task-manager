@@ -1006,6 +1006,7 @@ public class TasksIT {
    * @param client      to connect to the server.
    * @param testContext context to test.
    */
+  @Test
   public void shouldGetSomeTasksByApp(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
     StoreServices.storeTaskExample(1, vertx, testContext, testContext.succeeding(stored1 -> {
@@ -1056,6 +1057,7 @@ public class TasksIT {
    * @param client      to connect to the server.
    * @param testContext context to test.
    */
+  @Test
   public void shouldGetSomeTasksByRequester(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
     StoreServices.storeTaskExample(1, vertx, testContext, testContext.succeeding(stored1 -> {
@@ -1106,6 +1108,7 @@ public class TasksIT {
    * @param client      to connect to the server.
    * @param testContext context to test.
    */
+  @Test
   public void shouldGetSomeTasksByTaskType(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
     StoreServices.storeTaskExample(1, vertx, testContext, testContext.succeeding(stored1 -> {
@@ -1156,6 +1159,7 @@ public class TasksIT {
    * @param client      to connect to the server.
    * @param testContext context to test.
    */
+  @Test
   public void shouldGetSomeTasksByGoalNameTaskType(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
     new TaskTest().createModelExample(1, vertx, testContext, testContext.succeeding(task -> {
@@ -1216,6 +1220,7 @@ public class TasksIT {
    * @param client      to connect to the server.
    * @param testContext context to test.
    */
+  @Test
   public void shouldGetSomeTasksByGoalDescriptionTaskType(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
     new TaskTest().createModelExample(1, vertx, testContext, testContext.succeeding(task -> {
@@ -1276,6 +1281,7 @@ public class TasksIT {
    * @param client      to connect to the server.
    * @param testContext context to test.
    */
+  @Test
   public void shouldGetSomeTasksByStartTs(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
     StoreServices.storeTaskExample(1, vertx, testContext, testContext.succeeding(stored1 -> {
@@ -1334,6 +1340,7 @@ public class TasksIT {
    * @param client      to connect to the server.
    * @param testContext context to test.
    */
+  @Test
   public void shouldGetSomeTasksByEndTs(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
     StoreServices.storeTaskExample(1, vertx, testContext, testContext.succeeding(stored1 -> {
@@ -1392,6 +1399,7 @@ public class TasksIT {
    * @param client      to connect to the server.
    * @param testContext context to test.
    */
+  @Test
   public void shouldGetSomeTasksByDeadlineTs(Vertx vertx, WebClient client, VertxTestContext testContext) {
 
     StoreServices.storeTaskExample(1, vertx, testContext, testContext.succeeding(stored1 -> {
