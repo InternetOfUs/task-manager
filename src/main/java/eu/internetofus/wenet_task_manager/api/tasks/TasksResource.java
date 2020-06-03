@@ -36,7 +36,7 @@ import eu.internetofus.common.components.Model;
 import eu.internetofus.common.components.ValidationErrorException;
 import eu.internetofus.common.components.interaction_protocol_engine.InteractionProtocolMessage;
 import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngineService;
-import eu.internetofus.common.components.profile_manager.WeNetProfileManagerService;
+import eu.internetofus.common.components.profile_manager.WeNetProfileManager;
 import eu.internetofus.common.components.task_manager.Task;
 import eu.internetofus.common.components.task_manager.TaskTransaction;
 import eu.internetofus.common.components.task_manager.TaskType;
@@ -76,7 +76,7 @@ public class TasksResource implements Tasks {
   /**
    * The component that manage the profiles.
    */
-  protected WeNetProfileManagerService profileManager;
+  protected WeNetProfileManager profileManager;
 
   /**
    * The component that manage the interaction protocols.
@@ -100,7 +100,7 @@ public class TasksResource implements Tasks {
     this.vertx = vertx;
     this.repository = TasksRepository.createProxy(vertx);
     this.typesRepository = TaskTypesRepository.createProxy(vertx);
-    this.profileManager = WeNetProfileManagerService.createProxy(vertx);
+    this.profileManager = WeNetProfileManager.createProxy(vertx);
     this.interactionProtocolEngine = WeNetInteractionProtocolEngineService.createProxy(this.vertx);
   }
 

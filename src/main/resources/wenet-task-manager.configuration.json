@@ -15,13 +15,13 @@
 		"username": "wenetTaskManager",
 		"password": "password"
 	},
-  "webClient": {
-    "defaultHost": "0.0.0.0",
-    "defaultPort": 80
-  },
+	"webClient": {
+		"defaultHost": "0.0.0.0",
+		"defaultPort": 80
+	},
 	"wenetComponents": {
-		"profileManager": "https://wenet.u-hopper.com/profile_manager",
-    "interactionProtocolEngine": "https://wenet.u-hopper.com/interaction_protocol_engine",
-		"service": "https://wenet.u-hopper.com/service"
+		"profileManager": "https://wenet.u-hopper.com/prod/profile_manager",
+		"interactionProtocolEngine": "https://wenet.u-hopper.com/prod/interaction_protocol_engine",
+		"service": "https://wenet.u-hopper.com/prod/service"
 	}
 }

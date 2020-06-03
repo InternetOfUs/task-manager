@@ -52,7 +52,7 @@ public interface WeNetSocialContextBuilder {
   /**
    * The address of this service.
    */
-  String ADDRESS = "wenet_common.service.SocialContextBuilder";
+  String ADDRESS = "wenet_component.SocialContextBuilder";
 
   /**
    * Create a proxy of the {@link WeNetSocialContextBuilder}.
@@ -75,7 +75,7 @@ public interface WeNetSocialContextBuilder {
    */
   static void register(Vertx vertx, WebClient client, JsonObject conf) {
 
-    new ServiceBinder(vertx).setAddress(WeNetSocialContextBuilder.ADDRESS).register(WeNetSocialContextBuilder.class, new WeNetSocialContextBuilderImpl(client, conf));
+    new ServiceBinder(vertx).setAddress(WeNetSocialContextBuilder.ADDRESS).register(WeNetSocialContextBuilder.class, new WeNetSocialContextBuilderClient(client, conf));
 
   }
 

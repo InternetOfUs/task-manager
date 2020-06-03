@@ -26,7 +26,8 @@
 
 package eu.internetofus.wenet_task_manager.api;
 
-import eu.internetofus.common.components.task_manager.WeNetTaskManagerService;
+import eu.internetofus.common.components.task_manager.WeNetTaskManager;
+import eu.internetofus.common.components.task_manager.WeNetTaskManagerClient;
 import eu.internetofus.common.vertx.AbstractAPIVerticle;
 import eu.internetofus.wenet_task_manager.api.tasks.Tasks;
 import eu.internetofus.wenet_task_manager.api.tasks.TasksResource;
@@ -44,44 +45,44 @@ import io.vertx.serviceproxy.ServiceBinder;
  */
 public class APIVerticle extends AbstractAPIVerticle {
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected String getOpenAPIResourcePath() {
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected String getOpenAPIResourcePath() {
 
-		return "wenet-task_manager-openapi.yaml";
-	}
+    return "wenet-task_manager-openapi.yaml";
+  }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected void mountServiceInterfaces(OpenAPI3RouterFactory routerFactory) {
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void mountServiceInterfaces(final OpenAPI3RouterFactory routerFactory) {
 
-		routerFactory.mountServiceInterface(Versions.class, Versions.ADDRESS);
-		new ServiceBinder(this.vertx).setAddress(Versions.ADDRESS).register(Versions.class, new VersionsResource(this));
+    routerFactory.mountServiceInterface(Versions.class, Versions.ADDRESS);
+    new ServiceBinder(this.vertx).setAddress(Versions.ADDRESS).register(Versions.class, new VersionsResource(this));
 
-		routerFactory.mountServiceInterface(Tasks.class, Tasks.ADDRESS);
-		new ServiceBinder(this.vertx).setAddress(Tasks.ADDRESS).register(Tasks.class, new TasksResource(this.vertx));
+    routerFactory.mountServiceInterface(Tasks.class, Tasks.ADDRESS);
+    new ServiceBinder(this.vertx).setAddress(Tasks.ADDRESS).register(Tasks.class, new TasksResource(this.vertx));
 
-	}
+  }
 
-	/**
-	 * Register the services provided by the API.
-	 *
-	 * {@inheritDoc}
-	 *
-	 * @see WeNetTaskManagerService
-	 */
-	@Override
-	protected void startedServerAt(String host, int port) {
+  /**
+   * Register the services provided by the API.
+   *
+   * {@inheritDoc}
+   *
+   * @see WeNetTaskManager
+   */
+  @Override
+  protected void startedServerAt(final String host, final int port) {
 
-		final JsonObject conf = new JsonObject();
-		conf.put("taskManager", "http://" + host + ":" + port);
-		final WebClient client = WebClient.create(this.vertx);
-		WeNetTaskManagerService.register(this.vertx, client, conf);
+    final JsonObject conf = new JsonObject();
+    conf.put(WeNetTaskManagerClient.TASK_MANAGER_CONF_KEY,"http://" + host + ":" + port);
+    final WebClient client = WebClient.create(this.vertx);
+    WeNetTaskManager.register(this.vertx, client, conf);
 
-	}
+  }
 
 }

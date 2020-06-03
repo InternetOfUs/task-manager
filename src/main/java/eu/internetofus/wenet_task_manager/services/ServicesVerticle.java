@@ -27,8 +27,8 @@
 package eu.internetofus.wenet_task_manager.services;
 
 import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngineService;
-import eu.internetofus.common.components.profile_manager.WeNetProfileManagerService;
-import eu.internetofus.common.components.service.WeNetServiceApiService;
+import eu.internetofus.common.components.profile_manager.WeNetProfileManager;
+import eu.internetofus.common.components.service.WeNetService;
 import eu.internetofus.common.vertx.AbstractServicesVerticle;
 import io.vertx.core.json.JsonObject;
 
@@ -40,21 +40,21 @@ import io.vertx.core.json.JsonObject;
  */
 public class ServicesVerticle extends AbstractServicesVerticle {
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected void registerServices(JsonObject serviceConf) throws Exception {
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void registerServices(final JsonObject serviceConf) throws Exception {
 
-		// register the service to interact with the profile manager
-		WeNetProfileManagerService.register(this.vertx, this.client, serviceConf);
+    // register the service to interact with the profile manager
+    WeNetProfileManager.register(this.vertx, this.client, serviceConf);
 
-		// register the service to interact with the service API
-		WeNetServiceApiService.register(this.vertx, this.client, serviceConf);
+    // register the service to interact with the service API
+    WeNetService.register(this.vertx, this.client, serviceConf);
 
-		// register the service to interact with the interaction protocol engine
-		WeNetInteractionProtocolEngineService.register(this.vertx, this.client, serviceConf);
+    // register the service to interact with the interaction protocol engine
+    WeNetInteractionProtocolEngineService.register(this.vertx, this.client, serviceConf);
 
-	}
+  }
 
 }

@@ -82,9 +82,9 @@ You can use the next arguments:
  - **DEFAULT_DB_NAME** to define the default mongo database name. By default is **wenetTaskManagerDB**.
  - **DEFAULT_DB_USER_NAME** to define the default mongo database user name. By default is **wenetTaskManager**.
  - **DEFAULT_DB_USER_PASSWORD** to define the default mongo database user password. By default is **password**.
- - **DEFAULT_WENET_PROFILE_MANAGER_API** to define the path to the profile manager component to use. By default is **https://wenet.u-hopper.com/prod/profile_manager**.
- - **DEFAULT_WENET_INTERACTION_PROTOCOL_ENGINE_API** to define the path to the interaction protocol engine component to use. By default is **https://wenet.u-hopper.com/prod/interaction_protocol_engine**.
- - **DEFAULT_WENET_SERVICE_API** to define the path to the service component to use. By default is **https://wenet.u-hopper.com/prod/service**.
+ - **DEFAULT_WENET_PROFILE_MANAGER_API** to define the path to the profile manager component to use. By default is **"https://wenet.u-hopper.com/prod/profile_manager**.
+ - **DEFAULT_WENET_INTERACTION_PROTOCOL_ENGINE_API** to define the path to the interaction protocol engine component to use. By default is **"https://wenet.u-hopper.com/prod/interaction_protocol_engine**.
+ - **DEFAULT_WENET_SERVICE_API** to define the path to the service component to use. By default is **"https://wenet.u-hopper.com/prod/service**.
 
 This arguments are used to create a configurations files at **/usr/wenet/task-manager/etc**.
 So you can mount a volume to this if you want to modify any configuration property at runtime.
@@ -106,9 +106,9 @@ You can modify use the next environment properties to modify some parameters of 
  - **DB_NAME** to define the mongo database name. By default is **wenetTaskManagerDB**.
  - **DB_USER_NAME** to define the mongo database user name. By default is **wenetTaskManager**.
  - **DB_USER_PASSWORD** to define the mongo database user password. By default is **password**.
- - **WENET_PROFILE_MANAGER_API** to define the path to the profile manager component to use. By default is **https://wenet.u-hopper.com/prod/profile_manager**.
- - **WENET_INTERACTION_PROTOCOL_ENGINE_API** to define the path to the interaction protocol engine component to use. By default is **https://wenet.u-hopper.com/prod/interaction_protocol_engine**.
- - **WENET_SERVICE_API** to define the path to the service component to use. By default is **https://wenet.u-hopper.com/prod/service**.
+ - **WENET_PROFILE_MANAGER_API** to define the path to the profile manager component to use. By default is **"https://wenet.u-hopper.com/prod/profile_manager**.
+ - **WENET_INTERACTION_PROTOCOL_ENGINE_API** to define the path to the interaction protocol engine component to use. By default is **"https://wenet.u-hopper.com/prod/interaction_protocol_engine**.
+ - **WENET_SERVICE_API** to define the path to the service component to use. By default is **"https://wenet.u-hopper.com/prod/service**.
 
 Also you can define your own configuration that modify this properties and mount to  **/usr/wenet/task-manager/etc**.
 
@@ -165,10 +165,10 @@ The latest APIs documentation is available [here](http://swagger.u-hopper.com/?u
 
 The task manager has the next available instances:
 
- - WeNet production task manager API is available at [https://wenet.u-hopper.com/task_manager](https://wenet.u-hopper.com/task_manager).
- - WeNet development task manager API is available at [https://wenet.u-hopper.com/dev/task_manager](https://wenet.u-hopper.com/dev/task_manager).
- - The IIIA stable task manager API is available at [https://wenet.u-hopper.com/dev/task_manager](https://wenet.u-hopper.com/dev/task_manager).
- - The IIIA development task manager API is available at [https://wenet.u-hopper.com/dev/task_manager](https://wenet.u-hopper.com/dev/task_manager).
+ - WeNet production task manager API is available at ["https://wenet.u-hopper.com/prod/task_manager]("https://wenet.u-hopper.com/prod/task_manager).
+ - WeNet development task manager API is available at ["https://wenet.u-hopper.com/dev/task_manager]("https://wenet.u-hopper.com/dev/task_manager).
+ - The IIIA stable task manager API is available at ["https://wenet.u-hopper.com/dev/task_manager]("https://wenet.u-hopper.com/dev/task_manager).
+ - The IIIA development task manager API is available at ["https://wenet.u-hopper.com/dev/task_manager]("https://wenet.u-hopper.com/dev/task_manager).
  - The task manager API 0.3.0 is available at [http://ardid.iiia.csic.es/wenet/task-manager/0.3.0/](http://ardid.iiia.csic.es/wenet/task-manager/0.3.0/).
  - The task manager API 0.2.0 is available at [http://ardid.iiia.csic.es/wenet/task-manager/0.2.0/](http://ardid.iiia.csic.es/wenet/task-manager/0.2.0/).
  - The task manager API 0.1.0 (Dummy version) is available at [http://ardid.iiia.csic.es/dev-wenet-task-manager/](http://ardid.iiia.csic.es/dev-wenet-task-manager/](http://ardid.iiia.csic.es/dev-wenet-task-manager/](http://ardid.iiia.csic.es/dev-wenet-task-manager/).
