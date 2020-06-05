@@ -28,6 +28,8 @@ package eu.internetofus.common.vertx;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.concurrent.Semaphore;
+
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
@@ -44,7 +46,6 @@ import org.tinylog.provider.InternalLogger;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
-import io.vertx.ext.sync.Sync;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.junit5.VertxExtension;
@@ -72,15 +73,28 @@ public abstract class AbstractWeNetComponentIntegrationExtension implements Para
 
       try {
 
+        final Semaphore semaphore = new Semaphore(0);
         final AbstractMain main = this.createMain();
         final String[] startArguments = this.createMainStartArguments();
-        context = Sync.awaitResult(h -> main.startWith(startArguments).onComplete(h));
+        main.startWith(startArguments).onComplete(start -> {
 
+          if (start.failed()) {
+
+            InternalLogger.log(Level.ERROR, start.cause(), "Cannot start the WeNet component");
+
+          } else {
+
+            context = start.result();
+          }
+          semaphore.release();
+        });
+
+        semaphore.acquire();
         this.afterStarted(context);
 
       } catch (final Throwable throwable) {
 
-        InternalLogger.log(Level.ERROR, throwable, "Cannot create the Main class to  start the WeNet module to run the integration tests");
+        InternalLogger.log(Level.ERROR, throwable, "Cannot create the Main class to start the WeNet component to run the integration tests");
       }
 
     }
@@ -152,6 +166,15 @@ public abstract class AbstractWeNetComponentIntegrationExtension implements Para
   public void afterEach(final ExtensionContext context) throws Exception {
 
     this.vertxExtension.afterEach(context);
+    this.closeClientsIn(context);
+  }
+
+  /**
+   * Close all the clients that has been created on a context.
+   *
+   * @param context where the clients has stored.
+   */
+  protected void closeClientsIn(final ExtensionContext context) {
 
     // close client and pool after the test context has been completed.
     final WebClient client = context.getStore(ExtensionContext.Namespace.create(this.getClass().getName())).remove(WebClient.class.getName(), WebClient.class);
@@ -185,6 +208,7 @@ public abstract class AbstractWeNetComponentIntegrationExtension implements Para
   public void afterTestExecution(final ExtensionContext context) throws Exception {
 
     this.vertxExtension.afterTestExecution(context);
+    this.closeClientsIn(context);
 
   }
 

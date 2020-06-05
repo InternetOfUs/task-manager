@@ -525,7 +525,35 @@ public class TasksResource implements Tasks {
 
     try {
 
-      final JsonObject sort = Repository.toSort(order, "bad_order");
+      final JsonObject sort = Repository.queryParamToSort(order, "bad_order", (value) -> {
+
+        switch (value) {
+        case "goalName":
+        case "goal.name":
+          return "goal.name";
+        case "goalDescription":
+        case "goal.description":
+          return "goal.description";
+        case "start":
+        case "end":
+        case "deadline":
+        case "close":
+          return value+"Ts";
+        case "id":
+        case "taskTypeId":
+        case "requesterId":
+        case "appId":
+        case "startTs":
+        case "endTs":
+        case "deadlineTs":
+        case "closeTs":
+          return value;
+        default:
+          return null;
+        }
+
+      });
+
       this.repository.retrieveTasksPageObject(query, sort, offset, limit, retrieve -> {
 
         if (retrieve.failed()) {

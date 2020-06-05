@@ -224,7 +224,7 @@ public interface TasksRepository {
   static JsonObject creteTasksPageQuery(final String appId, final String requesterId, final String taskTypeId, final String goalName, final String goalDescription, final Number startFrom, final Number startTo, final Number deadlineFrom,
       final Number deadlineTo, final Number endFrom, final Number endTo, final Boolean hasCloseTs, final Number closeFrom, final Number closeTo) {
 
-    return new QueryBuilder().withRegex("appId", appId).withRegex("requesterId", requesterId).withRegex("taskTypeId", taskTypeId).withRegex("goal.name", goalName).withRegex("goal.description", goalDescription)
+    return new QueryBuilder().withEqOrRegex("appId", appId).withEqOrRegex("requesterId", requesterId).withEqOrRegex("taskTypeId", taskTypeId).withEqOrRegex("goal.name", goalName).withEqOrRegex("goal.description", goalDescription)
         .withRange("startTs", startFrom, startTo).withRange("deadlineTs", deadlineFrom, deadlineTo).withRange("endTs", endFrom, endTo).withExist("closeTs", hasCloseTs).withRange("closeTs", closeFrom, closeTo).build();
 
   }
