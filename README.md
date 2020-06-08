@@ -179,6 +179,13 @@ The task manager has the next available instances:
 This software is under the [MIT license](LICENSE)
 
 
+## Interaction with other WeNet components
+
+### Interaction protocol engine builder
+
+ - Convert any received transaction into a message to post. (POST {{interaction_protocol_engine_api}}/messages)
+
+
 ## Contact
 
 ### Researcher
