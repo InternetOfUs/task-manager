@@ -35,7 +35,7 @@ import org.tinylog.Logger;
 import eu.internetofus.common.components.Model;
 import eu.internetofus.common.components.ValidationErrorException;
 import eu.internetofus.common.components.interaction_protocol_engine.InteractionProtocolMessage;
-import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngineService;
+import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngine;
 import eu.internetofus.common.components.profile_manager.WeNetProfileManager;
 import eu.internetofus.common.components.task_manager.Task;
 import eu.internetofus.common.components.task_manager.TaskTransaction;
@@ -81,7 +81,7 @@ public class TasksResource implements Tasks {
   /**
    * The component that manage the interaction protocols.
    */
-  protected WeNetInteractionProtocolEngineService interactionProtocolEngine;
+  protected WeNetInteractionProtocolEngine interactionProtocolEngine;
 
   /**
    * Create an empty resource. This is only used for unit tests.
@@ -101,7 +101,7 @@ public class TasksResource implements Tasks {
     this.repository = TasksRepository.createProxy(vertx);
     this.typesRepository = TaskTypesRepository.createProxy(vertx);
     this.profileManager = WeNetProfileManager.createProxy(vertx);
-    this.interactionProtocolEngine = WeNetInteractionProtocolEngineService.createProxy(this.vertx);
+    this.interactionProtocolEngine = WeNetInteractionProtocolEngine.createProxy(this.vertx);
   }
 
   /**
@@ -538,7 +538,7 @@ public class TasksResource implements Tasks {
         case "end":
         case "deadline":
         case "close":
-          return value+"Ts";
+          return value + "Ts";
         case "id":
         case "taskTypeId":
         case "requesterId":
