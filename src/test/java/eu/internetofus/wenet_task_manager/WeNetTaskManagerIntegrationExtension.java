@@ -78,7 +78,7 @@ public class WeNetTaskManagerIntegrationExtension extends AbstractWeNetComponent
     final int incentiveServerApiPort = Containers.nextFreePort();
     Testcontainers.exposeHostPorts(profileManagerApiPort, taskManagerApiPort, interactionProtocolEngineApiPort, serviceApiPort);
 
-    Containers.createAndStartContainersForProfileManager(profileManagerApiPort, taskManagerApiPort, interactionProtocolEngineApiPort, network);
+    Containers.createAndStartContainersForProfileManager(profileManagerApiPort, taskManagerApiPort, serviceApiPort, socialContextBuilderApiPort, network);
     Containers.createAndStartContainersForInteractionProtocolEngine(interactionProtocolEngineApiPort, profileManagerApiPort, taskManagerApiPort, serviceApiPort, socialContextBuilderApiPort, incentiveServerApiPort, network);
     WeNetServiceMocker.start(serviceApiPort);
     WeNetSocialContextBuilderMocker.start(socialContextBuilderApiPort);

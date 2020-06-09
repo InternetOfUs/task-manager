@@ -22,6 +22,7 @@ services:
       DB_HOST: wenet_task_manager_database
       WENET_PROFILE_MANAGER_API: ${WENET_PROFILE_MANAGER_API:-"https://wenet.u-hopper.com/prod/profile_manager"}
       WENET_INTERACTION_PROTOCOL_ENGINE_API: ${WENET_INTERACTION_PROTOCOL_ENGINE_API:-"https://wenet.u-hopper.com/prod/interaction_protocol_engine"}
+      WENET_SERVICE_API: ${WENET_SERVICE_API:-"https://wenet.u-hopper.com/prod/service"}
       WAIT_HOSTS: wenet_task_manager_database:27017
     networks:
       wenet_network:
