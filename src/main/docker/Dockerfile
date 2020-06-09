@@ -45,7 +45,7 @@ RUN echo "{\"api\":{\"host\":\"${DEFAULT_API_HOST}\",\"port\":${DEFAULT_API_PORT
 RUN echo "{\"persistence\":{\"db_name\":\"${DEFAULT_DB_NAME}\",\"host\":\"${DEFAULT_DB_HOST}\",\"port\":${DEFAULT_DB_PORT},\"username\":\"${DEFAULT_DB_USER_NAME}\",\"password\":\"${DEFAULT_DB_USER_PASSWORD}\"}}" > /usr/wenet/task-manager/etc/persistence.json
 
 # Create configuration for profile manager component
-RUN echo "{\"wenetComponents\":{\"profileManager\":\"${DEFAULT_WENET_TASK_MANAGER_API}\"}}" > /usr/wenet/task-manager/etc/profileManager.json
+RUN echo "{\"wenetComponents\":{\"profileManager\":\"${DEFAULT_WENET_PROFILE_MANAGER_API}\"}}" > /usr/wenet/task-manager/etc/profileManager.json
 
 # Create configuration for interaction protocol engine component
 RUN echo "{\"wenetComponents\":{\"interactionProtocolEngine\":\"${DEFAULT_WENET_INTERACTION_PROTOCOL_ENGINE_API}\"}}" > /usr/wenet/task-manager/etc/interactionProtocolEngine.json
