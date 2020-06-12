@@ -87,7 +87,7 @@ public class WeNetTaskManagerIntegrationExtension extends AbstractWeNetComponent
     final GenericContainer<?> persistenceContainer = Containers.createMongoContainerFor(Containers.WENET_TASK_MANAGER_DB_NAME, network);
     persistenceContainer.start();
 
-    return new String[] { "-papi.port=" + profileManagerApiPort, "-ppersistence.host=localhost", "-ppersistence.port=" + persistenceContainer.getMappedPort(Containers.EXPORT_MONGODB_PORT),
+    return new String[] { "-papi.port=" + taskManagerApiPort, "-ppersistence.host=localhost", "-ppersistence.port=" + persistenceContainer.getMappedPort(Containers.EXPORT_MONGODB_PORT),
         "-pwenetComponents.profileManager=\"http://localhost:" + profileManagerApiPort + "\"", "-pwenetComponents.interactionProtocolEngine=\"http://localhost:" + interactionProtocolEngineApiPort + "\"",
         "-pwenetComponents.service=\"http://localhost:" + serviceApiPort + "\"" };
 
