@@ -139,16 +139,15 @@ public interface Tasks {
    * @param taskType        task type identifier to match for the tasks to return.
    * @param goalName        pattern to match with the goal name of the tasks to return.
    * @param goalDescription pattern to match with the goal description of the tasks to return.
-   * @param startTo         minimal start time stamp of the tasks to return.
-   * @param startFrom       maximal start time stamp of the tasks to return.
-   * @param endTo           minimal end time stamp of the tasks to return.
-   * @param endFrom         maximal end time stamp of the tasks to return.
-   * @param deadlineTo      minimal deadline time stamp of the tasks to return.
-   * @param deadlineFrom    maximal deadline time stamp of the tasks to return.
+   * @param startFrom       minimal start time stamp of the tasks to return.
+   * @param startTo         maximal start time stamp of the tasks to return.
+   * @param endFrom         minimal end time stamp of the tasks to return.
+   * @param endTo           maximal end time stamp of the tasks to return.
+   * @param deadlineFrom    minimal deadline time stamp of the tasks to return.
+   * @param deadlineTo      maximal deadline time stamp of the tasks to return.
    * @param hasCloseTs      this is {@code true} if the tasks to return need to have a {@link Task#closeTs}
-   * @param closeTo         minimal close time stamp of the tasks to return, if this and the closeFomr are not defined is
-   *                        not defined.
-   * @param closeFrom       maximal close time stamp of the tasks to return.
+   * @param closeFrom       minimal close time stamp of the tasks to return.
+   * @param closeTo         maximal close time stamp of the tasks to return.
    * @param order           of the tasks to return.
    * @param offset          index of the first task to return.
    * @param limit           number maximum of tasks to return.
@@ -164,8 +163,8 @@ public interface Tasks {
       @QueryParam(value = "appId") @Parameter(description = "An application identifier to be equals on the tasks to return. You can use a Perl compatible regular expressions (PCRE) that has to match the application identifier of the tasks to return if you write between '/'. For example to get the tasks for the aplications '1' and '2' you must pass as 'appId' '/^[1|2]$/'.", example = "1", required = false) String appId,
       @QueryParam(value = "requesterId") @Parameter(description = "An user identifier to be equals on the tasks to return. You can use a Perl compatible regular expressions (PCRE) that has to match the requester identifier of the tasks to return if you write between '/'. For example to get the tasks for the requesters '1' and '2' you must pass as 'requesterId' '/^[1|2]$/'.", example = "1e346fd440", required = false) String requesterId,
       @QueryParam(value = "taskTypeId") @Parameter(description = "A task type identifier to be equals on the tasks to return. You can use a Perl compatible regular expressions (PCRE) that has to match the task type identifier of the tasks to return if you write between '/'. For example to get the tasks for the types '1' and '2' you must pass as 'taskTypeId' '/^[1|2]$/'.", example = "1e346fd440", required = false) String taskTypeId,
-      @QueryParam(value = "goalName") @Parameter(description = "A goal name to be equals on the tasks to return.or You can use a Perl compatible regular expressions (PCRE) that has to match the goal name of the tasks to return if you write between '/'. For example to get the tasks with a nmae with the word 'eat' you must pass as 'goalName' '/.*eat.*/'", example = "/.*eat.*/", required = false) String goalName,
-      @QueryParam(value = "goalDescription") @Parameter(description = "A goal description to be equals on the tasks to return.or You can use a Perl compatible regular expressions (PCRE) that has to match the goal description of the tasks to return if you write between '/'. For example to get the tasks with a nmae with the word 'eat' you must pass as 'goalDescription' '/.*eat.*/'", example = "/.*eat.*/", required = false) String goalDescription,
+      @QueryParam(value = "goalName") @Parameter(description = "A goal name to be equals on the tasks to return. You can use a Perl compatible regular expressions (PCRE) that has to match the goal name of the tasks to return if you write between '/'. For example to get the tasks with a goal name with the word 'eat' you must pass as 'goalName' '/.*eat.*/'", example = "/.*eat.*/", required = false) String goalName,
+      @QueryParam(value = "goalDescription") @Parameter(description = "A goal description to be equals on the tasks to return. You can use a Perl compatible regular expressions (PCRE) that has to match the goal description of the tasks to return if you write between '/'. For example to get the tasks with a goal description with the word 'eat' you must pass as 'goalDescription' '/.*eat.*/'", example = "/.*eat.*/", required = false) String goalDescription,
       @QueryParam(value = "startFrom") @Parameter(description = "The difference, measured in seconds, between the minimum start time stamp of the task and midnight, January 1, 1970 UTC.", example = "1457166440", required = false) Long startFrom,
       @QueryParam(value = "startTo") @Parameter(description = "The difference, measured in seconds, between the maximum start time stamp of the task and midnight, January 1, 1970 UTC.", example = "1571664406", required = false) Long startTo,
       @QueryParam(value = "endFrom") @Parameter(description = "The difference, measured in seconds, between the minimum end time stamp of the task and midnight, January 1, 1970 UTC.", example = "1457166440", required = false) Long endFrom,
@@ -176,9 +175,9 @@ public interface Tasks {
       @QueryParam(value = "closeFrom") @Parameter(description = "The difference, measured in seconds, between the minimum close time stamp of the task and midnight, January 1, 1970 UTC.", example = "1457166440", required = false) Long closeFrom,
       @QueryParam(value = "closeTo") @Parameter(description = "The difference, measured in seconds, between the maximum close time stamp of the task and midnight, January 1, 1970 UTC.", example = "1571664406", required = false) Long closeTo,
       @QueryParam(value = "order") @Parameter(description = "The order in witch the task has to be returned. For each filed it has be separated by a ',' and each field can start with '+' (or without it) to order on ascending order, or with the prefix '-' to do on descendant order.", example = "goal.name,-goal.description,+appId", required = false, explode = Explode.FALSE) List<String> order,
-      @DefaultValue("0") @QueryParam(value = "offset") @Parameter(description = "The index of the first task type to return.", example = "4", required = false) int offset,
-      @DefaultValue("10") @QueryParam(value = "limit") @Parameter(description = "The number maximum of task types to return", example = "100", required = false) int limit,
-      @Parameter(hidden = true, required = false) OperationRequest context, @Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
+      @DefaultValue("0") @QueryParam(value = "offset") @Parameter(description = "The index of the first task to return.", example = "4", required = false) int offset,
+      @DefaultValue("10") @QueryParam(value = "limit") @Parameter(description = "The number maximum of tasks to return", example = "100", required = false) int limit, @Parameter(hidden = true, required = false) OperationRequest context,
+      @Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
 
   /**
    * Called when want to modify a task.
