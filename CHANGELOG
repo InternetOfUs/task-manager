@@ -2,6 +2,10 @@
 
 All notable changes to `wenet-task-manager` will be documented in this file
 
+## Version 0.5.0 (2020-06-15)
+
+ * Add task view for each user.
+
 
 ## Version 0.4.0 (2020-06-15)
 
