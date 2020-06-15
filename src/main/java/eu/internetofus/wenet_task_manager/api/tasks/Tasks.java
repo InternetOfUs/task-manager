@@ -257,6 +257,7 @@ public interface Tasks {
    * @param name          the pattern to match with the names of the task types.
    * @param description   the pattern to match with the descriptions of the task types.
    * @param keywords      the patterns to match with the keywords of the task types.
+   * @param order to return the found task types.
    * @param offset        index of the first task type to return.
    * @param limit         number maximum of task types to return.
    * @param context       of the request.
@@ -269,9 +270,11 @@ public interface Tasks {
   @Operation(summary = "Return a task type associated to the identifier", description = "Allow to get a task type associated to an identifier")
   @ApiResponse(responseCode = "200", description = "The task types that match the search.", content = @Content(schema = @Schema(implementation = TaskTypesPage.class)))
   @ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
-  void retrieveTaskTypePage(@QueryParam("name") @Parameter(description = "The pattern to match the name of task types to return") String name,
-      @QueryParam("description") @Parameter(description = "The pattern to match the description of task types to return") String description,
-      @QueryParam("keywords") @Parameter(description = "The pattern to match the keywords of task types to return") List<String> keywords,
+  void retrieveTaskTypesPage(
+      @QueryParam(value = "name") @Parameter(description = "A name to be equals on the task types to return. You can use a Perl compatible regular expressions (PCRE) that has to match the name of the task types to return if you write between '/'. For example to get the task types with a name with the word 'eat' you must pass as 'goalName' '/.*eat.*/'", example = "/.*eat.*/", required = false) String name,
+      @QueryParam(value = "description") @Parameter(description = "A description to be equals on the task types to return. You can use a Perl compatible regular expressions (PCRE) that has to match the description of the task types to return if you write between '/'. For example to get the task types with a description with the word 'eat' you must pass as 'goalDescription' '/.*eat.*/'", example = "/.*eat.*/", required = false) String description,
+      @QueryParam(value = "keywords") @Parameter(description = "A set of keywords to be defined on the task types to be returned. For each keyword is separated by a ',' and each field keyword can be between '/' to use a Perl compatible regular expressions (PCRE) instead the exact value.", example = "key1,/.*eat.*/,key3", required = false, explode = Explode.FALSE) List<String> keywords,
+      @QueryParam(value = "order") @Parameter(description = "The order in witch the task types has to be returned. For each filed it has be separated by a ',' and each field can start with '+' (or without it) to order on ascending order, or with the prefix '-' to do on descendant order.", example = "name,-description", required = false, explode = Explode.FALSE) List<String> order,
       @QueryParam("offset") @Parameter(description = "The index of the first task type to return") int offset, @QueryParam("limit") @Parameter(description = "The number maximum of task types to return") int limit,
       @Parameter(hidden = true, required = false) OperationRequest context, @Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
 

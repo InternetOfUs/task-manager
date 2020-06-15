@@ -445,16 +445,6 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTaskTypePage(final String name, final String description, final List<String> keywords, final int offset, final int limit, final OperationRequest context, final Handler<AsyncResult<OperationResponse>> resultHandler) {
-
-    OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_IMPLEMENTED, "not_implemented", "It is not implemented yet");
-
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public void doTaskTransaction(final JsonObject body, final OperationRequest context, final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
     final TaskTransaction taskTransaction = Model.fromJsonObject(body, TaskTransaction.class);
@@ -580,4 +570,53 @@ public class TasksResource implements Tasks {
 
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void retrieveTaskTypesPage(final String name, final String description, final List<String> keywords, final List<String> order, final int offset, final int limit, final OperationRequest context,
+      final Handler<AsyncResult<OperationResponse>> resultHandler) {
+
+    final JsonObject query = TaskTypesRepository.creteTaskTypesPageQuery(name, description, keywords);
+
+    try {
+
+      final JsonObject sort = Repository.queryParamToSort(order, "bad_order", (value) -> {
+
+        switch (value) {
+        case "name":
+        case "description":
+        case "keywords":
+          return value;
+        default:
+          return null;
+        }
+
+      });
+
+      this.typesRepository.retrieveTaskTypesPageObject(query, sort, offset, limit, retrieve -> {
+
+        if (retrieve.failed()) {
+
+          final Throwable cause = retrieve.cause();
+          Logger.debug(cause, "GET /tasks/types with {} => Retrieve error", query);
+          OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+
+        } else {
+
+          final JsonObject taskTypesPage = retrieve.result();
+          Logger.debug("GET /tasks/types with {} => {}.", query, taskTypesPage);
+          OperationReponseHandlers.responseOk(resultHandler, taskTypesPage);
+        }
+
+      });
+
+    } catch (final ValidationErrorException error) {
+
+      Logger.debug(error, "GET /tasks/types with {} => Retrieve error", query);
+      OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, error);
+
+    }
+
+  }
 }
