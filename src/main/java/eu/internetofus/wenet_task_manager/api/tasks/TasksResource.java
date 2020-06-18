@@ -34,7 +34,8 @@ import org.tinylog.Logger;
 
 import eu.internetofus.common.components.Model;
 import eu.internetofus.common.components.ValidationErrorException;
-import eu.internetofus.common.components.interaction_protocol_engine.InteractionProtocolMessage;
+import eu.internetofus.common.components.interaction_protocol_engine.Message;
+import eu.internetofus.common.components.interaction_protocol_engine.Message.Type;
 import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngine;
 import eu.internetofus.common.components.profile_manager.WeNetProfileManager;
 import eu.internetofus.common.components.task_manager.Task;
@@ -164,7 +165,7 @@ public class TasksResource implements Tasks {
               OperationReponseHandlers.responseOk(resultHandler, storedTask);
 
               Logger.debug("Created task {}", storedTask);
-              final InteractionProtocolMessage message = new InteractionProtocolMessage();
+              final Message message = new Message();
               message.taskId = storedTask.id;
               message.appId = storedTask.appId;
               message.content = new JsonObject().put("action", "TaskCreation");
@@ -465,34 +466,22 @@ public class TasksResource implements Tasks {
 
         } else {
 
-          this.repository.searchTask(taskTransaction.taskId, search -> {
+          final Message message = new Message();
+          message.taskId = taskTransaction.taskId;
+          message.type = Type.TASK_TRANSACTION;
+          message.content = taskTransaction.toJsonObject();
+          this.interactionProtocolEngine.sendMessage(message, send -> {
 
-            if (search.failed()) {
+            if (send.failed()) {
 
-              OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, new ValidationErrorException("bad_task_transaction.taskId", "Does not exist a task associated to the identifier"));
+              final Throwable cause = send.cause();
+              Logger.trace(cause, "Fail doTaskTransaction: {} of {} is not accepted", message, body);
+              OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
             } else {
 
-              final Task task = search.result();
-              final InteractionProtocolMessage message = new InteractionProtocolMessage();
-              message.taskId = task.id;
-              message.appId = task.appId;
-              message.content = new JsonObject().put("action", taskTransaction.label).put("attributes", taskTransaction.attributes);
-              this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
-
-                if (sent.failed()) {
-
-                  final Throwable cause = validation.cause();
-                  Logger.debug(cause, "Cannot send message {}.", message);
-                  OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
-
-                } else {
-
-                  OperationReponseHandlers.responseOk(resultHandler, taskTransaction.toJsonObject());
-                }
-
-              });
-
+              Logger.trace("Accepted sendIncentive {} ", body);
+              OperationReponseHandlers.responseWith(resultHandler, Status.ACCEPTED, taskTransaction);
             }
 
           });
