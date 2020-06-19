@@ -168,7 +168,8 @@ public class TasksResource implements Tasks {
               final Message message = new Message();
               message.taskId = storedTask.id;
               message.appId = storedTask.appId;
-              message.content = new JsonObject().put("action", "TaskCreation");
+              message.type = Type.TASK_CREATED;
+              message.content = task.toJsonObject();
               this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
 
                 if (sent.failed()) {
