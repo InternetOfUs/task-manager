@@ -136,7 +136,7 @@ public class TasksResource implements Tasks {
     final Task task = Model.fromJsonObject(body, Task.class);
     if (task == null) {
 
-      Logger.debug("The {} is not a valid Task.", body);
+      Logger.trace("The {} is not a valid Task.", body);
       OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task", "The task is not right.");
 
     } else {
@@ -169,7 +169,7 @@ public class TasksResource implements Tasks {
               message.taskId = storedTask.id;
               message.appId = storedTask.appId;
               message.type = Type.TASK_CREATED;
-              message.content = task.toJsonObject();
+              message.content = storedTask.toJsonObject();
               this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
 
                 if (sent.failed()) {
@@ -180,7 +180,7 @@ public class TasksResource implements Tasks {
 
                 } else {
 
-                  Logger.debug("Interaction protocol engine accepted {}", task);
+                  Logger.debug("Interaction protocol engine accepted {}", storedTask);
 
                 }
               });
