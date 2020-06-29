@@ -2,14 +2,14 @@
 
 All notable changes to `wenet-task-manager` will be documented in this file
 
-## Version 0.5.0 (2020-06-15)
+## Version 0.4.1 (2020-06-29)
 
- * Add task view for each user.
+ * Fix bugs when integrate interaction protocol engine.
 
 
 ## Version 0.4.0 (2020-06-15)
 
- * Synchonize to the new task models.
+ * Synchronize to the new task models.
  * Integrate with the interaction protocol engine.
 
 

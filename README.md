@@ -70,10 +70,10 @@ To use this feature you must to install the next software.
 If you want to create an image execute the next command.
 
 ```
-docker build -f src/main/docker/Dockerfile -t wenet/task-manager .
+./buildDockerImage.sh
 ```
 
-You can use the next arguments:
+This create the generic docker image, but you can create a different wit the **docker build** command and using the next arguments:
 
  - **DEFAULT_API_HOST** to define the default host where API will be bind. By default is **0.0.0.0**.
  - **DEFAULT_API_PORT** to define the default port where API will be bind. By default is **8080**.
