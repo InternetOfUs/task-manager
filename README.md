@@ -165,13 +165,12 @@ The latest APIs documentation is available [here](http://swagger.u-hopper.com/?u
 
 The task manager has the next available instances:
 
- - WeNet production task manager API is available at ["https://wenet.u-hopper.com/prod/task_manager]("https://wenet.u-hopper.com/prod/task_manager).
- - WeNet development task manager API is available at ["https://wenet.u-hopper.com/dev/task_manager]("https://wenet.u-hopper.com/dev/task_manager).
- - The IIIA stable task manager API is available at ["https://wenet.u-hopper.com/dev/task_manager]("https://wenet.u-hopper.com/dev/task_manager).
- - The IIIA development task manager API is available at ["https://wenet.u-hopper.com/dev/task_manager]("https://wenet.u-hopper.com/dev/task_manager).
- - The task manager API 0.3.0 is available at [http://ardid.iiia.csic.es/wenet/task-manager/0.3.0/](http://ardid.iiia.csic.es/wenet/task-manager/0.3.0/).
+ - WeNet production task manager API is available at [https://wenet.u-hopper.com/prod/task_manager/](https://wenet.u-hopper.com/prod/task_manager/).
+ - WeNet development task manager API is available at [https://wenet.u-hopper.com/dev/task_manager/](https://wenet.u-hopper.com/dev/task_manager/).
+ - The IIIA stable task manager API is available at [http://ardid.iiia.csic.es/wenet/task-manager/latest/](http://ardid.iiia.csic.es/wenet/task-manager/latest/).
+ - The IIIA development task manager API is available at [http://ardid.iiia.csic.es/wenet/task-manager/dev/](http://ardid.iiia.csic.es/wenet/task-manager/ldev/).
+ - The task manager API 0.3.X is available at [http://ardid.iiia.csic.es/wenet/task-manager/0.3/](http://ardid.iiia.csic.es/wenet/task-manager/0.3/).
  - The task manager API 0.2.0 is available at [http://ardid.iiia.csic.es/wenet/task-manager/0.2.0/](http://ardid.iiia.csic.es/wenet/task-manager/0.2.0/).
- - The task manager API 0.1.0 (Dummy version) is available at [http://ardid.iiia.csic.es/dev-wenet-task-manager/](http://ardid.iiia.csic.es/dev-wenet-task-manager/](http://ardid.iiia.csic.es/dev-wenet-task-manager/](http://ardid.iiia.csic.es/dev-wenet-task-manager/).
 
 
 ## License
