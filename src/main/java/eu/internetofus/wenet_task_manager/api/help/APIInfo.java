@@ -23,48 +23,53 @@
  *
  * -----------------------------------------------------------------------------
  */
+package eu.internetofus.wenet_task_manager.api.help;
 
-package eu.internetofus.wenet_task_manager.api.versions;
-
-import static eu.internetofus.common.vertx.HttpResponses.assertThatBodyIs;
-import static io.vertx.junit5.web.TestRequest.testRequest;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
-import io.vertx.core.http.HttpMethod;
-import io.vertx.ext.web.client.WebClient;
-import io.vertx.junit5.VertxTestContext;
+import eu.internetofus.common.components.Model;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * The integration test over the {@link Versions}.
- *
- * @see Versions
+ * A model with information about the API.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-@ExtendWith(WeNetTaskManagerIntegrationExtension.class)
-public class VersionsIT {
+@Schema(name = "Info", description = "Provide the version information of the API")
+public class APIInfo extends Model {
 
-	/**
-	 * Verify that return the version.
-	 *
-	 * @param client      to connect to the server.
-	 * @param testContext context to test.
-	 */
-	@Test
-	public void shouldReturnVersion(WebClient client, VertxTestContext testContext) {
+  /**
+   * The current version of the API.
+   */
+  @Schema(description = "Contain the name of the API", example = "wenet/task-manager")
+  public String name;
 
-		testRequest(client, HttpMethod.GET, Versions.PATH).expect(res -> {
-			assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-			final Version version = assertThatBodyIs(Version.class, res);
-			assertThat(version.api).isNotEmpty();
-			assertThat(version.software).isNotEmpty();
-			assertThat(version.vendor).isNotEmpty();
-		}).send(testContext);
-	}
+  /**
+   * The current version of the API.
+   */
+  @Schema(description = "Contain the implementation version number of the API", example = "1.0.0")
+  public String apiVersion;
+
+  /**
+   * The current version of the software.
+   */
+  @Schema(description = "Contain the implementation version number of the software", example = "1.0.0")
+  public String softwareVersion;
+
+  /**
+   * The current vendor of the API.
+   */
+  @Schema(description = "Contain information of the organization that has implemented the API", example = "UDT-IA, IIIA-CSIC")
+  public String vendor;
+
+  /**
+   * The current vendor of the API.
+   */
+  @Schema(description = "Contain information of the license of the API", example = "MIT")
+  public String license;
+
+  /**
+   * Create a new version.
+   */
+  public APIInfo() {
+
+  }
 }

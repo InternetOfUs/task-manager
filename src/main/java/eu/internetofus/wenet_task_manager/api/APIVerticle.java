@@ -29,10 +29,10 @@ package eu.internetofus.wenet_task_manager.api;
 import eu.internetofus.common.components.task_manager.WeNetTaskManager;
 import eu.internetofus.common.components.task_manager.WeNetTaskManagerClient;
 import eu.internetofus.common.vertx.AbstractAPIVerticle;
+import eu.internetofus.wenet_task_manager.api.help.Help;
+import eu.internetofus.wenet_task_manager.api.help.HelpResource;
 import eu.internetofus.wenet_task_manager.api.tasks.Tasks;
 import eu.internetofus.wenet_task_manager.api.tasks.TasksResource;
-import eu.internetofus.wenet_task_manager.api.versions.Versions;
-import eu.internetofus.wenet_task_manager.api.versions.VersionsResource;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.client.WebClient;
@@ -60,8 +60,8 @@ public class APIVerticle extends AbstractAPIVerticle {
   @Override
   protected void mountServiceInterfaces(final OpenAPI3RouterFactory routerFactory) {
 
-    routerFactory.mountServiceInterface(Versions.class, Versions.ADDRESS);
-    new ServiceBinder(this.vertx).setAddress(Versions.ADDRESS).register(Versions.class, new VersionsResource(this));
+    routerFactory.mountServiceInterface(Help.class, Help.ADDRESS);
+    new ServiceBinder(this.vertx).setAddress(Help.ADDRESS).register(Help.class, new HelpResource(this));
 
     routerFactory.mountServiceInterface(Tasks.class, Tasks.ADDRESS);
     new ServiceBinder(this.vertx).setAddress(Tasks.ADDRESS).register(Tasks.class, new TasksResource(this.vertx));
@@ -79,7 +79,7 @@ public class APIVerticle extends AbstractAPIVerticle {
   protected void startedServerAt(final String host, final int port) {
 
     final JsonObject conf = new JsonObject();
-    conf.put(WeNetTaskManagerClient.TASK_MANAGER_CONF_KEY,"http://" + host + ":" + port);
+    conf.put(WeNetTaskManagerClient.TASK_MANAGER_CONF_KEY, "http://" + host + ":" + port);
     final WebClient client = WebClient.create(this.vertx);
     WeNetTaskManager.register(this.vertx, client, conf);
 

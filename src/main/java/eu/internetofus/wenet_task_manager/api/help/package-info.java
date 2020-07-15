@@ -24,30 +24,9 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.wenet_task_manager.api.versions;
-
-import eu.internetofus.common.components.ModelTestCase;
-
 /**
- * Test the {@link Version}.
- *
- * @see Version
+ * The components to provide help about the API.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public class VersionTest extends ModelTestCase<Version> {
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Version createModelExample(int index) {
-
-		final Version version = new Version();
-		version.api = "0.0." + index;
-		version.software = "0." + index + ".0";
-		version.vendor = "UDT-IA, IIIA-CSIC";
-		return version;
-	}
-
-}
+package eu.internetofus.wenet_task_manager.api.help;

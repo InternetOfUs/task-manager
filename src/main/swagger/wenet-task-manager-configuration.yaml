@@ -4,14 +4,14 @@ prettyPrint: true
 cacheTTL: 0
 openAPI:
   tags:
-    - name: Other
-      description: Other services provided by the API.
     - name: Tasks
       description: The functionality provided allows to manage the tasks.
     - name: Task Types
       description: The functionality provided allows to manage the task types.
     - name: Task Transactions
       description: The functionality provided allows to modify a task by a transaction.
+    - name: Other
+      description: Other services provided by the API.
   info:
     # The verion of the API has to be synchonized with the 'api-version' property of the 'pom.xml'
     version: '0.4.0'
