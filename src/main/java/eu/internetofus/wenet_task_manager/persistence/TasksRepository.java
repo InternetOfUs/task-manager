@@ -173,7 +173,7 @@ public interface TasksRepository {
   @GenIgnore
   default void updateTask(final Task task, final Handler<AsyncResult<Void>> updateHandler) {
 
-    final JsonObject object = task.toJsonObject();
+    final JsonObject object = task.toJsonObjectWithEmptyValues();
     if (object == null) {
 
       updateHandler.handle(Future.failedFuture("The task can not converted to JSON."));

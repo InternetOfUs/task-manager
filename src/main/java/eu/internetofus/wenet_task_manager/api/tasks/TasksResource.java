@@ -219,24 +219,28 @@ public class TasksResource implements Tasks {
 
         } else {
 
-          target.merge(source, "bad_new_task", this.vertx).onComplete(merge -> {
+          source.id = null;
+          source.validate("bad_new_profile", this.vertx).onComplete(validate -> {
 
-            if (merge.failed()) {
+            if (validate.failed()) {
 
-              final Throwable cause = merge.cause();
+              final Throwable cause = validate.cause();
               Logger.debug(cause, "Cannot update {} with {}.", target, source);
               OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
             } else {
 
-              final Task merged = merge.result();
-              if (merged.equals(target)) {
+              source.id = target.id;
+              source._creationTs = target._creationTs;
+              source._lastUpdateTs = target._lastUpdateTs;
+              if (source.equals(target)) {
 
                 OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "task_to_update_equal_to_original",
-                    "You can not update the task of the task '" + taskId + "', because the new values is equals to the current one.");
+                    "You can not update the task '" + source.id + "', because the new values is equals to the current one.");
 
               } else {
-                this.repository.updateTask(merged, update -> {
+
+                this.repository.updateTask(source, update -> {
 
                   if (update.failed()) {
 
@@ -246,17 +250,14 @@ public class TasksResource implements Tasks {
 
                   } else {
 
-                    OperationReponseHandlers.responseOk(resultHandler, merged);
+                    OperationReponseHandlers.responseOk(resultHandler, source);
 
                   }
 
                 });
               }
             }
-          }
-
-              );
-
+          });
         }
       });
     }
@@ -376,24 +377,26 @@ public class TasksResource implements Tasks {
 
         } else {
 
-          target.merge(source, "bad_new_task_type", this.vertx).onComplete(merge -> {
+          source.id = null;
+          source.validate("bad_new_task_type", this.vertx).onComplete(validate -> {
 
-            if (merge.failed()) {
+            if (validate.failed()) {
 
-              final Throwable cause = merge.cause();
+              final Throwable cause = validate.cause();
               Logger.debug(cause, "Cannot update {} with {}.", target, source);
               OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
             } else {
 
-              final TaskType merged = merge.result();
-              if (merged.equals(target)) {
+              source.id = target.id;
+              if (source.equals(target)) {
 
                 OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "task_type_to_update_equal_to_original",
-                    "You can not update the task type '" + taskTypeId + "', because the new values is equals to the current one.");
+                    "You can not update the task type of the user '" + source.id + "', because the new values is equals to the current one.");
 
               } else {
-                this.typesRepository.updateTaskType(merged, update -> {
+
+                this.typesRepository.updateTaskType(source, update -> {
 
                   if (update.failed()) {
 
@@ -403,17 +406,14 @@ public class TasksResource implements Tasks {
 
                   } else {
 
-                    OperationReponseHandlers.responseOk(resultHandler, merged);
+                    OperationReponseHandlers.responseOk(resultHandler, source);
 
                   }
 
                 });
               }
             }
-          }
-
-              );
-
+          });
         }
       });
     }
@@ -609,4 +609,136 @@ public class TasksResource implements Tasks {
     }
 
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void mergeTask(final String taskId, final JsonObject body, final OperationRequest context, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+
+    final Task source = Model.fromJsonObject(body, Task.class);
+    if (source == null) {
+
+      Logger.debug("The {} is not a valid Task to merge.", body);
+      OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task_to_merge", "The task to merge is not right.");
+
+    } else {
+
+      this.repository.searchTask(taskId, search -> {
+
+        final Task target = search.result();
+        if (target == null) {
+
+          Logger.debug(search.cause(), "Not found task {} to merge", taskId);
+          OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND, "not_found_task_to_merge", "You can not merge the task '" + taskId + "', because it does not exist.");
+
+        } else {
+
+          target.merge(source, "bad_new_task", this.vertx).onComplete(merge -> {
+
+            if (merge.failed()) {
+
+              final Throwable cause = merge.cause();
+              Logger.debug(cause, "Cannot merge {} with {}.", target, source);
+              OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+
+            } else {
+
+              final Task merged = merge.result();
+              if (merged.equals(target)) {
+
+                OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "task_to_merge_equal_to_original",
+                    "You can not merge the task of the task '" + taskId + "', because the new values is equals to the current one.");
+
+              } else {
+
+                this.repository.updateTask(merged, updated -> {
+
+                  if (updated.failed()) {
+
+                    final Throwable cause = updated.cause();
+                    Logger.debug(cause, "Cannot merge {}.", target);
+                    OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+
+                  } else {
+
+                    OperationReponseHandlers.responseOk(resultHandler, merged);
+
+                  }
+
+                });
+              }
+            }
+          });
+        }
+      });
+    }
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void mergeTaskType(final String taskTypeId, final JsonObject body, final OperationRequest context, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+
+    final TaskType source = Model.fromJsonObject(body, TaskType.class);
+    if (source == null) {
+
+      Logger.debug("The {} is not a valid TaskType to merge.", body);
+      OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task_type_to_merge", "The task type to merge is not right.");
+
+    } else {
+
+      this.typesRepository.searchTaskType(taskTypeId, search -> {
+
+        final TaskType target = search.result();
+        if (target == null) {
+
+          Logger.debug(search.cause(), "Not found task type {} to merge", taskTypeId);
+          OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND, "not_found_task_type_to_merge", "You can not merge the task type '" + taskTypeId + "', because it does not exist.");
+
+        } else {
+
+          target.merge(source, "bad_new_task_type", this.vertx).onComplete(merge -> {
+
+            if (merge.failed()) {
+
+              final Throwable cause = merge.cause();
+              Logger.debug(cause, "Cannot merge {} with {}.", target, source);
+              OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+
+            } else {
+
+              final TaskType merged = merge.result();
+              if (merged.equals(target)) {
+
+                OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "task_type_to_merge_equal_to_original",
+                    "You can not merge the task type '" + taskTypeId + "', because the new values is equals to the current one.");
+
+              } else {
+                this.typesRepository.updateTaskType(merged, update -> {
+
+                  if (update.failed()) {
+
+                    final Throwable cause = update.cause();
+                    Logger.debug(cause, "Cannot update {}.", target);
+                    OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+
+                  } else {
+
+                    OperationReponseHandlers.responseOk(resultHandler, merged);
+
+                  }
+
+                });
+              }
+            }
+          });
+        }
+      });
+    }
+
+  }
+
 }

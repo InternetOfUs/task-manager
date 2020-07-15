@@ -225,20 +225,20 @@ public class TasksResourceTest {
   }
 
   /**
-   * Check fail update task type because typesRepository can not update it.
+   * Check fail merge task type because typesRepository can not merge it.
    *
    * @param testContext test context.
    */
   @Test
-  public void shouldFailUpdateTaskTypeBecasuetypesRepositoryFailsToUpdate(final VertxTestContext testContext) {
+  public void shouldFailMergeTaskTypeBecasuetypesRepositoryFailsToMerge(final VertxTestContext testContext) {
 
     final TasksResource resource = createTasksResource();
     final OperationRequest context = mock(OperationRequest.class);
     final TaskType source = new TaskType();
     source.description = "New description";
-    resource.updateTaskType("taskTypeId", source.toJsonObject(), context, testContext.succeeding(update -> {
+    resource.mergeTaskType("taskTypeId", source.toJsonObject(), context, testContext.succeeding(merge -> {
 
-      assertThat(update.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+      assertThat(merge.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
       testContext.completeNow();
     }));
 
@@ -247,9 +247,9 @@ public class TasksResourceTest {
     verify(resource.typesRepository, times(1)).searchTaskType(any(), searchHandler.capture());
     searchHandler.getValue().handle(Future.succeededFuture(new TaskTypeTest().createModelExample(1)));
     @SuppressWarnings("unchecked")
-    final ArgumentCaptor<Handler<AsyncResult<Void>>> updateHandler = ArgumentCaptor.forClass(Handler.class);
-    verify(resource.typesRepository, times(1)).updateTaskType(any(TaskType.class), updateHandler.capture());
-    updateHandler.getValue().handle(Future.failedFuture("Update task type error"));
+    final ArgumentCaptor<Handler<AsyncResult<Void>>> mergeHandler = ArgumentCaptor.forClass(Handler.class);
+    verify(resource.typesRepository, times(1)).updateTaskType(any(TaskType.class), mergeHandler.capture());
+    mergeHandler.getValue().handle(Future.failedFuture("Merge task type error"));
 
   }
 

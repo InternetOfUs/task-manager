@@ -32,6 +32,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -180,7 +181,7 @@ public interface Tasks {
       @Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
 
   /**
-   * Called when want to modify a task.
+   * Called when want to update a task.
    *
    * @param taskId        identifier of the task to modify.
    * @param body          the new task attributes.
@@ -191,12 +192,32 @@ public interface Tasks {
   @Path(TASK_ID_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
-  @Operation(summary = "Modify a task", description = "Change the attributes of a task")
+  @Operation(summary = "Modify a task", description = "Change a task")
   @RequestBody(description = "The new values for the task", required = true, content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
   @ApiResponse(responseCode = "200", description = "The updated task", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
   @ApiResponse(responseCode = "400", description = "Bad task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   @ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   void updateTask(@PathParam("taskId") @Parameter(description = "The identifier of the task to update", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskId, @Parameter(hidden = true, required = false) JsonObject body,
+      @Parameter(hidden = true, required = false) OperationRequest context, @Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
+
+  /**
+   * Called when want to modify a task.
+   *
+   * @param taskId        identifier of the task to modify.
+   * @param body          the new task attributes.
+   * @param context       of the request.
+   * @param resultHandler to inform of the response.
+   */
+  @PATCH
+  @Path(TASK_ID_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(summary = "Modify partially a task", description = "Change some attributes of a task")
+  @RequestBody(description = "The new values for the task", required = true, content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
+  @ApiResponse(responseCode = "200", description = "The merged task", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
+  @ApiResponse(responseCode = "400", description = "Bad task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  void mergeTask(@PathParam("taskId") @Parameter(description = "The identifier of the task to merge", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskId, @Parameter(hidden = true, required = false) JsonObject body,
       @Parameter(hidden = true, required = false) OperationRequest context, @Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
 
   /**
@@ -257,7 +278,7 @@ public interface Tasks {
    * @param name          the pattern to match with the names of the task types.
    * @param description   the pattern to match with the descriptions of the task types.
    * @param keywords      the patterns to match with the keywords of the task types.
-   * @param order to return the found task types.
+   * @param order         to return the found task types.
    * @param offset        index of the first task type to return.
    * @param limit         number maximum of task types to return.
    * @param context       of the request.
@@ -297,6 +318,28 @@ public interface Tasks {
   @ApiResponse(responseCode = "400", description = "Bad task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   @ApiResponse(responseCode = "404", description = "Not found task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   void updateTaskType(@PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to update", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
+      @Parameter(hidden = true, required = false) JsonObject body, @Parameter(hidden = true, required = false) OperationRequest context, @Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
+
+
+  /**
+   * Called when want to modify a task type.
+   *
+   * @param taskTypeId    identifier of the task type to modify.
+   * @param body          the new task attributes.
+   * @param context       of the request.
+   * @param resultHandler to inform of the response.
+   */
+  @Tag(name = "Task Types")
+  @PATCH
+  @Path(TYPES_PATH + TASK_TYPE_ID_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(summary = "Modify a task type", description = "Change the attributes of a task type")
+  @RequestBody(description = "The new values for the task type", required = true, content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
+  @ApiResponse(responseCode = "200", description = "The merged task type", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
+  @ApiResponse(responseCode = "400", description = "Bad task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @ApiResponse(responseCode = "404", description = "Not found task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  void mergeTaskType(@PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to merge", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
       @Parameter(hidden = true, required = false) JsonObject body, @Parameter(hidden = true, required = false) OperationRequest context, @Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
 
   /**

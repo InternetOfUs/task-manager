@@ -88,7 +88,6 @@ public class TasksIT {
       final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty();
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-      testContext.completeNow();
 
     }).send(testContext);
   }
@@ -112,7 +111,6 @@ public class TasksIT {
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
         final Task found = assertThatBodyIs(Task.class, res);
         assertThat(found).isEqualTo(task);
-        testContext.completeNow();
 
       })).send(testContext);
 
@@ -137,7 +135,6 @@ public class TasksIT {
       final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty().isEqualTo("bad_task");
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-      testContext.completeNow();
 
     }).sendJson(new JsonObject().put("udefinedKey", "value"), testContext);
   }
@@ -162,7 +159,6 @@ public class TasksIT {
         final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
         assertThat(error.code).isNotEmpty().isEqualTo("bad_task.id");
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-        testContext.completeNow();
 
       }).sendJson(created.toJsonObject(), testContext);
 
@@ -201,7 +197,7 @@ public class TasksIT {
 
         })));
 
-      }).sendJson(task.toJsonObject(), testContext);
+      }).sendJson(task.toJsonObject(), testContext, testContext.checkpoint(2));
 
     }));
 
@@ -226,7 +222,6 @@ public class TasksIT {
       final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty();
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-      testContext.completeNow();
 
     }).sendJson(task.toJsonObject(), testContext);
 
@@ -252,7 +247,6 @@ public class TasksIT {
       final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty();
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-      testContext.completeNow();
 
     }).sendJson(task.toJsonObject(), testContext);
   }
@@ -278,7 +272,6 @@ public class TasksIT {
         final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
         assertThat(error.code).isNotEmpty();
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-        testContext.completeNow();
 
       }).sendJson(new JsonObject().put("udefinedKey", "value"), testContext);
     }));
@@ -305,7 +298,6 @@ public class TasksIT {
         final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
         assertThat(error.code).isNotEmpty();
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-        testContext.completeNow();
 
       }).sendJson(new JsonObject(), testContext);
     }));
@@ -333,7 +325,6 @@ public class TasksIT {
         final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
         assertThat(error.code).isNotEmpty().endsWith(".taskTypeId");
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-        testContext.completeNow();
 
       }).sendJson(new TaskTest().createModelExample(1).toJsonObject(), testContext);
     }));
@@ -367,7 +358,6 @@ public class TasksIT {
           source._lastUpdateTs = updated._lastUpdateTs;
           source.norms.get(0).id = updated.norms.get(0).id;
           assertThat(updated).isEqualTo(source);
-          testContext.completeNow();
 
         })).sendJson(source.toJsonObject(), testContext);
       }));
@@ -393,7 +383,6 @@ public class TasksIT {
       final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty();
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-      testContext.completeNow();
 
     }).send(testContext);
   }
@@ -418,7 +407,7 @@ public class TasksIT {
         assertThat(res.statusCode()).isEqualTo(Status.NO_CONTENT.getStatusCode());
         repository.searchTask(storedTask.id, testContext.failing(error -> testContext.completeNow()));
 
-      })).send(testContext);
+      })).send(testContext,testContext.checkpoint(2));
 
     }));
 
@@ -434,7 +423,7 @@ public class TasksIT {
    * @see Tasks#retrieveTask(String, io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
    */
   @Test
-  public void shouldUpdateOnlyAppIdOnTask(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldMergeOnlyAppIdOnTask(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
     StoreServices.storeTaskExample(2, vertx, testContext, testContext.succeeding(target -> {
 
@@ -442,7 +431,7 @@ public class TasksIT {
 
         final Task source = new Task();
         source.appId = app.appId;
-        testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + target.id).expect(res -> testContext.verify(() -> {
+        testRequest(client, HttpMethod.PATCH, Tasks.PATH + "/" + target.id).expect(res -> testContext.verify(() -> {
 
           assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
           final Task updated = assertThatBodyIs(Task.class, res);
@@ -450,7 +439,6 @@ public class TasksIT {
           target._lastUpdateTs = updated._lastUpdateTs;
           target.appId = app.appId;
           assertThat(updated).isEqualTo(target);
-          testContext.completeNow();
 
         })).sendJson(source.toJsonObject(), testContext);
       }));
@@ -475,7 +463,6 @@ public class TasksIT {
       final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty();
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-      testContext.completeNow();
 
     }).send(testContext);
   }
@@ -499,7 +486,6 @@ public class TasksIT {
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
         final TaskType found = assertThatBodyIs(TaskType.class, res);
         assertThat(found).isEqualTo(taskType);
-        testContext.completeNow();
 
       })).send(testContext);
 
@@ -525,7 +511,6 @@ public class TasksIT {
       final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty().isEqualTo("bad_task_type");
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-      testContext.completeNow();
 
     }).sendJson(new JsonObject().put("udefinedKey", "value"), testContext);
   }
@@ -553,7 +538,6 @@ public class TasksIT {
         final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
         assertThat(error.code).isNotEmpty().isEqualTo("bad_task_type.id");
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-        testContext.completeNow();
 
       }).sendJson(taskType.toJsonObject(), testContext);
 
@@ -593,7 +577,7 @@ public class TasksIT {
 
       })));
 
-    }).sendJson(taskType.toJsonObject(), testContext);
+    }).sendJson(taskType.toJsonObject(), testContext,testContext.checkpoint(2));
 
   }
 
@@ -614,7 +598,6 @@ public class TasksIT {
     testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + Tasks.TYPES_PATH).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-      testContext.completeNow();
 
     }).sendJson(taskType.toJsonObject(), testContext);
 
@@ -654,7 +637,7 @@ public class TasksIT {
 
       })));
 
-    }).sendJson(taskType.toJsonObject(), testContext);
+    }).sendJson(taskType.toJsonObject(), testContext,testContext.checkpoint(2));
 
   }
 
@@ -678,7 +661,6 @@ public class TasksIT {
       final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty();
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-      testContext.completeNow();
 
     }).sendJson(taskType.toJsonObject(), testContext);
   }
@@ -704,7 +686,6 @@ public class TasksIT {
         final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
         assertThat(error.code).isNotEmpty();
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-        testContext.completeNow();
 
       }).sendJson(new JsonObject().put("udefinedKey", "value"), testContext);
     }));
@@ -731,7 +712,6 @@ public class TasksIT {
         final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
         assertThat(error.code).isNotEmpty();
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-        testContext.completeNow();
 
       }).sendJson(new JsonObject(), testContext);
     }));
@@ -761,7 +741,6 @@ public class TasksIT {
         final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
         assertThat(error.code).isNotEmpty().endsWith(".name");
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-        testContext.completeNow();
 
       }).sendJson(badTaskType.toJsonObject(), testContext);
     }));
@@ -795,7 +774,6 @@ public class TasksIT {
         // source._lastUpdateTs = updated._lastUpdateTs;
         source.norms.get(0).id = updated.norms.get(0).id;
         assertThat(updated).isEqualTo(source);
-        testContext.completeNow();
 
       })).sendJson(source.toJsonObject(), testContext);
 
@@ -820,7 +798,6 @@ public class TasksIT {
       final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty();
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-      testContext.completeNow();
 
     }).send(testContext);
   }
@@ -845,7 +822,7 @@ public class TasksIT {
         assertThat(res.statusCode()).isEqualTo(Status.NO_CONTENT.getStatusCode());
         repository.searchTaskType(storedTaskType.id, testContext.failing(error -> testContext.completeNow()));
 
-      })).send(testContext);
+      })).send(testContext,testContext.checkpoint(2));
 
     }));
 
@@ -861,13 +838,13 @@ public class TasksIT {
    * @see Tasks#retrieveTaskType(String, io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
    */
   @Test
-  public void shouldUpdateOnlyNameOnTaskType(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldMergeOnlyNameOnTaskType(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
     StoreServices.storeTaskTypeExample(1, vertx, testContext, testContext.succeeding(target -> {
 
       final TaskType source = new TaskType();
       source.name = "NEW task type name";
-      testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/" + target.id).expect(res -> testContext.verify(() -> {
+      testRequest(client, HttpMethod.PATCH, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/" + target.id).expect(res -> testContext.verify(() -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
         final TaskType updated = assertThatBodyIs(TaskType.class, res);
@@ -875,7 +852,6 @@ public class TasksIT {
         // target._lastUpdateTs = updated._lastUpdateTs;
         target.name = "NEW task type name";
         assertThat(updated).isEqualTo(target);
-        testContext.completeNow();
 
       })).sendJson(source.toJsonObject(), testContext);
     }));
@@ -883,7 +859,7 @@ public class TasksIT {
   }
 
   /**
-   * Verify that not update the task type because it not produce any change.
+   * Verify that not merge the task type because it not produce any change.
    *
    * @param vertx       event bus to use.
    * @param client      to connect to the server.
@@ -892,18 +868,17 @@ public class TasksIT {
    * @see Tasks#retrieveTaskType(String, io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
    */
   @Test
-  public void shouldNotUpdateBecasueNotChangedOnTaskType(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldNotMergeBecasueNotChangedOnTaskType(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
     StoreServices.storeTaskTypeExample(1, vertx, testContext, testContext.succeeding(target -> {
 
       final TaskType source = new TaskType();
-      testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/" + target.id).expect(res -> testContext.verify(() -> {
+      testRequest(client, HttpMethod.PATCH, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/" + target.id).expect(res -> testContext.verify(() -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
         final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
-        assertThat(error.code).isNotEmpty().isEqualTo("task_type_to_update_equal_to_original");
+        assertThat(error.code).isNotEmpty().isEqualTo("task_type_to_merge_equal_to_original");
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-        testContext.completeNow();
 
       })).sendJson(source.toJsonObject(), testContext);
     }));
@@ -927,7 +902,6 @@ public class TasksIT {
       final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty().isEqualTo("bad_task_transaction");
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-      testContext.completeNow();
 
     }).sendJson(new JsonObject().put("udefinedKey", "value"), testContext);
   }
@@ -951,7 +925,6 @@ public class TasksIT {
       final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty().isEqualTo("bad_task_transaction.taskId");
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-      testContext.completeNow();
 
     }).sendJson(taskTransaction.toJsonObject(), testContext);
 
@@ -976,7 +949,6 @@ public class TasksIT {
       final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty().isEqualTo("bad_task_transaction.taskId");
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-      testContext.completeNow();
 
     }).sendJson(taskTransaction.toJsonObject(), testContext);
 
@@ -995,8 +967,8 @@ public class TasksIT {
   public void shouldNotGetTasksPageWithBadOrder(final String order, final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("order", order)).expect(res -> {
+
       assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-      testContext.completeNow();
 
     }).send(testContext);
 
@@ -1013,13 +985,13 @@ public class TasksIT {
   public void shouldGetEmptyTasksPageWithLargeOffset(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", String.valueOf(Integer.MAX_VALUE))).expect(res -> {
+
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
       final TasksPage page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(Integer.MAX_VALUE);
       assertThat(page.total).isGreaterThanOrEqualTo(0);
       assertThat(page.tasks).isNull();
-      testContext.completeNow();
 
     }).send(testContext);
   }
@@ -1037,12 +1009,12 @@ public class TasksIT {
   public void shouldGetTasksPageOrderByField(final String field, final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("order", field), queryParam("appId", UUID.randomUUID().toString())).expect(res -> {
+
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
       final TasksPage page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.total).isEqualTo(0);
       assertThat(page.tasks).isNull();
-      testContext.completeNow();
 
     }).send(testContext);
 
@@ -1060,13 +1032,13 @@ public class TasksIT {
 
     final String appId = UUID.randomUUID().toString();
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("appId", appId)).expect(res -> {
+
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
       final TasksPage page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
       assertThat(page.tasks).isNull();
-      testContext.completeNow();
 
     }).send(testContext);
   }
@@ -1091,13 +1063,13 @@ public class TasksIT {
       }).onComplete(testContext.succeeding(tasks -> {
 
         testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("appId", app.appId), queryParam("offset", "1"), queryParam("limit", "2")).expect(res -> {
+
           assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
           final TasksPage page = assertThatBodyIs(TasksPage.class, res);
           assertThat(page).isNotNull();
           assertThat(page.offset).isEqualTo(1);
           assertThat(page.total).isEqualTo(4);
           assertThat(page.tasks).isNotNull().hasSize(2).contains(tasks.get(2), tasks.get(4));
-          testContext.completeNow();
 
         }).send(testContext);
 
@@ -1122,13 +1094,13 @@ public class TasksIT {
       tasks.sort((t1, t2) -> t1.goal.name.compareTo(t2.goal.name));
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", "1"), queryParam("order", "-goalName,+appId,goalDescription"), queryParam("appId", "/^" + tasks.get(1).appId + "$|^" + tasks.get(7).appId + "$/"))
       .expect(res -> {
+
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
         final TasksPage page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(1);
         assertThat(page.total).isEqualTo(2);
         assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
-        testContext.completeNow();
 
       }).send(testContext);
 
@@ -1149,12 +1121,12 @@ public class TasksIT {
     final String requesterId = UUID.randomUUID().toString();
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("requesterId", requesterId)).expect(res -> {
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+
       final TasksPage page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
       assertThat(page.tasks).isNull();
-      testContext.completeNow();
 
     }).send(testContext);
   }
@@ -1179,13 +1151,13 @@ public class TasksIT {
       }).onComplete(testContext.succeeding(tasks -> {
 
         testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", "3"), queryParam("limit", "1"), queryParam("requesterId", requester.id)).expect(res -> {
+
           assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
           final TasksPage page = assertThatBodyIs(TasksPage.class, res);
           assertThat(page).isNotNull();
           assertThat(page.offset).isEqualTo(3);
           assertThat(page.total).isEqualTo(4);
           assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(6));
-          testContext.completeNow();
 
         }).send(testContext);
 
@@ -1210,13 +1182,13 @@ public class TasksIT {
       tasks.sort((t1, t2) -> t1.goal.name.compareTo(t2.goal.name));
       testRequest(client, HttpMethod.GET, Tasks.PATH)
       .with(queryParam("offset", "1"), queryParam("order", "-goalName,+requesterId,goalDescription"), queryParam("requesterId", "/^" + tasks.get(1).requesterId + "$|^" + tasks.get(7).requesterId + "$/")).expect(res -> {
+
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
         final TasksPage page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(1);
         assertThat(page.total).isEqualTo(2);
         assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
-        testContext.completeNow();
 
       }).send(testContext);
 
@@ -1236,13 +1208,13 @@ public class TasksIT {
 
     final String taskTypeId = UUID.randomUUID().toString();
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("taskTypeId", taskTypeId)).expect(res -> {
+
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
       final TasksPage page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
       assertThat(page.tasks).isNull();
-      testContext.completeNow();
 
     }).send(testContext);
   }
@@ -1267,13 +1239,13 @@ public class TasksIT {
       }).onComplete(testContext.succeeding(tasks -> {
 
         testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("taskTypeId", taskType.id)).expect(res -> {
+
           assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
           final TasksPage page = assertThatBodyIs(TasksPage.class, res);
           assertThat(page).isNotNull();
           assertThat(page.offset).isEqualTo(0);
           assertThat(page.total).isEqualTo(4);
           assertThat(page.tasks).isNotNull().hasSize(4).contains(tasks.get(0), tasks.get(2), tasks.get(4), tasks.get(6));
-          testContext.completeNow();
 
         }).send(testContext);
 
@@ -1298,13 +1270,13 @@ public class TasksIT {
       tasks.sort((t1, t2) -> t1.goal.name.compareTo(t2.goal.name));
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", "1"), queryParam("order", "-goal.name,+taskTypeId"), queryParam("taskTypeId", "/^" + tasks.get(1).taskTypeId + "$|^" + tasks.get(7).taskTypeId + "$/"))
       .expect(res -> {
+
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
         final TasksPage page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(1);
         assertThat(page.total).isEqualTo(2);
         assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
-        testContext.completeNow();
 
       }).send(testContext);
 
@@ -1324,13 +1296,13 @@ public class TasksIT {
 
     final String goalName = UUID.randomUUID().toString();
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", goalName)).expect(res -> {
+
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
       final TasksPage page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
       assertThat(page.tasks).isNull();
-      testContext.completeNow();
 
     }).send(testContext);
   }
@@ -1355,13 +1327,13 @@ public class TasksIT {
     }).onComplete(testContext.succeeding(tasks -> {
 
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", goalName)).expect(res -> {
+
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
         final TasksPage page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(0);
         assertThat(page.total).isEqualTo(4);
         assertThat(page.tasks).isNotNull().hasSize(4).contains(tasks.get(0), tasks.get(2), tasks.get(4), tasks.get(6));
-        testContext.completeNow();
 
       }).send(testContext);
 
@@ -1384,13 +1356,13 @@ public class TasksIT {
 
       tasks.sort((t1, t2) -> t1.goal.name.compareTo(t2.goal.name));
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", "1"), queryParam("limit", "1"), queryParam("order", "-goal.name"), queryParam("goalName", "/" + goalName.replaceAll("-", "\\-") + "$/")).expect(res -> {
+
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
         final TasksPage page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(1);
         assertThat(page.total).isEqualTo(8);
         assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(6));
-        testContext.completeNow();
 
       }).send(testContext);
 
@@ -1410,13 +1382,13 @@ public class TasksIT {
 
     final String goalDescription = UUID.randomUUID().toString();
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalDescription", goalDescription)).expect(res -> {
+
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
       final TasksPage page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
       assertThat(page.tasks).isNull();
-      testContext.completeNow();
 
     }).send(testContext);
   }
@@ -1441,13 +1413,13 @@ public class TasksIT {
     }).onComplete(testContext.succeeding(tasks -> {
 
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalDescription", goalDescription)).expect(res -> {
+
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
         final TasksPage page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(0);
         assertThat(page.total).isEqualTo(4);
         assertThat(page.tasks).isNotNull().hasSize(4).contains(tasks.get(0), tasks.get(2), tasks.get(4), tasks.get(6));
-        testContext.completeNow();
 
       }).send(testContext);
 
@@ -1471,13 +1443,13 @@ public class TasksIT {
       tasks.sort((t1, t2) -> t1.goal.description.compareTo(t2.goal.description));
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", "2"), queryParam("limit", "2"), queryParam("order", "-goal.description"), queryParam("goalDescription", "/" + goalDescription.replaceAll("-", "\\-") + "$/"))
       .expect(res -> {
+
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
         final TasksPage page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(2);
         assertThat(page.total).isEqualTo(8);
         assertThat(page.tasks).isNotNull().hasSize(2).contains(tasks.get(5), tasks.get(4));
-        testContext.completeNow();
 
       }).send(testContext);
 
@@ -1496,13 +1468,13 @@ public class TasksIT {
   public void shouldGetEmptyTasksPageWithAnytAskOnStartTsRange(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("startFrom", "0"), queryParam("startTo", "1")).expect(res -> {
+
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
       final TasksPage page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
       assertThat(page.tasks).isNull();
-      testContext.completeNow();
 
     }).send(testContext);
   }
@@ -1521,13 +1493,13 @@ public class TasksIT {
     StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.name = name).onComplete(testContext.succeeding(tasks -> {
 
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("startFrom", String.valueOf(tasks.get(2).startTs)), queryParam("startTo", String.valueOf(tasks.get(5).startTs))).expect(res -> {
+
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
         final TasksPage page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(0);
         assertThat(page.total).isEqualTo(4);
         assertThat(page.tasks).isNotNull().isEqualTo(tasks.subList(2, 6));
-        testContext.completeNow();
 
       }).send(testContext);
 
@@ -1546,13 +1518,13 @@ public class TasksIT {
   public void shouldGetEmptyTasksPageWithAnytAskOnEndTsRange(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("endFrom", "0"), queryParam("endTo", "1")).expect(res -> {
+
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
       final TasksPage page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
       assertThat(page.tasks).isNull();
-      testContext.completeNow();
 
     }).send(testContext);
   }
@@ -1571,13 +1543,13 @@ public class TasksIT {
     StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.name = name).onComplete(testContext.succeeding(tasks -> {
 
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("endFrom", String.valueOf(tasks.get(2).endTs)), queryParam("endTo", String.valueOf(tasks.get(5).endTs))).expect(res -> {
+
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
         final TasksPage page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(0);
         assertThat(page.total).isEqualTo(4);
         assertThat(page.tasks).isNotNull().isEqualTo(tasks.subList(2, 6));
-        testContext.completeNow();
 
       }).send(testContext);
 
@@ -1596,13 +1568,13 @@ public class TasksIT {
   public void shouldGetEmptyTasksPageWithAnytAskOnDeadlineTsRange(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("deadlineFrom", "0"), queryParam("deadlineTo", "1")).expect(res -> {
+
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
       final TasksPage page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
       assertThat(page.tasks).isNull();
-      testContext.completeNow();
 
     }).send(testContext);
   }
@@ -1621,13 +1593,13 @@ public class TasksIT {
     StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.name = name).onComplete(testContext.succeeding(tasks -> {
 
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("deadlineFrom", String.valueOf(tasks.get(2).deadlineTs)), queryParam("deadlineTo", String.valueOf(tasks.get(5).deadlineTs))).expect(res -> {
+
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
         final TasksPage page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(0);
         assertThat(page.total).isEqualTo(4);
         assertThat(page.tasks).isNotNull().isEqualTo(tasks.subList(2, 6));
-        testContext.completeNow();
 
       }).send(testContext);
 
@@ -1646,13 +1618,13 @@ public class TasksIT {
   public void shouldGetEmptyTasksPageWithAnytAskOnCloseTsRange(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("closeFrom", "0"), queryParam("closeTo", "1")).expect(res -> {
+
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
       final TasksPage page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
       assertThat(page.tasks).isNull();
-      testContext.completeNow();
 
     }).send(testContext);
   }
@@ -1674,13 +1646,13 @@ public class TasksIT {
     }).onComplete(testContext.succeeding(tasks -> {
 
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("closeFrom", String.valueOf(tasks.get(2).closeTs)), queryParam("closeTo", String.valueOf(tasks.get(5).closeTs))).expect(res -> {
+
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
         final TasksPage page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(0);
         assertThat(page.total).isEqualTo(4);
         assertThat(page.tasks).isNotNull().isEqualTo(tasks.subList(2, 6));
-        testContext.completeNow();
 
       }).send(testContext);
 
@@ -1708,13 +1680,13 @@ public class TasksIT {
     }).onComplete(testContext.succeeding(tasks -> {
 
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("hasCloseTs", "true")).expect(res -> {
+
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
         final TasksPage page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(0);
         assertThat(page.total).isEqualTo(4);
-        assertThat(page.tasks).isNotNull().contains(tasks.get(0),tasks.get(2),tasks.get(4),tasks.get(6));
-        testContext.completeNow();
+        assertThat(page.tasks).isNotNull().contains(tasks.get(0), tasks.get(2), tasks.get(4), tasks.get(6));
 
       }).send(testContext);
 
@@ -1742,13 +1714,13 @@ public class TasksIT {
     }).onComplete(testContext.succeeding(tasks -> {
 
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("hasCloseTs", "false")).expect(res -> {
+
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
         final TasksPage page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(0);
         assertThat(page.total).isEqualTo(4);
-        assertThat(page.tasks).isNotNull().contains(tasks.get(1),tasks.get(3),tasks.get(5),tasks.get(7));
-        testContext.completeNow();
+        assertThat(page.tasks).isNotNull().contains(tasks.get(1), tasks.get(3), tasks.get(5), tasks.get(7));
 
       }).send(testContext);
 
