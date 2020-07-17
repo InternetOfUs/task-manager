@@ -2,7 +2,7 @@
 
 All notable changes to `wenet-task-manager` will be documented in this file
 
-## Version 0.5.0 (2020-07-15)
+## Version 0.5.0 (2020-07-17)
 
  * Add function to Merge and update the task and task type.
 

@@ -112,12 +112,14 @@ You can modify use the next environment properties to modify some parameters of 
 
 Also you can define your own configuration that modify this properties and mount to  **/usr/wenet/task-manager/etc**.
 
-If you want to start also a database and link both you can use the docker compose (`docker-compose -f src/main/docker/docker-compose.yml up -d`):
+If you want to start also a database and link both you can use the docker compose (`docker-compose -f src/main/docker/docker-compose.yml up -d`). To modify the component to links or the port to deploy use the next variables:
 
-After that you can interact with the API at **http://localhost:80**. You can modify the listening port
-with the next environment properties:
-
- - **API_PORT** to define the port where the API has to bind to the localhost. By default is **80**.
+ - **TASK_MANAGER_API_PORT** to define the port to listen for the API calls. By default is **8082**.
+ - **MONGO_ROOT_USER** to define the root user for the MongoDB. By default is **root**.
+ - **MONGO_ROOT_PASSWORD** to define the password of the root user for the MongoDB. By default is **password**.
+ - **WENET_PROFILE_MANAGER_API** to define the path to the profile manager component to use. By default is **"https://wenet.u-hopper.com/prod/profile_manager**.
+ - **WENET_INTERACTION_PROTOCOL_ENGINE_API** to define the path to the interaction protocol engine component to use. By default is **"https://wenet.u-hopper.com/prod/interaction_protocol_engine**.
+ - **WENET_SERVICE_API** to define the path to the service component to use. By default is **"https://wenet.u-hopper.com/prod/service**.
 
 When the container is ready you can access the logs of the component, following the next steps:
 
@@ -140,9 +142,6 @@ generate the Open API documentation, compile the component and run the test.
 ### Run and configure
 
 We encourage you to use the docker image of this component instead the next commands, because it is easier to use.
-
-
-### Easy way
 
 If you want to run this component you must to follow the next steps:
 
@@ -169,6 +168,7 @@ The task manager has the next available instances:
  - WeNet development task manager API is available at [https://wenet.u-hopper.com/dev/task_manager/](https://wenet.u-hopper.com/dev/task_manager/).
  - The IIIA stable task manager API is available at [http://ardid.iiia.csic.es/wenet/task-manager/latest/](http://ardid.iiia.csic.es/wenet/task-manager/latest/).
  - The IIIA development task manager API is available at [http://ardid.iiia.csic.es/wenet/task-manager/dev/](http://ardid.iiia.csic.es/wenet/task-manager/ldev/).
+ - The task manager API 0.4.X is available at [http://ardid.iiia.csic.es/wenet/task-manager/0.4/](http://ardid.iiia.csic.es/wenet/task-manager/0.4/).
  - The task manager API 0.3.X is available at [http://ardid.iiia.csic.es/wenet/task-manager/0.3/](http://ardid.iiia.csic.es/wenet/task-manager/0.3/).
  - The task manager API 0.2.0 is available at [http://ardid.iiia.csic.es/wenet/task-manager/0.2.0/](http://ardid.iiia.csic.es/wenet/task-manager/0.2.0/).
 
@@ -180,7 +180,17 @@ This software is under the [MIT license](LICENSE)
 
 ## Interaction with other WeNet components
 
-### Interaction protocol engine builder
+### Profile manager
+
+ - Used to validate that an user is defined (GET {{profile_manager_api}}/profiles/{{userId}}).
+ 
+
+### Service
+
+ - Used to validate that an application is defined (GET {{service_api}}/app/{{appId}}).
+ 
+
+### Interaction protocol engine
 
  - Convert any received transaction into a message to post. (POST {{interaction_protocol_engine_api}}/messages)
 
