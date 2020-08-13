@@ -26,49 +26,38 @@
 
 package eu.internetofus.common.components.profile_manager;
 
+import java.util.List;
+
 import eu.internetofus.common.components.Mergeable;
 import eu.internetofus.common.components.Merges;
-import eu.internetofus.common.components.Model;
 import eu.internetofus.common.components.Validable;
 import eu.internetofus.common.components.ValidationErrorException;
 import eu.internetofus.common.components.Validations;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 
 /**
- * A competence necessary for do a social practice.
+ * A member of a community.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-@Schema(hidden = true, name = "Competence", description = "It describe a competence of a user.")
-public class Competence extends Model implements Validable, Mergeable<Competence> {
+@Schema(hidden = true, name = "CommunityMember", description = "A member of a community.")
+public class CommunityMember extends CreateUpdateTsDetails implements Validable, Mergeable<CommunityMember> {
 
   /**
-   * The name of the competence.
+   * Identifier of the user that is member of the community.
    */
-  @Schema(description = "The name of the competence", example = "language_Italian_C1")
-  public String name;
+  @Schema(description = "The identifier of the user that is on the community.", example = "15837028-645a-4a55-9aaf-ceb846439eba")
+  public String userId;
 
   /**
-   * The ontology of the competence.
+   * The privileges of the user on the community.
    */
-  @Schema(description = "The ontology of the competence, such as ESCO (https://ec.europa.eu/esco/portal) or ISCO (https://www.ilo.org/public/english/bureau/stat/isco/isco08/)", example = "esco")
-  public String ontology;
-
-  /**
-   * The level of the competence.
-   */
-  @Schema(description = "The level of the competence (value in between 0 and 1, both included)", example = "1")
-  public Double level;
-
-  /**
-   * Create a new empty competence.
-   */
-  public Competence() {
-
-  }
+  @ArraySchema(schema = @Schema(implementation = String.class), arraySchema = @Schema(description = "The keywords that describe the community."))
+  public List<String> privileges;
 
   /**
    * {@inheritDoc}
@@ -77,59 +66,63 @@ public class Competence extends Model implements Validable, Mergeable<Competence
   public Future<Void> validate(final String codePrefix, final Vertx vertx) {
 
     final Promise<Void> promise = Promise.promise();
+    Future<Void> future = promise.future();
     try {
 
-      this.name = Validations.validateStringField(codePrefix, "name", 255, this.name);
-      this.ontology = Validations.validateStringField(codePrefix, "ontology", 255, this.ontology);
-      this.level = Validations.validateNumberOnRange(codePrefix, "level", this.level, false, 0d, 1d);
+      this.userId = Validations.validateStringField(codePrefix, "userId", 255, this.userId);
+      future = Validations.composeValidateId(future, codePrefix, "userId", this.userId, true, WeNetProfileManager.createProxy(vertx)::retrieveProfile);
+      this.privileges = Validations.validateNullableListStringField(codePrefix, "privileges", 255, this.privileges);
       promise.complete();
 
-    } catch (final ValidationErrorException validationCause) {
+    } catch (final ValidationErrorException validationError) {
 
-      promise.fail(validationCause);
+      promise.fail(validationError);
     }
 
-    return promise.future();
+    return future;
+
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Future<Competence> merge(final Competence source, final String codePrefix, final Vertx vertx) {
+  public Future<CommunityMember> merge(final CommunityMember source, final String codePrefix, final Vertx vertx) {
 
-    final Promise<Competence> promise = Promise.promise();
-    Future<Competence> future = promise.future();
+    final Promise<CommunityMember> promise = Promise.promise();
+    Future<CommunityMember> future = promise.future();
     if (source != null) {
 
-      final Competence merged = new Competence();
-      merged.name = source.name;
-      if (merged.name == null) {
+      final CommunityMember merged = new CommunityMember();
+      merged.userId = source.userId;
+      if (merged.userId == null) {
 
-        merged.name = this.name;
+        merged.userId = this.userId;
       }
 
-      merged.ontology = source.ontology;
-      if (merged.ontology == null) {
+      merged.privileges = source.privileges;
+      if (merged.privileges == null) {
 
-        merged.ontology = this.ontology;
+        merged.privileges = this.privileges;
       }
 
-      merged.level = source.level;
-      if (merged.level == null) {
-
-        merged.level = this.level;
-      }
-      promise.complete(merged);
-
-      // Validate the merged value
       future = future.compose(Merges.validateMerged(codePrefix, vertx));
+      future = future.map(mergedValidatedModel -> {
+
+        mergedValidatedModel._creationTs = this._creationTs;
+        mergedValidatedModel._lastUpdateTs = this._lastUpdateTs;
+        return mergedValidatedModel;
+      });
+
+      promise.complete(merged);
 
     } else {
 
       promise.complete(this);
     }
+
     return future;
+
   }
 
 }
