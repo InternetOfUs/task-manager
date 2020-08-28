@@ -39,27 +39,24 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @author UDT-IA, IIIA-CSIC
  */
 @Schema(name = "TaskPage", description = "Contains a set of tasks")
-public class TasksPage extends Model {
+public class TasksPage extends ReflectionModel implements Model {
 
-	/**
-	 * The index of the first task returned.
-	 */
-	@Schema(description = "The index of the first task returned.", example = "0")
-	public int offset;
+  /**
+   * The index of the first task returned.
+   */
+  @Schema(description = "The index of the first task returned.", example = "0")
+  public int offset;
 
-	/**
-	 * The number total of task that satisfies the search.
-	 */
-	@Schema(description = "The number total of tasks that satisfies the search.", example = "100")
-	public long total;
+  /**
+   * The number total of task that satisfies the search.
+   */
+  @Schema(description = "The number total of tasks that satisfies the search.", example = "100")
+  public long total;
 
-	/**
-	 * The found profiles.
-	 */
-	@ArraySchema(
-			schema = @Schema(
-					ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task"),
-			arraySchema = @Schema(description = "The set of tasks found"))
-	public List<Task> tasks;
+  /**
+   * The found profiles.
+   */
+  @ArraySchema(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/Task"), arraySchema = @Schema(description = "The set of tasks found"))
+  public List<Task> tasks;
 
 }

@@ -109,14 +109,14 @@ public class TasksResourceTest {
   @BeforeEach
   public void registerServices(final Vertx vertx) {
 
-    final WebClient client = WebClient.create(vertx);
-    final JsonObject profileConf = profileManagerMocker.getComponentConfiguration();
+    final var client = WebClient.create(vertx);
+    final var profileConf = profileManagerMocker.getComponentConfiguration();
     WeNetProfileManager.register(vertx, client, profileConf);
 
-    final JsonObject taskConf = taskManagerMocker.getComponentConfiguration();
+    final var taskConf = taskManagerMocker.getComponentConfiguration();
     WeNetTaskManager.register(vertx, client, taskConf);
 
-    final JsonObject conf = serviceMocker.getComponentConfiguration();
+    final var conf = serviceMocker.getComponentConfiguration();
     WeNetService.register(vertx, client, conf);
     WeNetServiceSimulator.register(vertx, client, conf);
 
@@ -129,7 +129,7 @@ public class TasksResourceTest {
    */
   public static TasksResource createTasksResource() {
 
-    final TasksResource resource = new TasksResource();
+    final var resource = new TasksResource();
     resource.repository = mock(TasksRepository.class);
     resource.typesRepository = mock(TaskTypesRepository.class);
     return resource;
@@ -147,8 +147,8 @@ public class TasksResourceTest {
 
     new TaskTest().createModelExample(1, vertx, testContext, testContext.succeeding(task -> {
 
-      final TasksResource resource = createTasksResource();
-      final OperationRequest context = mock(OperationRequest.class);
+      final var resource = createTasksResource();
+      final var context = mock(OperationRequest.class);
       resource.createTask(task.toJsonObject(), context, testContext.succeeding(create -> {
 
         assertThat(create.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
@@ -174,9 +174,9 @@ public class TasksResourceTest {
 
     StoreServices.storeTaskExample(2, vertx, testContext, testContext.succeeding(created -> {
 
-      final TasksResource resource = createTasksResource();
-      final OperationRequest context = mock(OperationRequest.class);
-      final Task source = new Task();
+      final var resource = createTasksResource();
+      final var context = mock(OperationRequest.class);
+      final var source = new Task();
       source.goal = new TaskGoalTest().createModelExample(1);
       resource.updateTask("taskId", source.toJsonObject(), context, testContext.succeeding(update -> {
 
@@ -207,8 +207,8 @@ public class TasksResourceTest {
   public void shouldFailCreateTaskTypeBecasuetypesRepositoryFailsToStore(final Vertx vertx, final VertxTestContext testContext) {
 
     new TaskTest().createModelExample(1, vertx, testContext, testContext.succeeding(task -> {
-      final TasksResource resource = createTasksResource();
-      final OperationRequest context = mock(OperationRequest.class);
+      final var resource = createTasksResource();
+      final var context = mock(OperationRequest.class);
       resource.createTaskType(task.toJsonObject(), context, testContext.succeeding(create -> {
 
         assertThat(create.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
@@ -232,9 +232,9 @@ public class TasksResourceTest {
   @Test
   public void shouldFailMergeTaskTypeBecasuetypesRepositoryFailsToMerge(final VertxTestContext testContext) {
 
-    final TasksResource resource = createTasksResource();
-    final OperationRequest context = mock(OperationRequest.class);
-    final TaskType source = new TaskType();
+    final var resource = createTasksResource();
+    final var context = mock(OperationRequest.class);
+    final var source = new TaskType();
     source.description = "New description";
     resource.mergeTaskType("taskTypeId", source.toJsonObject(), context, testContext.succeeding(merge -> {
 

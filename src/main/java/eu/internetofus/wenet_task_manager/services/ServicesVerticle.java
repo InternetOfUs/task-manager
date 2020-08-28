@@ -33,8 +33,7 @@ import eu.internetofus.common.vertx.AbstractServicesVerticle;
 import io.vertx.core.json.JsonObject;
 
 /**
- * The verticle that provide the services to interact with the other WeNet
- * modules.
+ * The verticle that provide the services to interact with the other WeNet modules.
  *
  * @author UDT-IA, IIIA-CSIC
  */

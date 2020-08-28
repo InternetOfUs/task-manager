@@ -41,114 +41,112 @@ import io.vertx.ext.mongo.MongoClient;
  */
 public class TasksRepositoryImpl extends Repository implements TasksRepository {
 
-	/**
-	 * The name of the collection that contains the tasks.
-	 */
-	public static final String TASKS_COLLECTION = "tasks";
+  /**
+   * The name of the collection that contains the tasks.
+   */
+  public static final String TASKS_COLLECTION = "tasks";
 
-	/**
-	 * Create a new service.
-	 *
-	 * @param pool to create the connections.
-	 */
-	public TasksRepositoryImpl(MongoClient pool) {
+  /**
+   * Create a new service.
+   *
+   * @param pool to create the connections.
+   */
+  public TasksRepositoryImpl(final MongoClient pool) {
 
-		super(pool);
-		// pool.listIndexes(collection, resultHandler)
-		// final IndexOptions options = new IndexOptions();
-		// options.unique(true);
-		// pool.createIndexWithOptions(TASKS_COLLECTION, new JsonObject().put("id", 1),
-		// options, resultHandler -> {
-		//
-		// if (resultHandler.failed()) {
-		//
-		// Logger.error(resultHandler.cause(), "Can not create index for the tasks
-		// collection");
-		// } else {
-		//
-		// Logger.debug(resultHandler.cause(), "created index for task collection");
-		// }
-		//
-		// });
+    super(pool);
+    // pool.listIndexes(collection, resultHandler)
+    // final IndexOptions options = new IndexOptions();
+    // options.unique(true);
+    // pool.createIndexWithOptions(TASKS_COLLECTION, new JsonObject().put("id", 1),
+    // options, resultHandler -> {
+    //
+    // if (resultHandler.failed()) {
+    //
+    // Logger.error(resultHandler.cause(), "Can not create index for the tasks
+    // collection");
+    // } else {
+    //
+    // Logger.debug(resultHandler.cause(), "created index for task collection");
+    // }
+    //
+    // });
 
-	}
+  }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void searchTaskObject(String id, Handler<AsyncResult<JsonObject>> searchHandler) {
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void searchTaskObject(final String id, final Handler<AsyncResult<JsonObject>> searchHandler) {
 
-		final JsonObject query = new JsonObject().put("_id", id);
-		this.findOneDocument(TASKS_COLLECTION, query, null, found -> {
-			final String _id = (String) found.remove("_id");
-			return found.put("id", _id);
-		}, searchHandler);
+    final var query = new JsonObject().put("_id", id);
+    this.findOneDocument(TASKS_COLLECTION, query, null, found -> {
+      final var _id = (String) found.remove("_id");
+      return found.put("id", _id);
+    }, searchHandler);
 
-	}
+  }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void storeTask(JsonObject task, Handler<AsyncResult<JsonObject>> storeHandler) {
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void storeTask(final JsonObject task, final Handler<AsyncResult<JsonObject>> storeHandler) {
 
-		final String id = (String) task.remove("id");
-		if (id != null) {
+    final var id = (String) task.remove("id");
+    if (id != null) {
 
-			task.put("_id", id);
-		}
-		final long now = TimeManager.now();
-		task.put("_creationTs", now);
-		task.put("_lastUpdateTs", now);
-		this.storeOneDocument(TASKS_COLLECTION, task, stored -> {
+      task.put("_id", id);
+    }
+    final var now = TimeManager.now();
+    task.put("_creationTs", now);
+    task.put("_lastUpdateTs", now);
+    this.storeOneDocument(TASKS_COLLECTION, task, stored -> {
 
-			final String _id = (String) stored.remove("_id");
-			return stored.put("id", _id);
+      final var _id = (String) stored.remove("_id");
+      return stored.put("id", _id);
 
-		}, storeHandler);
+    }, storeHandler);
 
-	}
+  }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void updateTask(JsonObject task, Handler<AsyncResult<Void>> updateHandler) {
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void updateTask(final JsonObject task, final Handler<AsyncResult<Void>> updateHandler) {
 
-		final Object id = task.remove("id");
-		final JsonObject query = new JsonObject().put("_id", id);
-		final long now = TimeManager.now();
-		task.put("_lastUpdateTs", now);
-		this.updateOneDocument(TASKS_COLLECTION, query, task, updateHandler);
+    final var id = task.remove("id");
+    final var query = new JsonObject().put("_id", id);
+    final var now = TimeManager.now();
+    task.put("_lastUpdateTs", now);
+    this.updateOneDocument(TASKS_COLLECTION, query, task, updateHandler);
 
-	}
+  }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void deleteTask(String id, Handler<AsyncResult<Void>> deleteHandler) {
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void deleteTask(final String id, final Handler<AsyncResult<Void>> deleteHandler) {
 
-		final JsonObject query = new JsonObject().put("_id", id);
-		this.deleteOneDocument(TASKS_COLLECTION, query, deleteHandler);
+    final var query = new JsonObject().put("_id", id);
+    this.deleteOneDocument(TASKS_COLLECTION, query, deleteHandler);
 
-	}
+  }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void retrieveTasksPageObject(JsonObject query, JsonObject order, int offset, int limit,
-			Handler<AsyncResult<JsonObject>> searchHandler) {
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void retrieveTasksPageObject(final JsonObject query, final JsonObject order, final int offset, final int limit, final Handler<AsyncResult<JsonObject>> searchHandler) {
 
-		final FindOptions options = new FindOptions();
-		options.setSort(order);
-		options.setSkip(offset);
-		options.setLimit(limit);
-		this.searchPageObject(TASKS_COLLECTION, query, options, "tasks", task -> task.put("id", task.remove("_id")),
-				searchHandler);
+    final var options = new FindOptions();
+    options.setSort(order);
+    options.setSkip(offset);
+    options.setLimit(limit);
+    this.searchPageObject(TASKS_COLLECTION, query, options, "tasks", task -> task.put("id", task.remove("_id")), searchHandler);
 
-	}
+  }
 
 }

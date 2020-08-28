@@ -95,8 +95,8 @@ public interface TasksRepository {
 
       } else {
 
-        final JsonObject value = search.result();
-        final Task task = Model.fromJsonObject(value, Task.class);
+        final var value = search.result();
+        final var task = Model.fromJsonObject(value, Task.class);
         if (task == null) {
 
           searchHandler.handle(Future.failedFuture("The stored task is not valid."));
@@ -126,7 +126,7 @@ public interface TasksRepository {
   @GenIgnore
   default void storeTask(final Task task, final Handler<AsyncResult<Task>> storeHandler) {
 
-    final JsonObject object = task.toJsonObject();
+    final var object = task.toJsonObject();
     if (object == null) {
 
       storeHandler.handle(Future.failedFuture("The task can not converted to JSON."));
@@ -140,8 +140,8 @@ public interface TasksRepository {
 
         } else {
 
-          final JsonObject value = stored.result();
-          final Task storedTask = Model.fromJsonObject(value, Task.class);
+          final var value = stored.result();
+          final var storedTask = Model.fromJsonObject(value, Task.class);
           if (storedTask == null) {
 
             storeHandler.handle(Future.failedFuture("The stored task is not valid."));
@@ -173,7 +173,7 @@ public interface TasksRepository {
   @GenIgnore
   default void updateTask(final Task task, final Handler<AsyncResult<Void>> updateHandler) {
 
-    final JsonObject object = task.toJsonObjectWithEmptyValues();
+    final var object = task.toJsonObjectWithEmptyValues();
     if (object == null) {
 
       updateHandler.handle(Future.failedFuture("The task can not converted to JSON."));
@@ -249,8 +249,8 @@ public interface TasksRepository {
 
       } else {
 
-        final JsonObject value = search.result();
-        final TasksPage page = Model.fromJsonObject(value, TasksPage.class);
+        final var value = search.result();
+        final var page = Model.fromJsonObject(value, TasksPage.class);
         if (page == null) {
 
           searchHandler.handle(Future.failedFuture("The stored task page is not valid."));

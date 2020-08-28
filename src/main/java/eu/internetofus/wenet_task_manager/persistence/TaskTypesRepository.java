@@ -96,8 +96,8 @@ public interface TaskTypesRepository {
 
       } else {
 
-        final JsonObject value = search.result();
-        final TaskType taskType = Model.fromJsonObject(value, TaskType.class);
+        final var value = search.result();
+        final var taskType = Model.fromJsonObject(value, TaskType.class);
         if (taskType == null) {
 
           searchHandler.handle(Future.failedFuture("The stored taskType is not valid."));
@@ -127,7 +127,7 @@ public interface TaskTypesRepository {
   @GenIgnore
   default void storeTaskType(final TaskType taskType, final Handler<AsyncResult<TaskType>> storeHandler) {
 
-    final JsonObject object = taskType.toJsonObject();
+    final var object = taskType.toJsonObject();
     if (object == null) {
 
       storeHandler.handle(Future.failedFuture("The taskType can not converted to JSON."));
@@ -141,8 +141,8 @@ public interface TaskTypesRepository {
 
         } else {
 
-          final JsonObject value = stored.result();
-          final TaskType storedTaskType = Model.fromJsonObject(value, TaskType.class);
+          final var value = stored.result();
+          final var storedTaskType = Model.fromJsonObject(value, TaskType.class);
           if (storedTaskType == null) {
 
             storeHandler.handle(Future.failedFuture("The stored taskType is not valid."));
@@ -174,7 +174,7 @@ public interface TaskTypesRepository {
   @GenIgnore
   default void updateTaskType(final TaskType taskType, final Handler<AsyncResult<Void>> updateHandler) {
 
-    final JsonObject object = taskType.toJsonObject();
+    final var object = taskType.toJsonObject();
     if (object == null) {
 
       updateHandler.handle(Future.failedFuture("The taskType can not converted to JSON."));
@@ -237,8 +237,8 @@ public interface TaskTypesRepository {
 
       } else {
 
-        final JsonObject value = search.result();
-        final TaskTypesPage page = Model.fromJsonObject(value, TaskTypesPage.class);
+        final var value = search.result();
+        final var page = Model.fromJsonObject(value, TaskTypesPage.class);
         if (page == null) {
 
           searchHandler.handle(Future.failedFuture("The stored taskType page is not valid."));

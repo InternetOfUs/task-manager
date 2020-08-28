@@ -49,115 +49,111 @@ import io.vertx.junit5.VertxTestContext;
 @ExtendWith(VertxExtension.class)
 public class TasksRepositoryTest {
 
-	/**
-	 * Verify that can not found a task because that returned by repository is not
-	 * right.
-	 *
-	 * @param testContext context that executes the test.
-	 *
-	 * @see TasksRepository#searchTask(String, io.vertx.core.Handler)
-	 */
-	@Test
-	public void shouldNotFoundTaskBecauseReturnedJsonObjectIsNotRight(VertxTestContext testContext) {
+  /**
+   * Verify that can not found a task because that returned by repository is not right.
+   *
+   * @param testContext context that executes the test.
+   *
+   * @see TasksRepository#searchTask(String, io.vertx.core.Handler)
+   */
+  @Test
+  public void shouldNotFoundTaskBecauseReturnedJsonObjectIsNotRight(final VertxTestContext testContext) {
 
-		final TasksRepository repository = new TasksRepositoryImpl(null) {
+    final TasksRepository repository = new TasksRepositoryImpl(null) {
 
-			@Override
-			public void searchTaskObject(String id, Handler<AsyncResult<JsonObject>> searchHandler) {
+      @Override
+      public void searchTaskObject(final String id, final Handler<AsyncResult<JsonObject>> searchHandler) {
 
-				searchHandler.handle(Future.succeededFuture(new JsonObject().put("key", "value")));
+        searchHandler.handle(Future.succeededFuture(new JsonObject().put("key", "value")));
 
-			}
-		};
+      }
+    };
 
-		repository.searchTask("any identifier", testContext.failing(fail -> {
-			testContext.completeNow();
-		}));
+    repository.searchTask("any identifier", testContext.failing(fail -> {
+      testContext.completeNow();
+    }));
 
-	}
+  }
 
-	/**
-	 * Verify that can not store a task because that returned by repository is not
-	 * right.
-	 *
-	 * @param testContext context that executes the test.
-	 *
-	 * @see TasksRepository#storeTask(Task, Handler)
-	 */
-	@Test
-	public void shouldNotStoreTaskBecauseReturnedJsonObjectIsNotRight(VertxTestContext testContext) {
+  /**
+   * Verify that can not store a task because that returned by repository is not right.
+   *
+   * @param testContext context that executes the test.
+   *
+   * @see TasksRepository#storeTask(Task, Handler)
+   */
+  @Test
+  public void shouldNotStoreTaskBecauseReturnedJsonObjectIsNotRight(final VertxTestContext testContext) {
 
-		final TasksRepository repository = new TasksRepositoryImpl(null) {
+    final TasksRepository repository = new TasksRepositoryImpl(null) {
 
-			@Override
-			public void storeTask(JsonObject task, Handler<AsyncResult<JsonObject>> storeHandler) {
+      @Override
+      public void storeTask(final JsonObject task, final Handler<AsyncResult<JsonObject>> storeHandler) {
 
-				storeHandler.handle(Future.succeededFuture(new JsonObject().put("key", "value")));
-			}
-		};
+        storeHandler.handle(Future.succeededFuture(new JsonObject().put("key", "value")));
+      }
+    };
 
-		repository.storeTask(new Task(), testContext.failing(fail -> {
-			testContext.completeNow();
-		}));
+    repository.storeTask(new Task(), testContext.failing(fail -> {
+      testContext.completeNow();
+    }));
 
-	}
+  }
 
-	/**
-	 * Verify that can not store a task because that returned by repository is not
-	 * right.
-	 *
-	 * @param testContext context that executes the test.
-	 *
-	 * @see TasksRepository#storeTask(Task, Handler)
-	 */
-	@Test
-	public void shouldNotStoreTaskBecauseStoreFailed(VertxTestContext testContext) {
+  /**
+   * Verify that can not store a task because that returned by repository is not right.
+   *
+   * @param testContext context that executes the test.
+   *
+   * @see TasksRepository#storeTask(Task, Handler)
+   */
+  @Test
+  public void shouldNotStoreTaskBecauseStoreFailed(final VertxTestContext testContext) {
 
-		final Throwable cause = new IllegalArgumentException("Cause that can not be stored");
-		final TasksRepository repository = new TasksRepositoryImpl(null) {
+    final Throwable cause = new IllegalArgumentException("Cause that can not be stored");
+    final TasksRepository repository = new TasksRepositoryImpl(null) {
 
-			@Override
-			public void storeTask(JsonObject task, Handler<AsyncResult<JsonObject>> storeHandler) {
+      @Override
+      public void storeTask(final JsonObject task, final Handler<AsyncResult<JsonObject>> storeHandler) {
 
-				storeHandler.handle(Future.failedFuture(cause));
-			}
+        storeHandler.handle(Future.failedFuture(cause));
+      }
 
-		};
+    };
 
-		repository.storeTask(new Task(), testContext.failing(fail -> {
-			assertThat(fail).isEqualTo(cause);
-			testContext.completeNow();
-		}));
+    repository.storeTask(new Task(), testContext.failing(fail -> {
+      assertThat(fail).isEqualTo(cause);
+      testContext.completeNow();
+    }));
 
-	}
+  }
 
-	/**
-	 * Verify that can not update a task because that returned by repository is not
-	 * right.
-	 *
-	 * @param testContext context that executes the test.
-	 *
-	 * @see TasksRepository#searchTask(String, io.vertx.core.Handler)
-	 */
-	@Test
-	public void shouldNotUpdateTaskBecauseUpdateFailed(VertxTestContext testContext) {
+  /**
+   * Verify that can not update a task because that returned by repository is not right.
+   *
+   * @param testContext context that executes the test.
+   *
+   * @see TasksRepository#searchTask(String, io.vertx.core.Handler)
+   */
+  @Test
+  public void shouldNotUpdateTaskBecauseUpdateFailed(final VertxTestContext testContext) {
 
-		final Throwable cause = new IllegalArgumentException("Cause that can not be updated");
-		final TasksRepository repository = new TasksRepositoryImpl(null) {
+    final Throwable cause = new IllegalArgumentException("Cause that can not be updated");
+    final TasksRepository repository = new TasksRepositoryImpl(null) {
 
-			@Override
-			public void updateTask(JsonObject task, Handler<AsyncResult<Void>> updateHandler) {
+      @Override
+      public void updateTask(final JsonObject task, final Handler<AsyncResult<Void>> updateHandler) {
 
-				updateHandler.handle(Future.failedFuture(cause));
-			}
-		};
+        updateHandler.handle(Future.failedFuture(cause));
+      }
+    };
 
-		repository.updateTask(new Task(), testContext.failing(fail -> {
+    repository.updateTask(new Task(), testContext.failing(fail -> {
 
-			assertThat(fail).isEqualTo(cause);
-			testContext.completeNow();
-		}));
+      assertThat(fail).isEqualTo(cause);
+      testContext.completeNow();
+    }));
 
-	}
+  }
 
 }

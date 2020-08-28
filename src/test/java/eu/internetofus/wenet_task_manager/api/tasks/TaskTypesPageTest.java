@@ -40,18 +40,18 @@ import eu.internetofus.common.components.task_manager.TaskTypeTest;
  */
 public class TaskTypesPageTest extends ModelTestCase<TaskTypesPage> {
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public TaskTypesPage createModelExample(int index) {
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TaskTypesPage createModelExample(final int index) {
 
-		final TaskTypesPage model = new TaskTypesPage();
-		model.offset = index;
-		model.total = 100 + index;
-		model.taskTypes = new ArrayList<>();
-		model.taskTypes.add(new TaskTypeTest().createModelExample(index));
-		return model;
-	}
+    final var model = new TaskTypesPage();
+    model.offset = index;
+    model.total = 100 + index;
+    model.taskTypes = new ArrayList<>();
+    model.taskTypes.add(new TaskTypeTest().createModelExample(index));
+    return model;
+  }
 
 }

@@ -35,15 +35,15 @@ import eu.internetofus.common.vertx.AbstractPersistenceVerticle;
  */
 public class PersistenceVerticle extends AbstractPersistenceVerticle {
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	protected void registerRepositories() throws Exception {
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void registerRepositories() throws Exception {
 
-		TasksRepository.register(this.vertx, this.pool);
-		TaskTypesRepository.register(this.vertx, this.pool);
+    TasksRepository.register(this.vertx, this.pool);
+    TaskTypesRepository.register(this.vertx, this.pool);
 
-	}
+  }
 
 }

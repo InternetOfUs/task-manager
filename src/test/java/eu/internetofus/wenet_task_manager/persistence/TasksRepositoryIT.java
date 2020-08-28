@@ -176,10 +176,10 @@ public class TasksRepositoryIT {
   @Test
   public void shouldStoreTask(final Vertx vertx, final VertxTestContext testContext) {
 
-    final Task task = new Task();
+    final var task = new Task();
     task._creationTs = 0;
     task._lastUpdateTs = 1;
-    final long now = TimeManager.now();
+    final var now = TimeManager.now();
     TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(storedTask -> testContext.verify(() -> {
 
       assertThat(storedTask).isNotNull();
@@ -202,12 +202,12 @@ public class TasksRepositoryIT {
   @Test
   public void shouldStoreTaskWithAnId(final Vertx vertx, final VertxTestContext testContext) {
 
-    final String id = UUID.randomUUID().toString();
-    final Task task = new Task();
+    final var id = UUID.randomUUID().toString();
+    final var task = new Task();
     task.id = id;
     task._creationTs = 0;
     task._lastUpdateTs = 1;
-    final long now = TimeManager.now();
+    final var now = TimeManager.now();
     TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(storedTask -> testContext.verify(() -> {
 
       assertThat(storedTask.id).isEqualTo(id);
@@ -229,8 +229,8 @@ public class TasksRepositoryIT {
   @Test
   public void shouldNotStoreTwoTaskWithTheSameId(final Vertx vertx, final VertxTestContext testContext) {
 
-    final String id = UUID.randomUUID().toString();
-    final Task task = new Task();
+    final var id = UUID.randomUUID().toString();
+    final var task = new Task();
     task.id = id;
     TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(storedTask -> testContext.verify(() -> {
 
@@ -251,11 +251,11 @@ public class TasksRepositoryIT {
   @Test
   public void shouldStoreTaskObject(final Vertx vertx, final VertxTestContext testContext) {
 
-    final long now = TimeManager.now();
+    final var now = TimeManager.now();
     TasksRepository.createProxy(vertx).storeTask(new JsonObject(), testContext.succeeding(storedTask -> testContext.verify(() -> {
 
       assertThat(storedTask).isNotNull();
-      final String id = storedTask.getString("id");
+      final var id = storedTask.getString("id");
       assertThat(id).isNotEmpty();
       assertThat(storedTask.getLong("_creationTs", 0l)).isNotEqualTo(0).isGreaterThanOrEqualTo(now);
       assertThat(storedTask.getLong("_lastUpdateTs", 1l)).isNotEqualTo(1).isGreaterThanOrEqualTo(now);
@@ -275,7 +275,7 @@ public class TasksRepositoryIT {
   @Test
   public void shouldNotUpdateUndefinedTask(final Vertx vertx, final VertxTestContext testContext) {
 
-    final Task task = new Task();
+    final var task = new Task();
     task.id = "undefined user identifier";
     TasksRepository.createProxy(vertx).updateTask(task, testContext.failing(failed -> {
       testContext.completeNow();
@@ -294,7 +294,7 @@ public class TasksRepositoryIT {
   @Test
   public void shouldNotUpdateUndefinedTaskObject(final Vertx vertx, final VertxTestContext testContext) {
 
-    final JsonObject task = new JsonObject().put("id", "undefined user identifier");
+    final var task = new JsonObject().put("id", "undefined user identifier");
     TasksRepository.createProxy(vertx).updateTask(task, testContext.failing(failed -> {
       testContext.completeNow();
     }));
@@ -341,12 +341,12 @@ public class TasksRepositoryIT {
   @Test
   public void shouldUpdateTask(final Vertx vertx, final VertxTestContext testContext) {
 
-    final Task task = new Task();
+    final var task = new Task();
     task.goal = new TaskGoalTest().createModelExample(23);
     TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(stored -> {
 
-      final long now = TimeManager.now();
-      final Task update = new TaskTest().createModelExample(23);
+      final var now = TimeManager.now();
+      final var update = new TaskTest().createModelExample(23);
       update.id = stored.id;
       update._creationTs = stored._creationTs;
       update._lastUpdateTs = 1;
@@ -381,8 +381,8 @@ public class TasksRepositoryIT {
 
     TasksRepository.createProxy(vertx).storeTask(new JsonObject().put("nationality", "Italian"), testContext.succeeding(stored -> testContext.verify(() -> {
 
-      final String id = stored.getString("id");
-      final JsonObject update = new JsonObject().put("id", id).put("occupation", "Unemployed");
+      final var id = stored.getString("id");
+      final var update = new JsonObject().put("id", id).put("occupation", "Unemployed");
       TasksRepository.createProxy(vertx).updateTask(update, testContext.succeeding(empty -> testContext.verify(() -> {
 
         TasksRepository.createProxy(vertx).searchTaskObject(id, testContext.succeeding(foundTask -> testContext.verify(() -> {
@@ -427,7 +427,7 @@ public class TasksRepositoryIT {
 
     TasksRepository.createProxy(vertx).storeTask(new JsonObject(), testContext.succeeding(stored -> {
 
-      final String id = stored.getString("id");
+      final var id = stored.getString("id");
       TasksRepository.createProxy(vertx).deleteTask(id, testContext.succeeding(success -> {
 
         TasksRepository.createProxy(vertx).searchTaskObject(id, testContext.failing(search -> {
@@ -453,8 +453,8 @@ public class TasksRepositoryIT {
   @Test
   public void shouldRetrieveTaksByGoalName(final Vertx vertx, final VertxTestContext testContext) {
 
-    final String name = UUID.randomUUID().toString();
-    final JsonObject query = TasksRepository.creteTasksPageQuery(null, null, null,  name , null, null, null, null, null, null, null,null,null,null);
+    final var name = UUID.randomUUID().toString();
+    final var query = TasksRepository.creteTasksPageQuery(null, null, null, name, null, null, null, null, null, null, null, null, null, null);
 
     TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10, testContext.succeeding(search -> testContext.verify(() -> {
 
@@ -506,7 +506,7 @@ public class TasksRepositoryIT {
 
     } else {
 
-      final Task task = new TaskTest().createModelExample(tasks.size());
+      final var task = new TaskTest().createModelExample(tasks.size());
       change.accept(task);
       TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(stored -> {
 
@@ -528,8 +528,8 @@ public class TasksRepositoryIT {
   @Test
   public void shouldRetrieveTaksByGoalDescription(final Vertx vertx, final VertxTestContext testContext) {
 
-    final String description = UUID.randomUUID().toString();
-    final JsonObject query = TasksRepository.creteTasksPageQuery(null, null, null, null,  description , null, null, null, null, null, null,null,null,null);
+    final var description = UUID.randomUUID().toString();
+    final var query = TasksRepository.creteTasksPageQuery(null, null, null, null, description, null, null, null, null, null, null, null, null, null);
 
     TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10, testContext.succeeding(search -> testContext.verify(() -> {
 
@@ -572,8 +572,8 @@ public class TasksRepositoryIT {
   @Test
   public void shouldRetrieveTaksByRequesterId(final Vertx vertx, final VertxTestContext testContext) {
 
-    final String requesterId = UUID.randomUUID().toString();
-    final JsonObject query = TasksRepository.creteTasksPageQuery(null,  requesterId , null, null, null, null, null, null, null, null, null,null,null,null);
+    final var requesterId = UUID.randomUUID().toString();
+    final var query = TasksRepository.creteTasksPageQuery(null, requesterId, null, null, null, null, null, null, null, null, null, null, null, null);
 
     TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10, testContext.succeeding(search -> testContext.verify(() -> {
 
@@ -616,8 +616,8 @@ public class TasksRepositoryIT {
   @Test
   public void shouldRetrieveTaksByAppId(final Vertx vertx, final VertxTestContext testContext) {
 
-    final String appId = UUID.randomUUID().toString();
-    final JsonObject query = TasksRepository.creteTasksPageQuery(appId , null, null, null, null, null, null, null, null, null, null,null,null,null);
+    final var appId = UUID.randomUUID().toString();
+    final var query = TasksRepository.creteTasksPageQuery(appId, null, null, null, null, null, null, null, null, null, null, null, null, null);
 
     TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10, testContext.succeeding(search -> testContext.verify(() -> {
 
@@ -662,8 +662,8 @@ public class TasksRepositoryIT {
   @Test
   public void shouldRetrieveTaksByTaskTypeId(final Vertx vertx, final VertxTestContext testContext) {
 
-    final String taskTypeId = UUID.randomUUID().toString();
-    final JsonObject query = TasksRepository.creteTasksPageQuery(null, null, taskTypeId, null, null, null, null, null, null, null, null,null,null,null);
+    final var taskTypeId = UUID.randomUUID().toString();
+    final var query = TasksRepository.creteTasksPageQuery(null, null, taskTypeId, null, null, null, null, null, null, null, null, null, null, null);
 
     TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10, testContext.succeeding(search -> testContext.verify(() -> {
 

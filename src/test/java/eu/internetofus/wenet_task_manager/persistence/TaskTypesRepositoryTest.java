@@ -49,115 +49,111 @@ import io.vertx.junit5.VertxTestContext;
 @ExtendWith(VertxExtension.class)
 public class TaskTypesRepositoryTest {
 
-	/**
-	 * Verify that can not found a taskType because that returned by repository is
-	 * not right.
-	 *
-	 * @param testContext context that executes the test.
-	 *
-	 * @see TaskTypesRepository#searchTaskType(String, io.vertx.core.Handler)
-	 */
-	@Test
-	public void shouldNotFoundTaskTypeBecauseReturnedJsonObjectIsNotRight(VertxTestContext testContext) {
+  /**
+   * Verify that can not found a taskType because that returned by repository is not right.
+   *
+   * @param testContext context that executes the test.
+   *
+   * @see TaskTypesRepository#searchTaskType(String, io.vertx.core.Handler)
+   */
+  @Test
+  public void shouldNotFoundTaskTypeBecauseReturnedJsonObjectIsNotRight(final VertxTestContext testContext) {
 
-		final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null) {
+    final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null) {
 
-			@Override
-			public void searchTaskTypeObject(String id, Handler<AsyncResult<JsonObject>> searchHandler) {
+      @Override
+      public void searchTaskTypeObject(final String id, final Handler<AsyncResult<JsonObject>> searchHandler) {
 
-				searchHandler.handle(Future.succeededFuture(new JsonObject().put("key", "value")));
+        searchHandler.handle(Future.succeededFuture(new JsonObject().put("key", "value")));
 
-			}
-		};
+      }
+    };
 
-		repository.searchTaskType("any identifier", testContext.failing(fail -> {
-			testContext.completeNow();
-		}));
+    repository.searchTaskType("any identifier", testContext.failing(fail -> {
+      testContext.completeNow();
+    }));
 
-	}
+  }
 
-	/**
-	 * Verify that can not store a taskType because that returned by repository is
-	 * not right.
-	 *
-	 * @param testContext context that executes the test.
-	 *
-	 * @see TaskTypesRepository#storeTaskType(TaskType, Handler)
-	 */
-	@Test
-	public void shouldNotStoreTaskTypeBecauseReturnedJsonObjectIsNotRight(VertxTestContext testContext) {
+  /**
+   * Verify that can not store a taskType because that returned by repository is not right.
+   *
+   * @param testContext context that executes the test.
+   *
+   * @see TaskTypesRepository#storeTaskType(TaskType, Handler)
+   */
+  @Test
+  public void shouldNotStoreTaskTypeBecauseReturnedJsonObjectIsNotRight(final VertxTestContext testContext) {
 
-		final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null) {
+    final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null) {
 
-			@Override
-			public void storeTaskType(JsonObject taskType, Handler<AsyncResult<JsonObject>> storeHandler) {
+      @Override
+      public void storeTaskType(final JsonObject taskType, final Handler<AsyncResult<JsonObject>> storeHandler) {
 
-				storeHandler.handle(Future.succeededFuture(new JsonObject().put("key", "value")));
-			}
-		};
+        storeHandler.handle(Future.succeededFuture(new JsonObject().put("key", "value")));
+      }
+    };
 
-		repository.storeTaskType(new TaskType(), testContext.failing(fail -> {
-			testContext.completeNow();
-		}));
+    repository.storeTaskType(new TaskType(), testContext.failing(fail -> {
+      testContext.completeNow();
+    }));
 
-	}
+  }
 
-	/**
-	 * Verify that can not store a taskType because that returned by repository is
-	 * not right.
-	 *
-	 * @param testContext context that executes the test.
-	 *
-	 * @see TaskTypesRepository#storeTaskType(TaskType, Handler)
-	 */
-	@Test
-	public void shouldNotStoreTaskTypeBecauseStoreFailed(VertxTestContext testContext) {
+  /**
+   * Verify that can not store a taskType because that returned by repository is not right.
+   *
+   * @param testContext context that executes the test.
+   *
+   * @see TaskTypesRepository#storeTaskType(TaskType, Handler)
+   */
+  @Test
+  public void shouldNotStoreTaskTypeBecauseStoreFailed(final VertxTestContext testContext) {
 
-		final Throwable cause = new IllegalArgumentException("Cause that can not be stored");
-		final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null) {
+    final Throwable cause = new IllegalArgumentException("Cause that can not be stored");
+    final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null) {
 
-			@Override
-			public void storeTaskType(JsonObject taskType, Handler<AsyncResult<JsonObject>> storeHandler) {
+      @Override
+      public void storeTaskType(final JsonObject taskType, final Handler<AsyncResult<JsonObject>> storeHandler) {
 
-				storeHandler.handle(Future.failedFuture(cause));
-			}
+        storeHandler.handle(Future.failedFuture(cause));
+      }
 
-		};
+    };
 
-		repository.storeTaskType(new TaskType(), testContext.failing(fail -> {
-			assertThat(fail).isEqualTo(cause);
-			testContext.completeNow();
-		}));
+    repository.storeTaskType(new TaskType(), testContext.failing(fail -> {
+      assertThat(fail).isEqualTo(cause);
+      testContext.completeNow();
+    }));
 
-	}
+  }
 
-	/**
-	 * Verify that can not update a taskType because that returned by repository is
-	 * not right.
-	 *
-	 * @param testContext context that executes the test.
-	 *
-	 * @see TaskTypesRepository#searchTaskType(String, io.vertx.core.Handler)
-	 */
-	@Test
-	public void shouldNotUpdateTaskTypeBecauseUpdateFailed(VertxTestContext testContext) {
+  /**
+   * Verify that can not update a taskType because that returned by repository is not right.
+   *
+   * @param testContext context that executes the test.
+   *
+   * @see TaskTypesRepository#searchTaskType(String, io.vertx.core.Handler)
+   */
+  @Test
+  public void shouldNotUpdateTaskTypeBecauseUpdateFailed(final VertxTestContext testContext) {
 
-		final Throwable cause = new IllegalArgumentException("Cause that can not be updated");
-		final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null) {
+    final Throwable cause = new IllegalArgumentException("Cause that can not be updated");
+    final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null) {
 
-			@Override
-			public void updateTaskType(JsonObject taskType, Handler<AsyncResult<Void>> updateHandler) {
+      @Override
+      public void updateTaskType(final JsonObject taskType, final Handler<AsyncResult<Void>> updateHandler) {
 
-				updateHandler.handle(Future.failedFuture(cause));
-			}
-		};
+        updateHandler.handle(Future.failedFuture(cause));
+      }
+    };
 
-		repository.updateTaskType(new TaskType(), testContext.failing(fail -> {
+    repository.updateTaskType(new TaskType(), testContext.failing(fail -> {
 
-			assertThat(fail).isEqualTo(cause);
-			testContext.completeNow();
-		}));
+      assertThat(fail).isEqualTo(cause);
+      testContext.completeNow();
+    }));
 
-	}
+  }
 
 }

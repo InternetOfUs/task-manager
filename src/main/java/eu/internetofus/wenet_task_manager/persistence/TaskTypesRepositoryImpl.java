@@ -62,9 +62,9 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
   @Override
   public void searchTaskTypeObject(final String id, final Handler<AsyncResult<JsonObject>> searchHandler) {
 
-    final JsonObject query = new JsonObject().put("_id", id);
+    final var query = new JsonObject().put("_id", id);
     this.findOneDocument(TASK_TYPES_COLLECTION, query, null, found -> {
-      final String _id = (String) found.remove("_id");
+      final var _id = (String) found.remove("_id");
       return found.put("id", _id);
     }, searchHandler);
 
@@ -76,7 +76,7 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
   @Override
   public void storeTaskType(final JsonObject taskType, final Handler<AsyncResult<JsonObject>> storeHandler) {
 
-    final String id = (String) taskType.remove("id");
+    final var id = (String) taskType.remove("id");
     if (id != null) {
 
       taskType.put("_id", id);
@@ -86,7 +86,7 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
     // taskType.put("_lastUpdateTs", now);
     this.storeOneDocument(TASK_TYPES_COLLECTION, taskType, stored -> {
 
-      final String _id = (String) stored.remove("_id");
+      final var _id = (String) stored.remove("_id");
       return stored.put("id", _id);
 
     }, storeHandler);
@@ -99,8 +99,8 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
   @Override
   public void updateTaskType(final JsonObject taskType, final Handler<AsyncResult<Void>> updateHandler) {
 
-    final Object id = taskType.remove("id");
-    final JsonObject query = new JsonObject().put("_id", id);
+    final var id = taskType.remove("id");
+    final var query = new JsonObject().put("_id", id);
     // final long now = TimeManager.now();
     // taskType.put("_lastUpdateTs", now);
     this.updateOneDocument(TASK_TYPES_COLLECTION, query, taskType, updateHandler);
@@ -113,7 +113,7 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
   @Override
   public void deleteTaskType(final String id, final Handler<AsyncResult<Void>> deleteHandler) {
 
-    final JsonObject query = new JsonObject().put("_id", id);
+    final var query = new JsonObject().put("_id", id);
     this.deleteOneDocument(TASK_TYPES_COLLECTION, query, deleteHandler);
 
   }
@@ -124,7 +124,7 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
   @Override
   public void retrieveTaskTypesPageObject(final JsonObject query, final JsonObject order, final int offset, final int limit, final Handler<AsyncResult<JsonObject>> searchHandler) {
 
-    final FindOptions options = new FindOptions();
+    final var options = new FindOptions();
     options.setSort(order);
     options.setSkip(offset);
     options.setLimit(limit);

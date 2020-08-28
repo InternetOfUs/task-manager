@@ -39,27 +39,24 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * @author UDT-IA, IIIA-CSIC
  */
 @Schema(name = "TaskTypePage", description = "Contains a set of task types")
-public class TaskTypesPage extends Model {
+public class TaskTypesPage extends ReflectionModel implements Model {
 
-	/**
-	 * The index of the first task type returned.
-	 */
-	@Schema(description = "The index of the first task type returned.", example = "0")
-	public int offset;
+  /**
+   * The index of the first task type returned.
+   */
+  @Schema(description = "The index of the first task type returned.", example = "0")
+  public int offset;
 
-	/**
-	 * The number total of task type that satisfies the search.
-	 */
-	@Schema(description = "The number total of task types that satisfies the search.", example = "100")
-	public long total;
+  /**
+   * The number total of task type that satisfies the search.
+   */
+  @Schema(description = "The number total of task types that satisfies the search.", example = "100")
+  public long total;
 
-	/**
-	 * The found profiles.
-	 */
-	@ArraySchema(
-			schema = @Schema(
-					ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType"),
-			arraySchema = @Schema(description = "The set of task types found"))
-	public List<TaskType> taskTypes;
+  /**
+   * The found profiles.
+   */
+  @ArraySchema(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType"), arraySchema = @Schema(description = "The set of task types found"))
+  public List<TaskType> taskTypes;
 
 }

@@ -85,7 +85,7 @@ public class TasksIT {
     testRequest(client, HttpMethod.GET, Tasks.PATH + "/undefined-task-identifier").expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
-      final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+      final var error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty();
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -109,7 +109,7 @@ public class TasksIT {
       testRequest(client, HttpMethod.GET, Tasks.PATH + "/" + task.id).expect(res -> testContext.verify(() -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final Task found = assertThatBodyIs(Task.class, res);
+        final var found = assertThatBodyIs(Task.class, res);
         assertThat(found).isEqualTo(task);
 
       })).send(testContext);
@@ -132,7 +132,7 @@ public class TasksIT {
     testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-      final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+      final var error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty().isEqualTo("bad_task");
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -156,7 +156,7 @@ public class TasksIT {
       testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-        final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+        final var error = assertThatBodyIs(ErrorMessage.class, res);
         assertThat(error.code).isNotEmpty().isEqualTo("bad_task.id");
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -181,7 +181,7 @@ public class TasksIT {
       testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final Task stored = assertThatBodyIs(Task.class, res);
+        final var stored = assertThatBodyIs(Task.class, res);
         assertThat(stored).isNotNull().isNotEqualTo(task);
         task.id = stored.id;
         assertThat(stored).isNotEqualTo(task);
@@ -215,11 +215,11 @@ public class TasksIT {
   @Test
   public void shouldNotStoreEmptyTask(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final Task task = new Task();
+    final var task = new Task();
     testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-      final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+      final var error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty();
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -239,12 +239,12 @@ public class TasksIT {
   @Test
   public void shouldNotUpdateTaskThatIsNotDefined(final WebClient client, final VertxTestContext testContext) {
 
-    final Task task = new Task();
+    final var task = new Task();
     task.goal = new TaskGoalTest().createModelExample(23);
     testRequest(client, HttpMethod.PUT, Tasks.PATH + "/undefined-task-identifier").expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
-      final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+      final var error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty();
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -269,7 +269,7 @@ public class TasksIT {
       testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + task.id).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-        final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+        final var error = assertThatBodyIs(ErrorMessage.class, res);
         assertThat(error.code).isNotEmpty();
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -295,7 +295,7 @@ public class TasksIT {
       testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + task.id).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-        final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+        final var error = assertThatBodyIs(ErrorMessage.class, res);
         assertThat(error.code).isNotEmpty();
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -322,7 +322,7 @@ public class TasksIT {
       testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + task.id).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-        final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+        final var error = assertThatBodyIs(ErrorMessage.class, res);
         assertThat(error.code).isNotEmpty().endsWith(".taskTypeId");
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -351,7 +351,7 @@ public class TasksIT {
         testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + target.id).expect(res -> testContext.verify(() -> {
 
           assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-          final Task updated = assertThatBodyIs(Task.class, res);
+          final var updated = assertThatBodyIs(Task.class, res);
           assertThat(updated).isNotEqualTo(source).isNotEqualTo(target);
           source.id = updated.id;
           source._creationTs = target._creationTs;
@@ -380,7 +380,7 @@ public class TasksIT {
     testRequest(client, HttpMethod.DELETE, Tasks.PATH + "/undefined-task-identifier").expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
-      final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+      final var error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty();
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -399,7 +399,7 @@ public class TasksIT {
   @Test
   public void shouldDeleteTask(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final TasksRepository repository = TasksRepository.createProxy(vertx);
+    final var repository = TasksRepository.createProxy(vertx);
     repository.storeTask(new Task(), testContext.succeeding(storedTask -> {
 
       testRequest(client, HttpMethod.DELETE, Tasks.PATH + "/" + storedTask.id).expect(res -> testContext.verify(() -> {
@@ -407,7 +407,7 @@ public class TasksIT {
         assertThat(res.statusCode()).isEqualTo(Status.NO_CONTENT.getStatusCode());
         repository.searchTask(storedTask.id, testContext.failing(error -> testContext.completeNow()));
 
-      })).send(testContext,testContext.checkpoint(2));
+      })).send(testContext, testContext.checkpoint(2));
 
     }));
 
@@ -429,12 +429,12 @@ public class TasksIT {
 
       StoreServices.storeAppExample(1, vertx, testContext, testContext.succeeding(app -> {
 
-        final Task source = new Task();
+        final var source = new Task();
         source.appId = app.appId;
         testRequest(client, HttpMethod.PATCH, Tasks.PATH + "/" + target.id).expect(res -> testContext.verify(() -> {
 
           assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-          final Task updated = assertThatBodyIs(Task.class, res);
+          final var updated = assertThatBodyIs(Task.class, res);
           assertThat(updated).isNotEqualTo(target).isNotEqualTo(source);
           target._lastUpdateTs = updated._lastUpdateTs;
           target.appId = app.appId;
@@ -460,7 +460,7 @@ public class TasksIT {
     testRequest(client, HttpMethod.GET, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/undefined-task-type-identifier").expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
-      final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+      final var error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty();
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -484,7 +484,7 @@ public class TasksIT {
       testRequest(client, HttpMethod.GET, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/" + taskType.id).expect(res -> testContext.verify(() -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final TaskType found = assertThatBodyIs(TaskType.class, res);
+        final var found = assertThatBodyIs(TaskType.class, res);
         assertThat(found).isEqualTo(taskType);
 
       })).send(testContext);
@@ -508,7 +508,7 @@ public class TasksIT {
     testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + Tasks.TYPES_PATH).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-      final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+      final var error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty().isEqualTo("bad_task_type");
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -530,12 +530,12 @@ public class TasksIT {
 
     TaskTypesRepository.createProxy(vertx).storeTaskType(new TaskType(), testContext.succeeding(created -> {
 
-      final TaskType taskType = new TaskTypeTest().createModelExample(1);
+      final var taskType = new TaskTypeTest().createModelExample(1);
       taskType.id = created.id;
       testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + Tasks.TYPES_PATH).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-        final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+        final var error = assertThatBodyIs(ErrorMessage.class, res);
         assertThat(error.code).isNotEmpty().isEqualTo("bad_task_type.id");
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -557,11 +557,11 @@ public class TasksIT {
   @Test
   public void shouldStoreTaskTypeExample(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final TaskType taskType = new TaskTypeTest().createModelExample(1);
+    final var taskType = new TaskTypeTest().createModelExample(1);
     testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + Tasks.TYPES_PATH).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final TaskType stored = assertThatBodyIs(TaskType.class, res);
+      final var stored = assertThatBodyIs(TaskType.class, res);
       assertThat(stored).isNotNull().isNotEqualTo(taskType);
       taskType.id = stored.id;
       assertThat(stored).isNotEqualTo(taskType);
@@ -577,7 +577,7 @@ public class TasksIT {
 
       })));
 
-    }).sendJson(taskType.toJsonObject(), testContext,testContext.checkpoint(2));
+    }).sendJson(taskType.toJsonObject(), testContext, testContext.checkpoint(2));
 
   }
 
@@ -594,7 +594,7 @@ public class TasksIT {
   @Test
   public void shouldNotStoreEmptyTaskType(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final TaskType taskType = new TaskType();
+    final var taskType = new TaskType();
     testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + Tasks.TYPES_PATH).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
@@ -616,14 +616,14 @@ public class TasksIT {
   @Test
   public void shouldStoreTaskTypeWithOnlyID(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final TaskType taskType = new TaskTypeTest().createModelExample(1);
+    final var taskType = new TaskTypeTest().createModelExample(1);
     // taskType._creationTs = 0;
     // taskType._lastUpdateTs = 0;
     taskType.id = UUID.randomUUID().toString();
     testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + Tasks.TYPES_PATH).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final TaskType stored = assertThatBodyIs(TaskType.class, res);
+      final var stored = assertThatBodyIs(TaskType.class, res);
       // assertThat(stored).isNotNull().isNotEqualTo(taskType);
       // assertThat(stored).isNotNull().isNotEqualTo(taskType);
       // taskType._creationTs = stored._creationTs;
@@ -637,7 +637,7 @@ public class TasksIT {
 
       })));
 
-    }).sendJson(taskType.toJsonObject(), testContext,testContext.checkpoint(2));
+    }).sendJson(taskType.toJsonObject(), testContext, testContext.checkpoint(2));
 
   }
 
@@ -653,12 +653,12 @@ public class TasksIT {
   @Test
   public void shouldNotUpdateTaskTypeThatIsNotDefined(final WebClient client, final VertxTestContext testContext) {
 
-    final TaskType taskType = new TaskType();
+    final var taskType = new TaskType();
     taskType.name = "Task type name";
     testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/undefined-task-type-identifier").expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
-      final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+      final var error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty();
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -683,7 +683,7 @@ public class TasksIT {
       testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/" + taskType.id).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-        final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+        final var error = assertThatBodyIs(ErrorMessage.class, res);
         assertThat(error.code).isNotEmpty();
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -709,7 +709,7 @@ public class TasksIT {
       testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/" + taskType.id).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-        final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+        final var error = assertThatBodyIs(ErrorMessage.class, res);
         assertThat(error.code).isNotEmpty();
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -733,12 +733,12 @@ public class TasksIT {
 
     TaskTypesRepository.createProxy(vertx).storeTaskType(new TaskType(), testContext.succeeding(taskType -> {
 
-      final TaskType badTaskType = new TaskType();
+      final var badTaskType = new TaskType();
       badTaskType.name = ValidationsTest.STRING_256;
       testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/" + taskType.id).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-        final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+        final var error = assertThatBodyIs(ErrorMessage.class, res);
         assertThat(error.code).isNotEmpty().endsWith(".name");
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -761,13 +761,13 @@ public class TasksIT {
 
     StoreServices.storeTaskTypeExample(1, vertx, testContext, testContext.succeeding(target -> {
 
-      final TaskType source = new TaskTypeTest().createModelExample(2);
+      final var source = new TaskTypeTest().createModelExample(2);
 
       source.id = UUID.randomUUID().toString();
       testRequest(client, HttpMethod.PUT, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/" + target.id).expect(res -> testContext.verify(() -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final TaskType updated = assertThatBodyIs(TaskType.class, res);
+        final var updated = assertThatBodyIs(TaskType.class, res);
         assertThat(updated).isNotEqualTo(source).isNotEqualTo(target);
         source.id = updated.id;
         // source._creationTs = target._creationTs;
@@ -795,7 +795,7 @@ public class TasksIT {
     testRequest(client, HttpMethod.DELETE, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/undefined-task-type-identifier").expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
-      final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+      final var error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty();
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -814,7 +814,7 @@ public class TasksIT {
   @Test
   public void shouldDeleteTaskType(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final TaskTypesRepository repository = TaskTypesRepository.createProxy(vertx);
+    final var repository = TaskTypesRepository.createProxy(vertx);
     repository.storeTaskType(new TaskType(), testContext.succeeding(storedTaskType -> {
 
       testRequest(client, HttpMethod.DELETE, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/" + storedTaskType.id).expect(res -> testContext.verify(() -> {
@@ -822,7 +822,7 @@ public class TasksIT {
         assertThat(res.statusCode()).isEqualTo(Status.NO_CONTENT.getStatusCode());
         repository.searchTaskType(storedTaskType.id, testContext.failing(error -> testContext.completeNow()));
 
-      })).send(testContext,testContext.checkpoint(2));
+      })).send(testContext, testContext.checkpoint(2));
 
     }));
 
@@ -842,12 +842,12 @@ public class TasksIT {
 
     StoreServices.storeTaskTypeExample(1, vertx, testContext, testContext.succeeding(target -> {
 
-      final TaskType source = new TaskType();
+      final var source = new TaskType();
       source.name = "NEW task type name";
       testRequest(client, HttpMethod.PATCH, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/" + target.id).expect(res -> testContext.verify(() -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final TaskType updated = assertThatBodyIs(TaskType.class, res);
+        final var updated = assertThatBodyIs(TaskType.class, res);
         assertThat(updated).isNotEqualTo(target).isNotEqualTo(source);
         // target._lastUpdateTs = updated._lastUpdateTs;
         target.name = "NEW task type name";
@@ -872,11 +872,11 @@ public class TasksIT {
 
     StoreServices.storeTaskTypeExample(1, vertx, testContext, testContext.succeeding(target -> {
 
-      final TaskType source = new TaskType();
+      final var source = new TaskType();
       testRequest(client, HttpMethod.PATCH, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/" + target.id).expect(res -> testContext.verify(() -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-        final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+        final var error = assertThatBodyIs(ErrorMessage.class, res);
         assertThat(error.code).isNotEmpty().isEqualTo("task_type_to_merge_equal_to_original");
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -899,7 +899,7 @@ public class TasksIT {
     testRequest(client, HttpMethod.POST, Tasks.PATH + Tasks.TRANSACTIONS_PATH).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-      final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+      final var error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty().isEqualTo("bad_task_transaction");
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -918,11 +918,11 @@ public class TasksIT {
   @Test
   public void shouldNotDoTransactionIfItIsEmpty(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final TaskTransaction taskTransaction = new TaskTransaction();
+    final var taskTransaction = new TaskTransaction();
     testRequest(client, HttpMethod.POST, Tasks.PATH + Tasks.TRANSACTIONS_PATH).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-      final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+      final var error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty().isEqualTo("bad_task_transaction.taskId");
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -942,11 +942,11 @@ public class TasksIT {
   @Test
   public void shouldNotDoTransactionIfTaskIsNotDefined(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final TaskTransaction taskTransaction = new TaskTransactionTest().createModelExample(1);
+    final var taskTransaction = new TaskTransactionTest().createModelExample(1);
     testRequest(client, HttpMethod.POST, Tasks.PATH + Tasks.TRANSACTIONS_PATH).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-      final ErrorMessage error = assertThatBodyIs(ErrorMessage.class, res);
+      final var error = assertThatBodyIs(ErrorMessage.class, res);
       assertThat(error.code).isNotEmpty().isEqualTo("bad_task_transaction.taskId");
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
@@ -987,7 +987,7 @@ public class TasksIT {
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", String.valueOf(Integer.MAX_VALUE))).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+      final var page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(Integer.MAX_VALUE);
       assertThat(page.total).isGreaterThanOrEqualTo(0);
@@ -1011,7 +1011,7 @@ public class TasksIT {
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("order", field), queryParam("appId", UUID.randomUUID().toString())).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+      final var page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.total).isEqualTo(0);
       assertThat(page.tasks).isNull();
@@ -1030,11 +1030,11 @@ public class TasksIT {
   @Test
   public void shouldGetEmptyTasksPageWithUndefinedAppId(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final String appId = UUID.randomUUID().toString();
+    final var appId = UUID.randomUUID().toString();
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("appId", appId)).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+      final var page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
@@ -1065,7 +1065,7 @@ public class TasksIT {
         testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("appId", app.appId), queryParam("offset", "1"), queryParam("limit", "2")).expect(res -> {
 
           assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-          final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+          final var page = assertThatBodyIs(TasksPage.class, res);
           assertThat(page).isNotNull();
           assertThat(page.offset).isEqualTo(1);
           assertThat(page.total).isEqualTo(4);
@@ -1093,16 +1093,16 @@ public class TasksIT {
 
       tasks.sort((t1, t2) -> t1.goal.name.compareTo(t2.goal.name));
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", "1"), queryParam("order", "-goalName,+appId,goalDescription"), queryParam("appId", "/^" + tasks.get(1).appId + "$|^" + tasks.get(7).appId + "$/"))
-      .expect(res -> {
+          .expect(res -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final TasksPage page = assertThatBodyIs(TasksPage.class, res);
-        assertThat(page).isNotNull();
-        assertThat(page.offset).isEqualTo(1);
-        assertThat(page.total).isEqualTo(2);
-        assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
+            assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+            final var page = assertThatBodyIs(TasksPage.class, res);
+            assertThat(page).isNotNull();
+            assertThat(page.offset).isEqualTo(1);
+            assertThat(page.total).isEqualTo(2);
+            assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
 
-      }).send(testContext);
+          }).send(testContext);
 
     }));
 
@@ -1118,11 +1118,11 @@ public class TasksIT {
   @Test
   public void shouldGetEmptyTasksPageWithUndefinedRequesterId(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final String requesterId = UUID.randomUUID().toString();
+    final var requesterId = UUID.randomUUID().toString();
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("requesterId", requesterId)).expect(res -> {
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
 
-      final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+      final var page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
@@ -1153,7 +1153,7 @@ public class TasksIT {
         testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", "3"), queryParam("limit", "1"), queryParam("requesterId", requester.id)).expect(res -> {
 
           assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-          final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+          final var page = assertThatBodyIs(TasksPage.class, res);
           assertThat(page).isNotNull();
           assertThat(page.offset).isEqualTo(3);
           assertThat(page.total).isEqualTo(4);
@@ -1181,16 +1181,16 @@ public class TasksIT {
 
       tasks.sort((t1, t2) -> t1.goal.name.compareTo(t2.goal.name));
       testRequest(client, HttpMethod.GET, Tasks.PATH)
-      .with(queryParam("offset", "1"), queryParam("order", "-goalName,+requesterId,goalDescription"), queryParam("requesterId", "/^" + tasks.get(1).requesterId + "$|^" + tasks.get(7).requesterId + "$/")).expect(res -> {
+          .with(queryParam("offset", "1"), queryParam("order", "-goalName,+requesterId,goalDescription"), queryParam("requesterId", "/^" + tasks.get(1).requesterId + "$|^" + tasks.get(7).requesterId + "$/")).expect(res -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final TasksPage page = assertThatBodyIs(TasksPage.class, res);
-        assertThat(page).isNotNull();
-        assertThat(page.offset).isEqualTo(1);
-        assertThat(page.total).isEqualTo(2);
-        assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
+            assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+            final var page = assertThatBodyIs(TasksPage.class, res);
+            assertThat(page).isNotNull();
+            assertThat(page.offset).isEqualTo(1);
+            assertThat(page.total).isEqualTo(2);
+            assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
 
-      }).send(testContext);
+          }).send(testContext);
 
     }));
 
@@ -1206,11 +1206,11 @@ public class TasksIT {
   @Test
   public void shouldGetEmptyTasksPageWithUndefinedTaskTypeId(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final String taskTypeId = UUID.randomUUID().toString();
+    final var taskTypeId = UUID.randomUUID().toString();
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("taskTypeId", taskTypeId)).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+      final var page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
@@ -1241,7 +1241,7 @@ public class TasksIT {
         testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("taskTypeId", taskType.id)).expect(res -> {
 
           assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-          final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+          final var page = assertThatBodyIs(TasksPage.class, res);
           assertThat(page).isNotNull();
           assertThat(page.offset).isEqualTo(0);
           assertThat(page.total).isEqualTo(4);
@@ -1269,16 +1269,16 @@ public class TasksIT {
 
       tasks.sort((t1, t2) -> t1.goal.name.compareTo(t2.goal.name));
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", "1"), queryParam("order", "-goal.name,+taskTypeId"), queryParam("taskTypeId", "/^" + tasks.get(1).taskTypeId + "$|^" + tasks.get(7).taskTypeId + "$/"))
-      .expect(res -> {
+          .expect(res -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final TasksPage page = assertThatBodyIs(TasksPage.class, res);
-        assertThat(page).isNotNull();
-        assertThat(page.offset).isEqualTo(1);
-        assertThat(page.total).isEqualTo(2);
-        assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
+            assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+            final var page = assertThatBodyIs(TasksPage.class, res);
+            assertThat(page).isNotNull();
+            assertThat(page.offset).isEqualTo(1);
+            assertThat(page.total).isEqualTo(2);
+            assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
 
-      }).send(testContext);
+          }).send(testContext);
 
     }));
 
@@ -1294,11 +1294,11 @@ public class TasksIT {
   @Test
   public void shouldGetEmptyTasksPageWithUndefinedGoalName(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final String goalName = UUID.randomUUID().toString();
+    final var goalName = UUID.randomUUID().toString();
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", goalName)).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+      final var page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
@@ -1317,7 +1317,7 @@ public class TasksIT {
   @Test
   public void shouldGetSomeTasksByGoalName(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final String goalName = UUID.randomUUID().toString();
+    final var goalName = UUID.randomUUID().toString();
 
     StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> {
       if (index % 2 == 0) {
@@ -1329,7 +1329,7 @@ public class TasksIT {
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", goalName)).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+        final var page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(0);
         assertThat(page.total).isEqualTo(4);
@@ -1351,14 +1351,14 @@ public class TasksIT {
   @Test
   public void shouldGetSomeTasksByRegexGoalName(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final String goalName = UUID.randomUUID().toString();
+    final var goalName = UUID.randomUUID().toString();
     StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.name += goalName).onComplete(testContext.succeeding(tasks -> {
 
       tasks.sort((t1, t2) -> t1.goal.name.compareTo(t2.goal.name));
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", "1"), queryParam("limit", "1"), queryParam("order", "-goal.name"), queryParam("goalName", "/" + goalName.replaceAll("-", "\\-") + "$/")).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+        final var page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(1);
         assertThat(page.total).isEqualTo(8);
@@ -1380,11 +1380,11 @@ public class TasksIT {
   @Test
   public void shouldGetEmptyTasksPageWithUndefinedGoalDescription(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final String goalDescription = UUID.randomUUID().toString();
+    final var goalDescription = UUID.randomUUID().toString();
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalDescription", goalDescription)).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+      final var page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
@@ -1403,7 +1403,7 @@ public class TasksIT {
   @Test
   public void shouldGetSomeTasksByGoalDescription(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final String goalDescription = UUID.randomUUID().toString();
+    final var goalDescription = UUID.randomUUID().toString();
 
     StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> {
       if (index % 2 == 0) {
@@ -1415,7 +1415,7 @@ public class TasksIT {
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalDescription", goalDescription)).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+        final var page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(0);
         assertThat(page.total).isEqualTo(4);
@@ -1437,21 +1437,21 @@ public class TasksIT {
   @Test
   public void shouldGetSomeTasksByRegexGoalDescription(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final String goalDescription = UUID.randomUUID().toString();
+    final var goalDescription = UUID.randomUUID().toString();
     StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.description += goalDescription).onComplete(testContext.succeeding(tasks -> {
 
       tasks.sort((t1, t2) -> t1.goal.description.compareTo(t2.goal.description));
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", "2"), queryParam("limit", "2"), queryParam("order", "-goal.description"), queryParam("goalDescription", "/" + goalDescription.replaceAll("-", "\\-") + "$/"))
-      .expect(res -> {
+          .expect(res -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final TasksPage page = assertThatBodyIs(TasksPage.class, res);
-        assertThat(page).isNotNull();
-        assertThat(page.offset).isEqualTo(2);
-        assertThat(page.total).isEqualTo(8);
-        assertThat(page.tasks).isNotNull().hasSize(2).contains(tasks.get(5), tasks.get(4));
+            assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+            final var page = assertThatBodyIs(TasksPage.class, res);
+            assertThat(page).isNotNull();
+            assertThat(page.offset).isEqualTo(2);
+            assertThat(page.total).isEqualTo(8);
+            assertThat(page.tasks).isNotNull().hasSize(2).contains(tasks.get(5), tasks.get(4));
 
-      }).send(testContext);
+          }).send(testContext);
 
     }));
 
@@ -1470,7 +1470,7 @@ public class TasksIT {
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("startFrom", "0"), queryParam("startTo", "1")).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+      final var page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
@@ -1489,13 +1489,13 @@ public class TasksIT {
   @Test
   public void shouldGetTasksPageWithStartTsOnSpecificRange(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final String name = UUID.randomUUID().toString();
+    final var name = UUID.randomUUID().toString();
     StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.name = name).onComplete(testContext.succeeding(tasks -> {
 
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("startFrom", String.valueOf(tasks.get(2).startTs)), queryParam("startTo", String.valueOf(tasks.get(5).startTs))).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+        final var page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(0);
         assertThat(page.total).isEqualTo(4);
@@ -1520,7 +1520,7 @@ public class TasksIT {
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("endFrom", "0"), queryParam("endTo", "1")).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+      final var page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
@@ -1539,13 +1539,13 @@ public class TasksIT {
   @Test
   public void shouldGetTasksPageWithEndTsOnSpecificRange(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final String name = UUID.randomUUID().toString();
+    final var name = UUID.randomUUID().toString();
     StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.name = name).onComplete(testContext.succeeding(tasks -> {
 
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("endFrom", String.valueOf(tasks.get(2).endTs)), queryParam("endTo", String.valueOf(tasks.get(5).endTs))).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+        final var page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(0);
         assertThat(page.total).isEqualTo(4);
@@ -1570,7 +1570,7 @@ public class TasksIT {
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("deadlineFrom", "0"), queryParam("deadlineTo", "1")).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+      final var page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
@@ -1589,13 +1589,13 @@ public class TasksIT {
   @Test
   public void shouldGetTasksPageWithDeadlineTsOnSpecificRange(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final String name = UUID.randomUUID().toString();
+    final var name = UUID.randomUUID().toString();
     StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.name = name).onComplete(testContext.succeeding(tasks -> {
 
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("deadlineFrom", String.valueOf(tasks.get(2).deadlineTs)), queryParam("deadlineTo", String.valueOf(tasks.get(5).deadlineTs))).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+        final var page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(0);
         assertThat(page.total).isEqualTo(4);
@@ -1620,7 +1620,7 @@ public class TasksIT {
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("closeFrom", "0"), queryParam("closeTo", "1")).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+      final var page = assertThatBodyIs(TasksPage.class, res);
       assertThat(page).isNotNull();
       assertThat(page.offset).isEqualTo(0);
       assertThat(page.total).isEqualTo(0);
@@ -1639,7 +1639,7 @@ public class TasksIT {
   @Test
   public void shouldGetTasksPageWithCloseTsOnSpecificRange(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final String name = UUID.randomUUID().toString();
+    final var name = UUID.randomUUID().toString();
     StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> {
       task.goal.name = name;
       task.closeTs = task.endTs + 10000;
@@ -1648,7 +1648,7 @@ public class TasksIT {
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("closeFrom", String.valueOf(tasks.get(2).closeTs)), queryParam("closeTo", String.valueOf(tasks.get(5).closeTs))).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+        final var page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(0);
         assertThat(page.total).isEqualTo(4);
@@ -1670,7 +1670,7 @@ public class TasksIT {
   @Test
   public void shouldGetTasksPageWithClosedTasks(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final String name = UUID.randomUUID().toString();
+    final var name = UUID.randomUUID().toString();
     StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> {
       task.goal.name = name;
       if (index % 2 == 0) {
@@ -1682,7 +1682,7 @@ public class TasksIT {
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("hasCloseTs", "true")).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+        final var page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(0);
         assertThat(page.total).isEqualTo(4);
@@ -1704,7 +1704,7 @@ public class TasksIT {
   @Test
   public void shouldGetTasksPageWithNotClosedTasks(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    final String name = UUID.randomUUID().toString();
+    final var name = UUID.randomUUID().toString();
     StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> {
       task.goal.name = name;
       if (index % 2 == 0) {
@@ -1716,7 +1716,7 @@ public class TasksIT {
       testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("hasCloseTs", "false")).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final TasksPage page = assertThatBodyIs(TasksPage.class, res);
+        final var page = assertThatBodyIs(TasksPage.class, res);
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(0);
         assertThat(page.total).isEqualTo(4);
