@@ -62,7 +62,7 @@ public class WeNetTaskManagerIntegrationExtension extends AbstractWeNetComponent
 
     final var containers = Containers.status().startBasic().startProfileManagerContainer().startInteractionProtocolEngineContainer();
 
-    return new String[] { "-papi.port=" + containers.profileManagerApiPort, "-ppersistence.db_name=" + Containers.MONGODB_NAME, "-ppersistence.host=" + containers.getMongoDBHost(), "-ppersistence.port=" + containers.getMongoDBPort(),
+    return new String[] { "-papi.port=" + containers.taskManagerApiPort, "-ppersistence.db_name=" + Containers.MONGODB_NAME, "-ppersistence.host=" + containers.getMongoDBHost(), "-ppersistence.port=" + containers.getMongoDBPort(),
         "-ppersistence.username=" + Containers.MONGODB_USER, "-ppersistence.password=" + Containers.MONGODB_PASSWORD, "-pwenetComponents.profileManager=\"" + containers.getProfileManagerApi() + "\"",
         "-pwenetComponents.interactionProtocolEngine=\"" + containers.getInteractionProtocolEngineApi() + "\"", "-pwenetComponents.service=\"" + containers.service.getApiUrl() + "\"" };
 
