@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -26,19 +26,11 @@
 
 package eu.internetofus.wenet_task_manager;
 
-import org.testcontainers.Testcontainers;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.Network;
-
 import eu.internetofus.common.Containers;
-import eu.internetofus.common.components.incentive_server.WeNetIncentiveServerMocker;
-import eu.internetofus.common.components.service.WeNetServiceMocker;
 import eu.internetofus.common.components.service.WeNetServiceSimulator;
-import eu.internetofus.common.components.social_context_builder.WeNetSocialContextBuilderMocker;
 import eu.internetofus.common.vertx.AbstractMain;
 import eu.internetofus.common.vertx.AbstractWeNetComponentIntegrationExtension;
 import eu.internetofus.common.vertx.WeNetModuleContext;
-import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 
@@ -68,31 +60,11 @@ public class WeNetTaskManagerIntegrationExtension extends AbstractWeNetComponent
   @Override
   protected String[] createMainStartArguments() {
 
-    final var network = Network.newNetwork();
+    final var containers = Containers.status().startBasic().startProfileManagerContainer().startInteractionProtocolEngineContainer();
 
-    final var serviceApi = WeNetServiceMocker.start().getApiUrl();
-    final var socialContextBuilderApi = WeNetSocialContextBuilderMocker.start().getApiUrl();
-    final var incentiveServerApi = WeNetIncentiveServerMocker.start().getApiUrl();
-
-    final var profileManagerApiPort = Containers.nextFreePort();
-    var profileManagerApi = Containers.exposedApiFor(profileManagerApiPort);
-
-    final var taskManagerApiPort = Containers.nextFreePort();
-    final var taskManagerApi = Containers.exposedApiFor(taskManagerApiPort);
-
-    final var interactionProtocolEngineApiPort = Containers.nextFreePort();
-    var interactionProtocolEngineApi = Containers.exposedApiFor(interactionProtocolEngineApiPort);
-
-    Testcontainers.exposeHostPorts(profileManagerApiPort, taskManagerApiPort, interactionProtocolEngineApiPort);
-
-    profileManagerApi = Containers.createAndStartContainersForProfileManager(profileManagerApiPort, taskManagerApi, serviceApi, socialContextBuilderApi, network);
-    interactionProtocolEngineApi = Containers.createAndStartContainersForInteractionProtocolEngine(interactionProtocolEngineApiPort, profileManagerApi, taskManagerApi, serviceApi, socialContextBuilderApi, incentiveServerApi, network);
-
-    final GenericContainer<?> persistenceContainer = Containers.createMongoContainerFor(Containers.WENET_TASK_MANAGER_DB_NAME, network);
-    persistenceContainer.start();
-
-    return new String[] { "-papi.port=" + taskManagerApiPort, "-ppersistence.host=host.docker.internal", "-ppersistence.port=" + persistenceContainer.getMappedPort(Containers.EXPORT_MONGODB_PORT),
-        "-pwenetComponents.profileManager=\"" + profileManagerApi + "\"", "-pwenetComponents.interactionProtocolEngine=\"" + interactionProtocolEngineApi + "\"", "-pwenetComponents.service=\"" + serviceApi + "\"" };
+    return new String[] { "-papi.port=" + containers.profileManagerApiPort, "-ppersistence.db_name=" + Containers.MONGODB_NAME, "-ppersistence.host=" + containers.getMongoDBHost(), "-ppersistence.port=" + containers.getMongoDBPort(),
+        "-ppersistence.username=" + Containers.MONGODB_USER, "-ppersistence.password=" + Containers.MONGODB_PASSWORD, "-pwenetComponents.profileManager=\"" + containers.getProfileManagerApi() + "\"",
+        "-pwenetComponents.interactionProtocolEngine=\"" + containers.getInteractionProtocolEngineApi() + "\"", "-pwenetComponents.service=\"" + containers.service.getApiUrl() + "\"" };
 
   }
 

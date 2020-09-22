@@ -24,28 +24,25 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.wenet_task_manager.persistence;
+package eu.internetofus.common.vertx;
 
-import eu.internetofus.common.vertx.AbstractPersistenceVerticleTestCase;
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.Promise;
 
 /**
- * Test the {@link PersistenceVerticle}.
- *
- * @see PersistenceVerticle
+ * A dummy worker verticle.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public class PersistenceVerticleTest extends AbstractPersistenceVerticleTestCase<PersistenceVerticle> {
+@Worker
+public class DummyWorkerVerticle extends AbstractVerticle {
 
   /**
    * {@inheritDoc}
-   *
-   * @see PersistenceVerticle#PersistenceVerticle()
    */
   @Override
-  protected PersistenceVerticle createPersitenceVerticle() {
+  public void start(final Promise<Void> startPromise) throws Exception {
 
-    return new PersistenceVerticle();
+    startPromise.complete();
   }
-
 }

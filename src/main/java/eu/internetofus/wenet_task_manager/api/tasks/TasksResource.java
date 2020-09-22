@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -41,6 +41,9 @@ import eu.internetofus.common.components.profile_manager.WeNetProfileManager;
 import eu.internetofus.common.components.task_manager.Task;
 import eu.internetofus.common.components.task_manager.TaskTransaction;
 import eu.internetofus.common.components.task_manager.TaskType;
+import eu.internetofus.common.vertx.ModelContext;
+import eu.internetofus.common.vertx.ModelResources;
+import eu.internetofus.common.vertx.OperationContext;
 import eu.internetofus.common.vertx.OperationReponseHandlers;
 import eu.internetofus.common.vertx.Repository;
 import eu.internetofus.wenet_task_manager.persistence.TaskTypesRepository;
@@ -106,183 +109,64 @@ public class TasksResource implements Tasks {
   }
 
   /**
-   * {@inheritDoc}
+   * Create the task context.
+   *
+   * @return the context of the {@link Task}.
    */
-  @Override
-  public void retrieveTask(final String taskId, final OperationRequest context, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  protected ModelContext<Task, String> createTaskContext() {
 
-    this.repository.searchTaskObject(taskId, search -> {
+    final var context = new ModelContext<Task, String>();
+    context.name = "task";
+    context.type = Task.class;
+    return context;
 
-      final var task = search.result();
-      if (task == null) {
-
-        Logger.debug(search.cause(), "Not found task for {}", taskId);
-        OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND, "not_found_task", "Does not exist a task associated to '" + taskId + "'.");
-
-      } else {
-
-        OperationReponseHandlers.responseOk(resultHandler, task);
-
-      }
-    });
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void createTask(final JsonObject body, final OperationRequest context, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void retrieveTask(final String taskId, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
-    final var task = Model.fromJsonObject(body, Task.class);
-    if (task == null) {
+    final var model = this.createTaskContext();
+    model.id = taskId;
+    final var context = new OperationContext(request, resultHandler);
+    ModelResources.retrieveModel(model, this.repository::searchTask, context);
 
-      Logger.trace("The {} is not a valid Task.", body);
-      OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task", "The task is not right.");
+  }
 
-    } else {
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void createTask(final JsonObject body, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
-      task.validate("bad_task", this.vertx).onComplete(validation -> {
+    final var model = this.createTaskContext();
+    final var context = new OperationContext(request, resultHandler);
+    ModelResources.createModelChain(this.vertx, body, model, this.repository::storeTask, context, () -> {
 
-        if (validation.failed()) {
+      OperationReponseHandlers.responseWith(resultHandler, Status.CREATED, model.value);
 
-          final var cause = validation.cause();
-          Logger.debug(cause, "The {} is not valid.", task);
+      Logger.debug("Created task {}", model.value);
+      final var message = new Message();
+      message.taskId = model.value.id;
+      message.appId = model.value.appId;
+      message.type = Type.TASK_CREATED;
+      message.content = model.value.toJsonObject();
+      this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
+
+        if (sent.failed()) {
+
+          final var cause = sent.cause();
+          Logger.debug(cause, "Cannot send message {}.", message);
           OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
         } else {
 
-          this.repository.storeTask(task, stored -> {
-
-            if (stored.failed()) {
-
-              final var cause = validation.cause();
-              Logger.debug(cause, "Cannot store {}.", task);
-              OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
-
-            } else {
-
-              final var storedTask = stored.result();
-              OperationReponseHandlers.responseOk(resultHandler, storedTask);
-
-              Logger.debug("Created task {}", storedTask);
-              final var message = new Message();
-              message.taskId = storedTask.id;
-              message.appId = storedTask.appId;
-              message.type = Type.TASK_CREATED;
-              message.content = storedTask.toJsonObject();
-              this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
-
-                if (sent.failed()) {
-
-                  final var cause = validation.cause();
-                  Logger.debug(cause, "Cannot send message {}.", message);
-                  OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
-
-                } else {
-
-                  Logger.debug("Interaction protocol engine accepted {}", storedTask);
-
-                }
-              });
-            }
-
-          });
+          Logger.debug("Interaction protocol engine accepted {}", model.value);
 
         }
-
       });
-    }
-
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void updateTask(final String taskId, final JsonObject body, final OperationRequest context, final Handler<AsyncResult<OperationResponse>> resultHandler) {
-
-    final var source = Model.fromJsonObject(body, Task.class);
-    if (source == null) {
-
-      Logger.debug("The {} is not a valid Task to update.", body);
-      OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task_to_update", "The task to update is not right.");
-
-    } else {
-
-      this.repository.searchTask(taskId, search -> {
-
-        final var target = search.result();
-        if (target == null) {
-
-          Logger.debug(search.cause(), "Not found task {} to update", taskId);
-          OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND, "not_found_task_to_update", "You can not update the task '" + taskId + "', because it does not exist.");
-
-        } else {
-
-          source.id = null;
-          source.validate("bad_new_profile", this.vertx).onComplete(validate -> {
-
-            if (validate.failed()) {
-
-              final var cause = validate.cause();
-              Logger.debug(cause, "Cannot update {} with {}.", target, source);
-              OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
-
-            } else {
-
-              source.id = target.id;
-              source._creationTs = target._creationTs;
-              source._lastUpdateTs = target._lastUpdateTs;
-              if (source.equals(target)) {
-
-                OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "task_to_update_equal_to_original",
-                    "You can not update the task '" + source.id + "', because the new values is equals to the current one.");
-
-              } else {
-
-                this.repository.updateTask(source, update -> {
-
-                  if (update.failed()) {
-
-                    final var cause = update.cause();
-                    Logger.debug(cause, "Cannot update {}.", target);
-                    OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
-
-                  } else {
-
-                    OperationReponseHandlers.responseOk(resultHandler, source);
-
-                  }
-
-                });
-              }
-            }
-          });
-        }
-      });
-    }
-
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void deleteTask(final String taskId, final OperationRequest context, final Handler<AsyncResult<OperationResponse>> resultHandler) {
-
-    this.repository.deleteTask(taskId, delete -> {
-
-      if (delete.failed()) {
-
-        final var cause = delete.cause();
-        Logger.debug(cause, "Cannot delete the task  {}.", taskId);
-        OperationReponseHandlers.responseFailedWith(resultHandler, Status.NOT_FOUND, cause);
-
-      } else {
-
-        OperationReponseHandlers.responseOk(resultHandler);
-      }
-
     });
 
   }
@@ -291,65 +175,12 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTaskType(final String taskTypeId, final OperationRequest context, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void updateTask(final String taskId, final JsonObject body, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
-    this.typesRepository.searchTaskTypeObject(taskTypeId, search -> {
-
-      final var taskType = search.result();
-      if (taskType == null) {
-
-        Logger.debug(search.cause(), "Not found task type type for {}", taskTypeId);
-        OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND, "not_found_task_type", "Does not exist a task type type associated to '" + taskTypeId + "'.");
-
-      } else {
-
-        OperationReponseHandlers.responseOk(resultHandler, taskType);
-
-      }
-    });
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void createTaskType(final JsonObject body, final OperationRequest context, final Handler<AsyncResult<OperationResponse>> resultHandler) {
-
-    final var taskType = Model.fromJsonObject(body, TaskType.class);
-    if (taskType == null) {
-
-      Logger.debug("The {} is not a valid TaskType.", body);
-      OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task_type", "The task type is not right.");
-
-    } else {
-
-      taskType.validate("bad_task_type", this.vertx).onComplete(validation -> {
-
-        if (validation.failed()) {
-
-          final var cause = validation.cause();
-          Logger.debug(cause, "The {} is not valid.", taskType);
-          OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
-
-        } else {
-
-          this.typesRepository.storeTaskType(taskType, stored -> {
-
-            if (stored.failed()) {
-
-              final var cause = validation.cause();
-              Logger.debug(cause, "Cannot store {}.", taskType);
-              OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
-
-            } else {
-
-              OperationReponseHandlers.responseOk(resultHandler, stored.result());
-            }
-          });
-        }
-
-      });
-    }
+    final var model = this.createTaskContext();
+    model.id = taskId;
+    final var context = new OperationContext(request, resultHandler);
+    ModelResources.updateModel(this.vertx, body, model, this.repository::searchTask, this.repository::updateTask, context);
 
   }
 
@@ -357,66 +188,12 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void updateTaskType(final String taskTypeId, final JsonObject body, final OperationRequest context, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void mergeTask(final String taskId, final JsonObject body, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
-    final var source = Model.fromJsonObject(body, TaskType.class);
-    if (source == null) {
-
-      Logger.debug("The {} is not a valid TaskType to update.", body);
-      OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task_type_to_update", "The task type to update is not right.");
-
-    } else {
-
-      this.typesRepository.searchTaskType(taskTypeId, search -> {
-
-        final var target = search.result();
-        if (target == null) {
-
-          Logger.debug(search.cause(), "Not found task type {} to update", taskTypeId);
-          OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND, "not_found_task_type_to_update", "You can not update the task type '" + taskTypeId + "', because it does not exist.");
-
-        } else {
-
-          source.id = null;
-          source.validate("bad_new_task_type", this.vertx).onComplete(validate -> {
-
-            if (validate.failed()) {
-
-              final var cause = validate.cause();
-              Logger.debug(cause, "Cannot update {} with {}.", target, source);
-              OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
-
-            } else {
-
-              source.id = target.id;
-              if (source.equals(target)) {
-
-                OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "task_type_to_update_equal_to_original",
-                    "You can not update the task type of the user '" + source.id + "', because the new values is equals to the current one.");
-
-              } else {
-
-                this.typesRepository.updateTaskType(source, update -> {
-
-                  if (update.failed()) {
-
-                    final var cause = update.cause();
-                    Logger.debug(cause, "Cannot update {}.", target);
-                    OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
-
-                  } else {
-
-                    OperationReponseHandlers.responseOk(resultHandler, source);
-
-                  }
-
-                });
-              }
-            }
-          });
-        }
-      });
-    }
+    final var model = this.createTaskContext();
+    model.id = taskId;
+    final var context = new OperationContext(request, resultHandler);
+    ModelResources.mergeModel(this.vertx, body, model, this.repository::searchTask, this.repository::updateTask, context);
 
   }
 
@@ -424,22 +201,26 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void deleteTaskType(final String taskTypeId, final OperationRequest context, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void deleteTask(final String taskId, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
-    this.typesRepository.deleteTaskType(taskTypeId, delete -> {
+    final var model = this.createTaskContext();
+    model.id = taskId;
+    final var context = new OperationContext(request, resultHandler);
+    ModelResources.deleteModel(model, this.repository::deleteTask, context);
 
-      if (delete.failed()) {
+  }
 
-        final var cause = delete.cause();
-        Logger.debug(cause, "Cannot delete the task type {}.", taskTypeId);
-        OperationReponseHandlers.responseFailedWith(resultHandler, Status.NOT_FOUND, cause);
+  /**
+   * Create the task type context.
+   *
+   * @return the context of the {@link TaskType}.
+   */
+  protected ModelContext<TaskType, String> createTaskTypeContext() {
 
-      } else {
-
-        OperationReponseHandlers.responseOk(resultHandler);
-      }
-
-    });
+    final var context = new ModelContext<TaskType, String>();
+    context.name = "task_type";
+    context.type = TaskType.class;
+    return context;
 
   }
 
@@ -447,7 +228,58 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void doTaskTransaction(final JsonObject body, final OperationRequest context, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void retrieveTaskType(final String taskTypeId, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+
+    final var model = this.createTaskTypeContext();
+    model.id = taskTypeId;
+    final var context = new OperationContext(request, resultHandler);
+    ModelResources.retrieveModel(model, this.typesRepository::searchTaskType, context);
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void createTaskType(final JsonObject body, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+
+    final var model = this.createTaskTypeContext();
+    final var context = new OperationContext(request, resultHandler);
+    ModelResources.createModel(this.vertx, body, model, this.typesRepository::storeTaskType, context);
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void updateTaskType(final String taskTypeId, final JsonObject body, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+
+    final var model = this.createTaskTypeContext();
+    model.id = taskTypeId;
+    final var context = new OperationContext(request, resultHandler);
+    ModelResources.updateModel(this.vertx, body, model, this.typesRepository::searchTaskType, this.typesRepository::updateTaskType, context);
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void deleteTaskType(final String taskTypeId, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+
+    final var model = this.createTaskTypeContext();
+    model.id = taskTypeId;
+    final var context = new OperationContext(request, resultHandler);
+    ModelResources.deleteModel(model, this.typesRepository::deleteTaskType, context);
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void doTaskTransaction(final JsonObject body, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
     final var taskTransaction = Model.fromJsonObject(body, TaskTransaction.class);
     if (taskTransaction == null) {
@@ -498,7 +330,7 @@ public class TasksResource implements Tasks {
    */
   @Override
   public void retrieveTasksPage(final String appId, final String requesterId, final String taskTypeId, final String goalName, final String goalDescription, final Long startFrom, final Long startTo, final Long endFrom, final Long endTo,
-      final Long deadlineFrom, final Long deadlineTo, final Boolean hasCloseTs, final Long closeFrom, final Long closeTo, final List<String> order, final int offset, final int limit, final OperationRequest context,
+      final Long deadlineFrom, final Long deadlineTo, final Boolean hasCloseTs, final Long closeFrom, final Long closeTo, final List<String> order, final int offset, final int limit, final OperationRequest request,
       final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
     final var query = TasksRepository.creteTasksPageQuery(appId, requesterId, taskTypeId, goalName, goalDescription, startFrom, startTo, deadlineFrom, deadlineTo, endFrom, endTo, hasCloseTs, closeFrom, closeTo);
@@ -564,7 +396,7 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTaskTypesPage(final String name, final String description, final List<String> keywords, final List<String> order, final int offset, final int limit, final OperationRequest context,
+  public void retrieveTaskTypesPage(final String name, final String description, final List<String> keywords, final List<String> order, final int offset, final int limit, final OperationRequest request,
       final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
     final var query = TaskTypesRepository.creteTaskTypesPageQuery(name, description, keywords);
@@ -614,130 +446,12 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void mergeTask(final String taskId, final JsonObject body, final OperationRequest context, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void mergeTaskType(final String taskTypeId, final JsonObject body, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
-    final var source = Model.fromJsonObject(body, Task.class);
-    if (source == null) {
-
-      Logger.debug("The {} is not a valid Task to merge.", body);
-      OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task_to_merge", "The task to merge is not right.");
-
-    } else {
-
-      this.repository.searchTask(taskId, search -> {
-
-        final var target = search.result();
-        if (target == null) {
-
-          Logger.debug(search.cause(), "Not found task {} to merge", taskId);
-          OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND, "not_found_task_to_merge", "You can not merge the task '" + taskId + "', because it does not exist.");
-
-        } else {
-
-          target.merge(source, "bad_new_task", this.vertx).onComplete(merge -> {
-
-            if (merge.failed()) {
-
-              final var cause = merge.cause();
-              Logger.debug(cause, "Cannot merge {} with {}.", target, source);
-              OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
-
-            } else {
-
-              final var merged = merge.result();
-              if (merged.equals(target)) {
-
-                OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "task_to_merge_equal_to_original",
-                    "You can not merge the task of the task '" + taskId + "', because the new values is equals to the current one.");
-
-              } else {
-
-                this.repository.updateTask(merged, updated -> {
-
-                  if (updated.failed()) {
-
-                    final var cause = updated.cause();
-                    Logger.debug(cause, "Cannot merge {}.", target);
-                    OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
-
-                  } else {
-
-                    OperationReponseHandlers.responseOk(resultHandler, merged);
-
-                  }
-
-                });
-              }
-            }
-          });
-        }
-      });
-    }
-
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void mergeTaskType(final String taskTypeId, final JsonObject body, final OperationRequest context, final Handler<AsyncResult<OperationResponse>> resultHandler) {
-
-    final var source = Model.fromJsonObject(body, TaskType.class);
-    if (source == null) {
-
-      Logger.debug("The {} is not a valid TaskType to merge.", body);
-      OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task_type_to_merge", "The task type to merge is not right.");
-
-    } else {
-
-      this.typesRepository.searchTaskType(taskTypeId, search -> {
-
-        final var target = search.result();
-        if (target == null) {
-
-          Logger.debug(search.cause(), "Not found task type {} to merge", taskTypeId);
-          OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND, "not_found_task_type_to_merge", "You can not merge the task type '" + taskTypeId + "', because it does not exist.");
-
-        } else {
-
-          target.merge(source, "bad_new_task_type", this.vertx).onComplete(merge -> {
-
-            if (merge.failed()) {
-
-              final var cause = merge.cause();
-              Logger.debug(cause, "Cannot merge {} with {}.", target, source);
-              OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
-
-            } else {
-
-              final var merged = merge.result();
-              if (merged.equals(target)) {
-
-                OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "task_type_to_merge_equal_to_original",
-                    "You can not merge the task type '" + taskTypeId + "', because the new values is equals to the current one.");
-
-              } else {
-                this.typesRepository.updateTaskType(merged, update -> {
-
-                  if (update.failed()) {
-
-                    final var cause = update.cause();
-                    Logger.debug(cause, "Cannot update {}.", target);
-                    OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
-
-                  } else {
-
-                    OperationReponseHandlers.responseOk(resultHandler, merged);
-
-                  }
-
-                });
-              }
-            }
-          });
-        }
-      });
-    }
+    final var model = this.createTaskTypeContext();
+    model.id = taskTypeId;
+    final var context = new OperationContext(request, resultHandler);
+    ModelResources.mergeModel(this.vertx, body, model, this.typesRepository::searchTaskType, this.typesRepository::updateTaskType, context);
 
   }
 

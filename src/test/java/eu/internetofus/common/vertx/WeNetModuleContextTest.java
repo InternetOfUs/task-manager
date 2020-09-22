@@ -27,53 +27,33 @@
 package eu.internetofus.common.vertx;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 
 import org.junit.jupiter.api.Test;
 
 import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.JsonObject;
 
 /**
- * Generic test over the classes that extends the {@link AbstractAPIVerticle}.
+ * Test the {@link WeNetModuleContext},
  *
- * @param <T> type of verticle to test.
+ * @see WeNetModuleContext
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public abstract class AbstractAPIVerticleTestCase<T extends AbstractAPIVerticle> {
+public class WeNetModuleContextTest {
 
   /**
-   * Check that not stop the server if it is not started.
+   * Should the constructor store the values.
    */
   @Test
-  public void shouldNotStopIfServerNotStarted() {
+  public void shouldConstructorStoreValues() {
 
-    final var api = this.createAPIVerticle();
-    assertThatCode(() -> api.stop()).doesNotThrowAnyException();
 
-  }
-
-  /**
-   * Return the {@link AbstractAPIVerticle} to test.
-   *
-   * @return the instance of the API verticle to test.
-   */
-  protected abstract T createAPIVerticle();
-
-  /**
-   * Check that not stop the server if it is not started.
-   */
-  @Test
-  public void shouldStopIfServerStarted() {
-
-    final var api = this.createAPIVerticle();
-    final var options = new HttpServerOptions();
-    options.setHost("localhost");
-    options.setPort(0);
-    api.server = Vertx.vertx().createHttpServer(options);
-    assertThatCode(() -> api.stop()).doesNotThrowAnyException();
-    assertThat(api.server).isNull();
+    final Vertx vertx = Vertx.vertx();
+    final JsonObject configuration = new JsonObject();
+    final var context = new WeNetModuleContext(vertx, configuration);
+    assertThat(context.vertx).isSameAs(vertx);
+    assertThat(context.configuration).isSameAs(configuration);
 
   }
 

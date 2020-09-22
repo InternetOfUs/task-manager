@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -59,7 +59,7 @@ public class TaskTypesRepositoryTest {
   @Test
   public void shouldNotFoundTaskTypeBecauseReturnedJsonObjectIsNotRight(final VertxTestContext testContext) {
 
-    final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null) {
+    final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null, null) {
 
       @Override
       public void searchTaskTypeObject(final String id, final Handler<AsyncResult<JsonObject>> searchHandler) {
@@ -85,7 +85,7 @@ public class TaskTypesRepositoryTest {
   @Test
   public void shouldNotStoreTaskTypeBecauseReturnedJsonObjectIsNotRight(final VertxTestContext testContext) {
 
-    final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null) {
+    final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null, null) {
 
       @Override
       public void storeTaskType(final JsonObject taskType, final Handler<AsyncResult<JsonObject>> storeHandler) {
@@ -111,7 +111,7 @@ public class TaskTypesRepositoryTest {
   public void shouldNotStoreTaskTypeBecauseStoreFailed(final VertxTestContext testContext) {
 
     final Throwable cause = new IllegalArgumentException("Cause that can not be stored");
-    final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null) {
+    final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null, null) {
 
       @Override
       public void storeTaskType(final JsonObject taskType, final Handler<AsyncResult<JsonObject>> storeHandler) {
@@ -139,7 +139,7 @@ public class TaskTypesRepositoryTest {
   public void shouldNotUpdateTaskTypeBecauseUpdateFailed(final VertxTestContext testContext) {
 
     final Throwable cause = new IllegalArgumentException("Cause that can not be updated");
-    final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null) {
+    final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null, null) {
 
       @Override
       public void updateTaskType(final JsonObject taskType, final Handler<AsyncResult<Void>> updateHandler) {

@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -28,6 +28,7 @@ package eu.internetofus.wenet_task_manager.persistence;
 
 import eu.internetofus.common.vertx.Repository;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.FindOptions;
@@ -48,11 +49,12 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
   /**
    * Create a new service.
    *
-   * @param pool to create the connections.
+   * @param pool    to create the connections.
+   * @param version of the schemas.
    */
-  public TaskTypesRepositoryImpl(final MongoClient pool) {
+  public TaskTypesRepositoryImpl(final MongoClient pool, final String version) {
 
-    super(pool);
+    super(pool, version);
 
   }
 
@@ -129,6 +131,17 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
     options.setSkip(offset);
     options.setLimit(limit);
     this.searchPageObject(TASK_TYPES_COLLECTION, query, options, "taskTypes", taskType -> taskType.put("id", taskType.remove("_id")), searchHandler);
+
+  }
+
+  /**
+   * Migrate the collections to the current version.
+   *
+   * @return the future that will inform if the migration is a success or not.
+   */
+  public Future<Void> migrateDocumentsToCurrentVersions() {
+
+    return this.updateSchemaVersionOnCollection(TASK_TYPES_COLLECTION);
 
   }
 

@@ -10,8 +10,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -70,12 +70,17 @@ public interface TaskTypesRepository {
   /**
    * Register this service.
    *
-   * @param vertx that contains the event bus to use.
-   * @param pool  to create the database connections.
+   * @param vertx   that contains the event bus to use.
+   * @param pool    to create the database connections.
+   * @param version of the schemas.
+   *
+   * @return the future that inform when the repository will be registered or not.
    */
-  static void register(final Vertx vertx, final MongoClient pool) {
+  static Future<Void> register(final Vertx vertx, final MongoClient pool, final String version) {
 
-    new ServiceBinder(vertx).setAddress(TaskTypesRepository.ADDRESS).register(TaskTypesRepository.class, new TaskTypesRepositoryImpl(pool));
+    final var repository = new TaskTypesRepositoryImpl(pool, version);
+    new ServiceBinder(vertx).setAddress(TaskTypesRepository.ADDRESS).register(TaskTypesRepository.class, repository);
+    return repository.migrateDocumentsToCurrentVersions();
 
   }
 
