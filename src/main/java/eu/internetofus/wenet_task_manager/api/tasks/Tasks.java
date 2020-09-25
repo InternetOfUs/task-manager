@@ -268,7 +268,7 @@ public interface Tasks {
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(summary = "Return a task type associated to the identifier", description = "Allow to get a task type associated to an identifier")
   @ApiResponse(responseCode = "200", description = "The task type associated to the identifier", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
-  @ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @ApiResponse(responseCode = "404", description = "Not found task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   void retrieveTaskType(@PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to get", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
       @Parameter(hidden = true, required = false) OperationRequest context, @Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
 
@@ -290,7 +290,8 @@ public interface Tasks {
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(summary = "Return a task type associated to the identifier", description = "Allow to get a task type associated to an identifier")
   @ApiResponse(responseCode = "200", description = "The task types that match the search.", content = @Content(schema = @Schema(implementation = TaskTypesPage.class)))
-  @ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @ApiResponse(responseCode = "400", description = "If any of the search pattern is not valid", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @ApiResponse(responseCode = "404", description = "Not found task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   void retrieveTaskTypesPage(
       @QueryParam(value = "name") @Parameter(description = "A name to be equals on the task types to return. You can use a Perl compatible regular expressions (PCRE) that has to match the name of the task types to return if you write between '/'. For example to get the task types with a name with the word 'eat' you must pass as 'goalName' '/.*eat.*/'", example = "/.*eat.*/", required = false) String name,
       @QueryParam(value = "description") @Parameter(description = "A description to be equals on the task types to return. You can use a Perl compatible regular expressions (PCRE) that has to match the description of the task types to return if you write between '/'. For example to get the task types with a description with the word 'eat' you must pass as 'goalDescription' '/.*eat.*/'", example = "/.*eat.*/", required = false) String description,
