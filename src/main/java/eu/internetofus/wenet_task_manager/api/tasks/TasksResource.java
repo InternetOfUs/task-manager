@@ -34,8 +34,9 @@ import org.tinylog.Logger;
 
 import eu.internetofus.common.components.Model;
 import eu.internetofus.common.components.ValidationErrorException;
-import eu.internetofus.common.components.interaction_protocol_engine.Message;
-import eu.internetofus.common.components.interaction_protocol_engine.Message.Type;
+import eu.internetofus.common.components.interaction_protocol_engine.ProtocolAddress;
+import eu.internetofus.common.components.interaction_protocol_engine.ProtocolAddress.Component;
+import eu.internetofus.common.components.interaction_protocol_engine.ProtocolMessage;
 import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngine;
 import eu.internetofus.common.components.profile_manager.WeNetProfileManager;
 import eu.internetofus.common.components.task_manager.Task;
@@ -148,10 +149,15 @@ public class TasksResource implements Tasks {
       OperationReponseHandlers.responseWith(resultHandler, Status.CREATED, model.value);
 
       Logger.debug("Created task {}", model.value);
-      final var message = new Message();
+      final var message = new ProtocolMessage();
       message.taskId = model.value.id;
       message.appId = model.value.appId;
-      message.type = Type.TASK_CREATED;
+      message.sender = new ProtocolAddress();
+      message.sender.component = Component.TASK_MANAGER;
+      message.receiver = new ProtocolAddress();
+      message.receiver.component = Component.INTERACTION_PROTOCOL_ENGINE;
+      message.receiver.userId = model.value.requesterId;
+      message.particle = "HARDCODED_TASK_CREATED";
       message.content = model.value.toJsonObject();
       this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
 
@@ -299,9 +305,13 @@ public class TasksResource implements Tasks {
 
         } else {
 
-          final var message = new Message();
+          final var message = new ProtocolMessage();
           message.taskId = taskTransaction.taskId;
-          message.type = Type.TASK_TRANSACTION;
+          message.sender = new ProtocolAddress();
+          message.sender.component = Component.TASK_MANAGER;
+          message.receiver = new ProtocolAddress();
+          message.receiver.component = Component.INTERACTION_PROTOCOL_ENGINE;
+          message.particle = "HARDCODED_TASK_TRANSACTION";
           message.content = taskTransaction.toJsonObject();
           this.interactionProtocolEngine.sendMessage(message, send -> {
 
