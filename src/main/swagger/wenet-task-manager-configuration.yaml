@@ -64,5 +64,7 @@ openAPI:
       description: WeNet production server
     - url: https://wenet.u-hopper.com/dev/task_manager
       description: WeNet development server server
-    - url: http://ardid.iiia.csic.es/wenet/task-manager/0.4/
+    - url: http://ardid.iiia.csic.es/wenet/task-manager/prod/
+      description: IIIA production server
+    - url: http://ardid.iiia.csic.es/wenet/task-manager/dev/
       description: IIIA development server
