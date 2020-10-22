@@ -14,7 +14,7 @@ services:
       wenet_network:
 
   wenet_task_manager_api:
-    image: wenet/task-manager:latest
+    image: internetofus/task-manager:latest
     restart: always
     depends_on:
       - wenet_task_manager_database
