@@ -8,7 +8,7 @@ variables:
   DOCKER_TLS_CERTDIR: ""
   MVN_VERSION: "3.6.3-jdk-11-slim"
   MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
-  COMPONENT_NAME: "internetofus/task-manager"
+  COMPONENT_NAME: "internetofus/$CI_PROJECT_NAME"
 
 cache:
   paths:
@@ -36,6 +36,7 @@ build_docker:
 
 junit_test:
   stage: test
+  image: maven:${MVN_VERSION}
   script:
     - mvn -B verify
     - awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, "instructions covered"; print 100*covered/instructions, "% covered" }' target/site/jacoco/jacoco.csv
