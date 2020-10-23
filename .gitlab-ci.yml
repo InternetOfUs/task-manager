@@ -45,7 +45,9 @@ junit_test:
   stage: test
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker pull docker.io/mongo:4.4.1 
+    - docker pull docker.io/mongo:4.4.1
+    - docker pull $CI_REGISTRY/internetofus/profile-manager:0.15.0
+    - docker pull $CI_REGISTRY/internetofus/interaction-protocol-engine:0.12.0  
     - docker run -v /var/run/docker.sock:/var/run/docker.sock -v $CI_PROJECT_DIR/.m2/repository:/root/.m2/repository  -v ${PWD}:/app $CI_REGISTRY/$COMPONENT_NAME:dev mvn -B verify
     - awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, "instructions covered"; print 100*covered/instructions, "% covered" }' target/site/jacoco/jacoco.csv
   artifacts:
