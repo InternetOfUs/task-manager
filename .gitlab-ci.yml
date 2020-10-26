@@ -9,11 +9,14 @@ variables:
   MVN_VERSION: "3.6.3-jdk-11-slim"
   MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
   COMPONENT_NAME: "internetofus/$CI_PROJECT_NAME"
+  MONGO_IMAGE: "mongo:4.4.1"
+  PROFILE_MANAGER_IMAGE: "internetofus/profile-manager:0.15.0"
+  INTERACTION_PROTOCOL_ENGINE_IMAGE: "internetofus/interaction-protocol-engine:0.12.0"
 
 cache:
   paths:
-    - .m2/repository/
-    - target/
+    - $CI_PROJECT_DIR/.m2/repository/
+    - $CI_PROJECT_DIR/target/
 
 cache:
   key: mavenrepo
@@ -31,26 +34,28 @@ build_docker:
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - PROJECT_VERSION=$(grep -m1 '<version>' pom.xml |cut -d '<' -f2  |cut -d '>' -f2)
-    - DOCKER_BUILDKIT=1 docker build -f src/main/docker/Dockerfile -t $CI_REGISTRY/$COMPONENT_NAME:$PROJECT_VERSION .
+    - docker pull $CI_REGISTRY/$COMPONENT_NAME:$PROJECT_VERSION  || true
+    - DOCKER_BUILDKIT=1 docker build -f src/main/docker/Dockerfile --cache-from $CI_REGISTRY/$COMPONENT_NAME:$PROJECT_VERSION -t $CI_REGISTRY/$COMPONENT_NAME:$PROJECT_VERSION .
     - docker push $CI_REGISTRY/$COMPONENT_NAME:$PROJECT_VERSION
 
 build_dev_environment:
   stage: build
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - DOCKER_BUILDKIT=1 docker build -f src/dev/docker/Dockerfile -t $CI_REGISTRY/$COMPONENT_NAME:dev .
+    - docker pull $CI_REGISTRY/$COMPONENT_NAME:dev  || true
+    - DOCKER_BUILDKIT=1 docker build -f src/dev/docker/Dockerfile --cache-from $CI_REGISTRY/$COMPONENT_NAME:dev -t $CI_REGISTRY/$COMPONENT_NAME:dev .
     - docker push $CI_REGISTRY/$COMPONENT_NAME:dev
 
 junit_test:
   stage: test
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker pull docker.io/mongo:4.4.1
-    - docker tag docker.io/mongo:4.4.1 mongo:4.4.1
-    - docker pull $CI_REGISTRY/internetofus/profile-manager:0.15.0
-    - docker tag $CI_REGISTRY/internetofus/profile-manager:0.15.0 internetofus/profile-manager:0.15.0
-    - docker pull $CI_REGISTRY/internetofus/interaction-protocol-engine:0.12.0
-    - docker tag $CI_REGISTRY/internetofus/interaction-protocol-engine:0.12.0  internetofus/interaction-protocol-engine:0.12.0
+    - docker pull docker.io/$MONGO_IMAGE
+    - docker tag docker.io/$MONGO_IMAGE $MONGO_IMAGE
+    - docker pull $CI_REGISTRY/$PROFILE_MANAGER_IMAGE
+    - docker tag $CI_REGISTRY/$PROFILE_MANAGER_IMAGE $PROFILE_MANAGER_IMAGE
+    - docker pull $CI_REGISTRY/$INTERACTION_PROTOCOL_ENGINE_IMAGE
+    - docker tag $CI_REGISTRY/$INTERACTION_PROTOCOL_ENGINE_IMAGE  $INTERACTION_PROTOCOL_ENGINE_IMAGE
     - docker run -v /var/run/docker.sock:/var/run/docker.sock -v $CI_PROJECT_DIR/.m2/repository:/root/.m2/repository  -v ${PWD}:/app $CI_REGISTRY/$COMPONENT_NAME:dev mvn -B verify
     - awk -F"," '{ instructions += $4 + $5; covered += $5 } END { print covered, "/", instructions, "instructions covered"; print 100*covered/instructions, "% covered" }' target/site/jacoco/jacoco.csv
   artifacts:
@@ -74,7 +79,8 @@ deploy_tag:
   stage: deploy
   script:
     - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-    - DOCKER_BUILDKIT=1 docker build -f src/main/docker/Dockerfile -t $COMPONENT_NAME:$CI_COMMIT_TAG .
+    - docker pull $COMPONENT_NAME:$CI_COMMIT_TAG  || true
+    - DOCKER_BUILDKIT=1 docker build -f src/main/docker/Dockerfile --cache-from $COMPONENT_NAME:$CI_COMMIT_TAG -t $COMPONENT_NAME:$CI_COMMIT_TAG .
     - docker push $COMPONENT_NAME:$CI_COMMIT_TAG
   only:
     - tags
@@ -83,7 +89,8 @@ deploy_stable:
   stage: deploy
   script:
     - docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-    - DOCKER_BUILDKIT=1 docker build -f src/main/docker/Dockerfile -t $COMPONENT_NAME:latest .
+    - docker pull $COMPONENT_NAME:latest  || true
+    - DOCKER_BUILDKIT=1 docker build -f src/main/docker/Dockerfile --cache-from $COMPONENT_NAME:latest -t $COMPONENT_NAME:latest .
     - docker push $COMPONENT_NAME:latest
   only:
     - master
