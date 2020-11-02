@@ -27,8 +27,8 @@
 package eu.internetofus.wenet_task_manager.api.tasks;
 
 import static eu.internetofus.common.vertx.HttpResponses.assertThatBodyIs;
-import static io.vertx.junit5.web.TestRequest.queryParam;
 import static io.reactiverse.junit5.web.TestRequest.testRequest;
+import static io.vertx.junit5.web.TestRequest.queryParam;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.UUID;
@@ -1168,6 +1168,58 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
 
     }));
 
+  }
+
+  /**
+   * Should create task with the same community defined for the application.
+   *
+   * @param vertx       event bus to use.
+   * @param client      to connect to the server.
+   * @param testContext context to test.
+   */
+  @Test
+  public void shouldCreateTaskWithTheCameCommunityOfTheApp(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+
+    StoreServices.storeTaskExample(1, vertx, testContext, testContext.succeeding(task -> {
+
+      final var communityId = task.communityId;
+      task.id = null;
+      task.communityId = null;
+      testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
+
+        assertThat(res.statusCode()).isEqualTo(Status.CREATED.getStatusCode());
+        final var task2 = assertThatBodyIs(Task.class, res);
+        assertThat(task2.communityId).isEqualTo(communityId);
+
+      }).sendJson(task.toJsonObject(), testContext);
+
+    }));
+  }
+
+  /**
+   * Should create task creating a community for the APP.
+   *
+   * @param vertx       event bus to use.
+   * @param client      to connect to the server.
+   * @param testContext context to test.
+   */
+  @Test
+  public void shouldCreateTaskCreatingCommunityForApp(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+
+    StoreServices.storeTaskExample(1, vertx, testContext, testContext.succeeding(task -> {
+
+      final var communityId = task.communityId;
+      task.id = null;
+      task.communityId = null;
+      testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
+
+        assertThat(res.statusCode()).isEqualTo(Status.CREATED.getStatusCode());
+        final var task2 = assertThatBodyIs(Task.class, res);
+        assertThat(task2.communityId).isEqualTo(communityId);
+
+      }).sendJson(task.toJsonObject(), testContext);
+
+    }));
   }
 
 }

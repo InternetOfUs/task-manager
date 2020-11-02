@@ -83,9 +83,6 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
 
       taskType.put("_id", id);
     }
-    // final long now = TimeManager.now();
-    // taskType.put("_creationTs", now);
-    // taskType.put("_lastUpdateTs", now);
     this.storeOneDocument(TASK_TYPES_COLLECTION, taskType, stored -> {
 
       final var _id = (String) stored.remove("_id");
@@ -103,8 +100,6 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
 
     final var id = taskType.remove("id");
     final var query = new JsonObject().put("_id", id);
-    // final long now = TimeManager.now();
-    // taskType.put("_lastUpdateTs", now);
     this.updateOneDocument(TASK_TYPES_COLLECTION, query, taskType, updateHandler);
 
   }

@@ -36,7 +36,6 @@ import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import eu.internetofus.common.TimeManager;
 import eu.internetofus.common.components.task_manager.Task;
 import eu.internetofus.common.components.task_manager.TaskGoalTest;
 import eu.internetofus.common.components.task_manager.TaskTest;
@@ -179,13 +178,13 @@ public class TasksRepositoryIT {
     final var task = new Task();
     task._creationTs = 0;
     task._lastUpdateTs = 1;
-    final var now = TimeManager.now();
+
     TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(storedTask -> testContext.verify(() -> {
 
       assertThat(storedTask).isNotNull();
       assertThat(storedTask.id).isNotEmpty();
-      assertThat(storedTask._creationTs).isNotEqualTo(0).isGreaterThanOrEqualTo(now);
-      assertThat(storedTask._lastUpdateTs).isNotEqualTo(1).isGreaterThanOrEqualTo(now);
+      assertThat(storedTask._creationTs).isEqualTo(0);
+      assertThat(storedTask._lastUpdateTs).isEqualTo(1);
       testContext.completeNow();
     })));
 
@@ -205,14 +204,13 @@ public class TasksRepositoryIT {
     final var id = UUID.randomUUID().toString();
     final var task = new Task();
     task.id = id;
-    task._creationTs = 0;
-    task._lastUpdateTs = 1;
-    final var now = TimeManager.now();
+    task._creationTs = 2;
+    task._lastUpdateTs = 3;
     TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(storedTask -> testContext.verify(() -> {
 
       assertThat(storedTask.id).isEqualTo(id);
-      assertThat(storedTask._creationTs).isNotEqualTo(0).isGreaterThanOrEqualTo(now);
-      assertThat(storedTask._lastUpdateTs).isNotEqualTo(1).isGreaterThanOrEqualTo(now);
+      assertThat(storedTask._creationTs).isEqualTo(2);
+      assertThat(storedTask._lastUpdateTs).isEqualTo(3);
       testContext.completeNow();
     })));
 
@@ -251,14 +249,13 @@ public class TasksRepositoryIT {
   @Test
   public void shouldStoreTaskObject(final Vertx vertx, final VertxTestContext testContext) {
 
-    final var now = TimeManager.now();
     TasksRepository.createProxy(vertx).storeTask(new JsonObject(), testContext.succeeding(storedTask -> testContext.verify(() -> {
 
       assertThat(storedTask).isNotNull();
       final var id = storedTask.getString("id");
       assertThat(id).isNotEmpty();
-      assertThat(storedTask.getLong("_creationTs", 0l)).isNotEqualTo(0).isGreaterThanOrEqualTo(now);
-      assertThat(storedTask.getLong("_lastUpdateTs", 1l)).isNotEqualTo(1).isGreaterThanOrEqualTo(now);
+      assertThat(storedTask.containsKey("_creationTs")).isFalse();
+      assertThat(storedTask.containsKey("_lastUpdateTs")).isFalse();
       testContext.completeNow();
     })));
 
@@ -345,10 +342,9 @@ public class TasksRepositoryIT {
     task.goal = new TaskGoalTest().createModelExample(23);
     TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(stored -> {
 
-      final var now = TimeManager.now();
       final var update = new TaskTest().createModelExample(23);
       update.id = stored.id;
-      update._creationTs = stored._creationTs;
+      update._creationTs = 0;
       update._lastUpdateTs = 1;
       TasksRepository.createProxy(vertx).updateTask(update, testContext.succeeding(empty -> {
 
@@ -357,7 +353,8 @@ public class TasksRepositoryIT {
           assertThat(stored).isNotNull();
           assertThat(foundTask.id).isNotEmpty().isEqualTo(stored.id);
           assertThat(foundTask._creationTs).isEqualTo(stored._creationTs);
-          assertThat(foundTask._lastUpdateTs).isGreaterThanOrEqualTo(now);
+          assertThat(foundTask._lastUpdateTs).isEqualTo(1);
+          update._creationTs = stored._creationTs;
           update._lastUpdateTs = foundTask._lastUpdateTs;
           assertThat(foundTask).isEqualTo(update);
           testContext.completeNow();
@@ -379,15 +376,14 @@ public class TasksRepositoryIT {
   @Test
   public void shouldUpdateTaskObject(final Vertx vertx, final VertxTestContext testContext) {
 
-    TasksRepository.createProxy(vertx).storeTask(new JsonObject().put("nationality", "Italian"), testContext.succeeding(stored -> testContext.verify(() -> {
+    TasksRepository.createProxy(vertx).storeTask(new JsonObject().put("goal", new JsonObject().put("name", "Goal name")), testContext.succeeding(stored -> testContext.verify(() -> {
 
       final var id = stored.getString("id");
-      final var update = new JsonObject().put("id", id).put("occupation", "Unemployed");
+      final var update = new JsonObject().put("id", id).put("attributes", new JsonObject().put("attributeKey", "Attribute value"));
       TasksRepository.createProxy(vertx).updateTask(update, testContext.succeeding(empty -> testContext.verify(() -> {
 
         TasksRepository.createProxy(vertx).searchTaskObject(id, testContext.succeeding(foundTask -> testContext.verify(() -> {
-          stored.put("_lastUpdateTs", foundTask.getLong("_lastUpdateTs"));
-          stored.put("occupation", "Unemployed");
+          stored.put("attributes", new JsonObject().put("attributeKey", "Attribute value"));
           assertThat(foundTask).isEqualTo(stored);
           testContext.completeNow();
         })));

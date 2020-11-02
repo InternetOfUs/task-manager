@@ -26,7 +26,6 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
-import eu.internetofus.common.TimeManager;
 import eu.internetofus.common.vertx.Repository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -84,9 +83,6 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 
       task.put("_id", id);
     }
-    final var now = TimeManager.now();
-    task.put("_creationTs", now);
-    task.put("_lastUpdateTs", now);
     this.storeOneDocument(TASKS_COLLECTION, task, stored -> {
 
       final var _id = (String) stored.remove("_id");
@@ -104,8 +100,6 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 
     final var id = task.remove("id");
     final var query = new JsonObject().put("_id", id);
-    final var now = TimeManager.now();
-    task.put("_lastUpdateTs", now);
     this.updateOneDocument(TASKS_COLLECTION, query, task, updateHandler);
 
   }

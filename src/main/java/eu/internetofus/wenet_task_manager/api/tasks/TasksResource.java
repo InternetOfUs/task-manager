@@ -26,7 +26,9 @@
 
 package eu.internetofus.wenet_task_manager.api.tasks;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import javax.ws.rs.core.Response.Status;
 
@@ -38,7 +40,10 @@ import eu.internetofus.common.components.interaction_protocol_engine.ProtocolAdd
 import eu.internetofus.common.components.interaction_protocol_engine.ProtocolAddress.Component;
 import eu.internetofus.common.components.interaction_protocol_engine.ProtocolMessage;
 import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngine;
+import eu.internetofus.common.components.profile_manager.CommunityMember;
+import eu.internetofus.common.components.profile_manager.CommunityProfile;
 import eu.internetofus.common.components.profile_manager.WeNetProfileManager;
+import eu.internetofus.common.components.service.WeNetService;
 import eu.internetofus.common.components.task_manager.Task;
 import eu.internetofus.common.components.task_manager.TaskTransaction;
 import eu.internetofus.common.components.task_manager.TaskType;
@@ -137,44 +142,123 @@ public class TasksResource implements Tasks {
   }
 
   /**
+   * Return the community associated to an application.
+   *
+   * @param appId            identifier of the application to obtain the associated community.
+   * @param consumeCommunity function to consume the found community. If no community found it pass a {@code null}.
+   */
+  protected void retrieveAppCommunity(final String appId, final Consumer<CommunityProfile> consumeCommunity) {
+
+    final var service = WeNetProfileManager.createProxy(this.vertx);
+    service.retrieveCommunityProfilesPage(appId, null, null, null, null, "-_creationTs", 0, 1, retrieve -> {
+
+      final var page = retrieve.result();
+      if (retrieve.failed() || page.communities == null || page.communities.isEmpty()) {
+
+        WeNetService.createProxy(this.vertx).retrieveJsonArrayAppUserIds(appId, retrieveUsers -> {
+
+          final var value = retrieveUsers.result();
+          if (value == null || value.isEmpty()) {
+
+            consumeCommunity.accept(null);
+
+          } else {
+
+            final var newCommunity = new CommunityProfile();
+            newCommunity.appId = appId;
+            newCommunity.name = "Community of " + appId;
+            newCommunity.members = new ArrayList<>();
+            for (var i = 0; i < value.size(); i++) {
+
+              final var member = new CommunityMember();
+              member.userId = value.getString(i);
+              newCommunity.members.add(member);
+
+            }
+            service.createCommunity(newCommunity, createHandler -> {
+
+              final var community = createHandler.result();
+              if (community == null) {
+
+                consumeCommunity.accept(null);
+              } else {
+
+                consumeCommunity.accept(community);
+              }
+
+            });
+
+          }
+
+        });
+
+      } else {
+
+        consumeCommunity.accept(page.communities.get(0));
+
+      }
+
+    });
+
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
   public void createTask(final JsonObject body, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
 
-    final var model = this.createTaskContext();
-    final var context = new OperationContext(request, resultHandler);
-    ModelResources.createModelChain(this.vertx, body, model, this.repository::storeTask, context, () -> {
+    if (body.getString("communityId", null) == null) {
 
-      OperationReponseHandlers.responseWith(resultHandler, Status.CREATED, model.value);
+      this.retrieveAppCommunity(body.getString("appId"), community -> {
 
-      Logger.debug("Created task {}", model.value);
-      final var message = new ProtocolMessage();
-      message.taskId = model.value.id;
-      message.appId = model.value.appId;
-      message.sender = new ProtocolAddress();
-      message.sender.component = Component.TASK_MANAGER;
-      message.receiver = new ProtocolAddress();
-      message.receiver.component = Component.INTERACTION_PROTOCOL_ENGINE;
-      message.receiver.userId = model.value.requesterId;
-      message.particle = "HARDCODED_TASK_CREATED";
-      message.content = model.value.toJsonObject();
-      this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
+        if (community == null) {
 
-        if (sent.failed()) {
-
-          final var cause = sent.cause();
-          Logger.debug(cause, "Cannot send message {}.", message);
-          OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+          OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task.communityId", "You must define the community where the task happens.");
 
         } else {
 
-          Logger.debug("Interaction protocol engine accepted {}", model.value);
-
+          body.put("communityId", community.id);
+          this.createTask(body, request, resultHandler);
         }
-      });
-    });
 
+      });
+
+    } else {
+
+      final var model = this.createTaskContext();
+      final var context = new OperationContext(request, resultHandler);
+      ModelResources.createModelChain(this.vertx, body, model, this.repository::storeTask, context, () -> {
+
+        OperationReponseHandlers.responseWith(resultHandler, Status.CREATED, model.value);
+
+        Logger.debug("Created task {}", model.value);
+        final var message = new ProtocolMessage();
+        message.taskId = model.value.id;
+        message.appId = model.value.appId;
+        message.sender = new ProtocolAddress();
+        message.sender.component = Component.TASK_MANAGER;
+        message.receiver = new ProtocolAddress();
+        message.receiver.component = Component.INTERACTION_PROTOCOL_ENGINE;
+        message.receiver.userId = model.value.requesterId;
+        message.particle = "HARDCODED_TASK_CREATED";
+        message.content = model.value.toJsonObject();
+        this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
+
+          if (sent.failed()) {
+
+            final var cause = sent.cause();
+            Logger.debug(cause, "Cannot send message {}.", message);
+            OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+
+          } else {
+
+            Logger.debug("Interaction protocol engine accepted {}", model.value);
+
+          }
+        });
+      });
+    }
   }
 
   /**

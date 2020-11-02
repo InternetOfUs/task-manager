@@ -220,7 +220,7 @@ public interface Tasks {
           example = "1571664406",
           required = false) Long closeTo,
       @QueryParam(value = "order") @Parameter(
-          description = "The order in witch the task has to be returned. For each filed it has be separated by a ',' and each field can start with '+' (or without it) to order on ascending order, or with the prefix '-' to do on descendant order.",
+          description = "The order in witch the task has to be returned. For each field it has be separated by a ',' and each field can start with '+' (or without it) to order on ascending order, or with the prefix '-' to do on descendant order.",
           example = "goal.name,-goal.description,+appId",
           required = false,
           explode = Explode.FALSE) List<String> order,
@@ -376,7 +376,7 @@ public interface Tasks {
           required = false,
           explode = Explode.FALSE) List<String> keywords,
       @QueryParam(value = "order") @Parameter(
-          description = "The order in witch the task types has to be returned. For each filed it has be separated by a ',' and each field can start with '+' (or without it) to order on ascending order, or with the prefix '-' to do on descendant order.",
+          description = "The order in witch the task types has to be returned. For each field it has be separated by a ',' and each field can start with '+' (or without it) to order on ascending order, or with the prefix '-' to do on descendant order.",
           example = "name,-description",
           required = false,
           explode = Explode.FALSE) List<String> order,

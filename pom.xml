@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>eu.internetofus</groupId>
-	<artifactId>wenet-task-manager</artifactId>
+	<artifactId>task-manager</artifactId>
 	<version>0.6.0</version>
 	<description>This project will be used to provide the API to storing
 		and maintaining the WeNet user task.</description>
