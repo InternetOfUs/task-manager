@@ -44,19 +44,18 @@ import eu.internetofus.common.components.ErrorMessage;
 import eu.internetofus.common.components.StoreServices;
 import eu.internetofus.common.components.profile_manager.WeNetUserProfile;
 import eu.internetofus.common.components.service.App;
+import eu.internetofus.common.components.service.WeNetServiceSimulator;
 import eu.internetofus.common.components.task_manager.Task;
 import eu.internetofus.common.components.task_manager.TaskTest;
 import eu.internetofus.common.components.task_manager.TaskTransaction;
 import eu.internetofus.common.components.task_manager.TaskTransactionTest;
-import eu.internetofus.common.components.task_manager.TaskType;
-import eu.internetofus.common.components.task_manager.TaskTypeTest;
 import eu.internetofus.common.vertx.AbstractModelResourcesIT;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
-import eu.internetofus.wenet_task_manager.persistence.TaskTypesRepository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.VertxTestContext;
@@ -195,134 +194,6 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
 
         })).sendJson(source.toJsonObject(), testContext);
       }));
-    }));
-
-  }
-
-  /**
-   * Verify that can not store a bad taskType.
-   *
-   * @param vertx       event bus to use.
-   * @param client      to connect to the server.
-   * @param testContext context to test.
-   *
-   * @see Tasks#createTaskType(io.vertx.core.json.JsonObject, io.vertx.ext.web.api.OperationRequest,
-   *      io.vertx.core.Handler)
-   */
-  @Test
-  public void shouldNotStoreTaskTypeWithExistingId(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
-
-    TaskTypesRepository.createProxy(vertx).storeTaskType(new TaskType(), testContext.succeeding(created -> {
-
-      final var taskType = new TaskTypeTest().createModelExample(1);
-      taskType.id = created.id;
-      testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + Tasks.TYPES_PATH).expect(res -> {
-
-        assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-        final var error = assertThatBodyIs(ErrorMessage.class, res);
-        assertThat(error.code).isNotEmpty().isEqualTo("bad_task_type.id");
-        assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-
-      }).sendJson(taskType.toJsonObject(), testContext);
-
-    }));
-  }
-
-  /**
-   * Verify that store a taskType with an identifier.
-   *
-   * @param vertx       event bus to use.
-   * @param client      to connect to the server.
-   * @param testContext context to test.
-   *
-   * @see Tasks#createTaskType(io.vertx.core.json.JsonObject, io.vertx.ext.web.api.OperationRequest,
-   *      io.vertx.core.Handler)
-   */
-  @Test
-  public void shouldStoreTaskTypeWithOnlyID(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
-
-    final var taskType = new TaskTypeTest().createModelExample(1);
-    // taskType._creationTs = 0;
-    // taskType._lastUpdateTs = 0;
-    taskType.id = UUID.randomUUID().toString();
-    testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + Tasks.TYPES_PATH).expect(res -> {
-
-      assertThat(res.statusCode()).isEqualTo(Status.CREATED.getStatusCode());
-      final var stored = assertThatBodyIs(TaskType.class, res);
-      // assertThat(stored).isNotNull().isNotEqualTo(taskType);
-      // assertThat(stored).isNotNull().isNotEqualTo(taskType);
-      // taskType._creationTs = stored._creationTs;
-      // taskType._lastUpdateTs = stored._lastUpdateTs;
-      for (var i = 0; i < taskType.norms.size(); i++) {
-
-        taskType.norms.get(i).id = stored.norms.get(i).id;
-
-      }
-      assertThat(stored).isEqualTo(taskType);
-      TaskTypesRepository.createProxy(vertx).searchTaskType(stored.id, testContext.succeeding(foundTaskType -> testContext.verify(() -> {
-
-        assertThat(foundTaskType).isEqualTo(stored);
-        testContext.completeNow();
-
-      })));
-
-    }).sendJson(taskType.toJsonObject(), testContext, testContext.checkpoint(2));
-
-  }
-
-  /**
-   * Verify that only update the task type name.
-   *
-   * @param vertx       event bus to use.
-   * @param client      to connect to the server.
-   * @param testContext context to test.
-   *
-   * @see Tasks#retrieveTaskType(String, io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
-   */
-  @Test
-  public void shouldMergeOnlyNameOnTaskType(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
-
-    StoreServices.storeTaskTypeExample(1, vertx, testContext, testContext.succeeding(target -> {
-
-      final var source = new TaskType();
-      source.name = "NEW task type name";
-      testRequest(client, HttpMethod.PATCH, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/" + target.id).expect(res -> testContext.verify(() -> {
-
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final var updated = assertThatBodyIs(TaskType.class, res);
-        assertThat(updated).isNotEqualTo(target).isNotEqualTo(source);
-        // target._lastUpdateTs = updated._lastUpdateTs;
-        target.name = "NEW task type name";
-        assertThat(updated).isEqualTo(target);
-
-      })).sendJson(source.toJsonObject(), testContext);
-    }));
-
-  }
-
-  /**
-   * Verify that not merge the task type because it not produce any change.
-   *
-   * @param vertx       event bus to use.
-   * @param client      to connect to the server.
-   * @param testContext context to test.
-   *
-   * @see Tasks#retrieveTaskType(String, io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
-   */
-  @Test
-  public void shouldNotMergeBecasueNotChangedOnTaskType(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
-
-    StoreServices.storeTaskTypeExample(1, vertx, testContext, testContext.succeeding(target -> {
-
-      final var source = new TaskType();
-      testRequest(client, HttpMethod.PATCH, Tasks.PATH + "/" + Tasks.TYPES_PATH + "/" + target.id).expect(res -> testContext.verify(() -> {
-
-        assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-        final var error = assertThatBodyIs(ErrorMessage.class, res);
-        assertThat(error.code).isNotEmpty().isEqualTo("task_type_to_merge_equal_to_original");
-        assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
-
-      })).sendJson(source.toJsonObject(), testContext);
     }));
 
   }
@@ -1204,20 +1075,55 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
+  public void shouldNotCreateTaskBecauseNoUserOnTheApp(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+
+    StoreServices.storeApp(new App(), vertx, testContext, testContext.succeeding(app -> {
+
+      StoreServices.storeTaskExample(1, vertx, testContext, testContext.succeeding(task -> {
+
+        task.id = null;
+        task.appId = app.appId;
+        task.communityId = null;
+        testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
+
+          assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+
+        }).sendJson(task.toJsonObject(), testContext);
+
+      }));
+    }));
+  }
+
+  /**
+   * Should create task creating a community for the APP.
+   *
+   * @param vertx       event bus to use.
+   * @param client      to connect to the server.
+   * @param testContext context to test.
+   */
+  @Test
   public void shouldCreateTaskCreatingCommunityForApp(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    StoreServices.storeTaskExample(1, vertx, testContext, testContext.succeeding(task -> {
+    StoreServices.storeApp(new App(), vertx, testContext, testContext.succeeding(app -> {
 
-      final var communityId = task.communityId;
-      task.id = null;
-      task.communityId = null;
-      testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
+      StoreServices.storeTaskExample(1, vertx, testContext, testContext.succeeding(task -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.CREATED.getStatusCode());
-        final var task2 = assertThatBodyIs(Task.class, res);
-        assertThat(task2.communityId).isEqualTo(communityId);
+        WeNetServiceSimulator.createProxy(vertx).addUsers(app.appId, new JsonArray().add(task.requesterId), testContext.succeeding(users -> {
 
-      }).sendJson(task.toJsonObject(), testContext);
+          final var communityId = task.communityId;
+          task.id = null;
+          task.appId = app.appId;
+          task.communityId = null;
+          testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
+
+            assertThat(res.statusCode()).isEqualTo(Status.CREATED.getStatusCode());
+            final var task2 = assertThatBodyIs(Task.class, res);
+            assertThat(task2.communityId).isNotEqualTo(communityId);
+
+          }).sendJson(task.toJsonObject(), testContext);
+
+        }));
+      }));
 
     }));
   }

@@ -1,4 +1,4 @@
-source /Users/rosell/.basheditor/remote-debugging-v1.sh localhost 33333 #BASHEDITOR-TMP-REMOTE-DEBUGGING-END|Origin line:#!/bin/bash
+#!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 pushd $DIR >/dev/null
 docker-compose -p wenet_task_manager_services_dev -f src/dev/docker/docker-compose.yml up --remove-orphans -d

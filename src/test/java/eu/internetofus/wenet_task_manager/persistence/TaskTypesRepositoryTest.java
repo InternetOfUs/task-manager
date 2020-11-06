@@ -27,11 +27,24 @@
 package eu.internetofus.wenet_task_manager.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 
+import eu.internetofus.common.components.ValidationErrorException;
 import eu.internetofus.common.components.task_manager.TaskType;
+import eu.internetofus.common.vertx.ModelsPageContext;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -50,109 +63,180 @@ import io.vertx.junit5.VertxTestContext;
 public class TaskTypesRepositoryTest {
 
   /**
-   * Verify that can not found a taskType because that returned by repository is not right.
+   * Verify that can not create task type profiles page sort.
+   *
+   * @see TaskTypesRepository#createTaskTypesPageSort(List)
+   */
+  @Test
+  public void shouldFailCreateTaskTypesPageSort() {
+
+    final List<String> order = new ArrayList<>();
+    order.add("-undefinedKey");
+    assertThatThrownBy(() -> {
+      TaskTypesRepository.createTaskTypesPageSort(order);
+    }).isInstanceOf(ValidationErrorException.class);
+
+  }
+
+  /**
+   * Verify that can not create task type profiles page sort.
+   *
+   * @see TaskTypesRepository#createTaskTypesPageSort(List)
+   */
+  @Test
+  public void shouldCreateTaskTypesPageSort() {
+
+    final List<String> order = new ArrayList<>();
+    order.add("+description");
+    order.add("name");
+    order.add("-keywords");
+    final var sort = TaskTypesRepository.createTaskTypesPageSort(order);
+    assertThat(sort).isNotNull();
+    assertThat(sort.getInteger("name")).isNotNull().isEqualTo(1);
+    assertThat(sort.getInteger("description")).isNotNull().isEqualTo(1);
+    assertThat(sort.getInteger("keywords")).isNotNull().isEqualTo(-1);
+
+  }
+
+  /**
+   * Should not obtain task type if the obtainer object not match a {@link TaskType}.
    *
    * @param testContext context that executes the test.
    *
    * @see TaskTypesRepository#searchTaskType(String, io.vertx.core.Handler)
    */
   @Test
-  public void shouldNotFoundTaskTypeBecauseReturnedJsonObjectIsNotRight(final VertxTestContext testContext) {
+  public void shouldFailSearchTaskTypeWhenFoundObjectNotMatch(final VertxTestContext testContext) {
 
-    final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null, null) {
+    final DummyTaskTypesRepository repository = spy(new DummyTaskTypesRepository());
+    repository.searchTaskType("id", testContext.failing(error -> testContext.completeNow()));
 
-      @Override
-      public void searchTaskTypeObject(final String id, final Handler<AsyncResult<JsonObject>> searchHandler) {
-
-        searchHandler.handle(Future.succeededFuture(new JsonObject().put("key", "value")));
-
-      }
-    };
-
-    repository.searchTaskType("any identifier", testContext.failing(fail -> {
-      testContext.completeNow();
-    }));
+    @SuppressWarnings("unchecked")
+    final ArgumentCaptor<Handler<AsyncResult<JsonObject>>> searchHandler = ArgumentCaptor.forClass(Handler.class);
+    verify(repository, timeout(30000).times(1)).searchTaskTypeObject(any(), searchHandler.capture());
+    searchHandler.getValue().handle(Future.succeededFuture(new JsonObject().put("udefinedKey", "value")));
 
   }
 
   /**
-   * Verify that can not store a taskType because that returned by repository is not right.
+   * Should not store task type if the stored object not match a {@link TaskType}.
    *
    * @param testContext context that executes the test.
    *
    * @see TaskTypesRepository#storeTaskType(TaskType, Handler)
    */
   @Test
-  public void shouldNotStoreTaskTypeBecauseReturnedJsonObjectIsNotRight(final VertxTestContext testContext) {
+  public void shouldFailStoreTaskTypeWhenStoredObjectNotMatch(final VertxTestContext testContext) {
 
-    final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null, null) {
+    final DummyTaskTypesRepository repository = spy(new DummyTaskTypesRepository());
+    repository.storeTaskType(new TaskType(), testContext.failing(error -> testContext.completeNow()));
 
-      @Override
-      public void storeTaskType(final JsonObject taskType, final Handler<AsyncResult<JsonObject>> storeHandler) {
-
-        storeHandler.handle(Future.succeededFuture(new JsonObject().put("key", "value")));
-      }
-    };
-
-    repository.storeTaskType(new TaskType(), testContext.failing(fail -> {
-      testContext.completeNow();
-    }));
+    @SuppressWarnings("unchecked")
+    final ArgumentCaptor<Handler<AsyncResult<JsonObject>>> storeHandler = ArgumentCaptor.forClass(Handler.class);
+    verify(repository, timeout(30000).times(1)).storeTaskType(any(JsonObject.class), storeHandler.capture());
+    storeHandler.getValue().handle(Future.succeededFuture(new JsonObject().put("udefinedKey", "value")));
 
   }
 
   /**
-   * Verify that can not store a taskType because that returned by repository is not right.
+   * Should not update task type because can not convert to an object.
    *
    * @param testContext context that executes the test.
    *
-   * @see TaskTypesRepository#storeTaskType(TaskType, Handler)
+   * @see TaskTypesRepository#updateTaskType(TaskType, Handler)
    */
   @Test
-  public void shouldNotStoreTaskTypeBecauseStoreFailed(final VertxTestContext testContext) {
+  public void shouldFailUpdateTaskTypeBecauseNoObject(final VertxTestContext testContext) {
 
-    final Throwable cause = new IllegalArgumentException("Cause that can not be stored");
-    final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null, null) {
-
+    final var taskType = new TaskType() {
+      /**
+       * {@inheritDoc}
+       */
       @Override
-      public void storeTaskType(final JsonObject taskType, final Handler<AsyncResult<JsonObject>> storeHandler) {
+      public JsonObject toJsonObjectWithEmptyValues() {
 
-        storeHandler.handle(Future.failedFuture(cause));
+        return null;
+
       }
-
     };
-
-    repository.storeTaskType(new TaskType(), testContext.failing(fail -> {
-      assertThat(fail).isEqualTo(cause);
-      testContext.completeNow();
-    }));
+    final Handler<AsyncResult<Void>> handler = testContext.failing(error -> testContext.completeNow());
+    final DummyTaskTypesRepository repository = spy(new DummyTaskTypesRepository());
+    repository.updateTaskType(taskType, handler);
 
   }
 
   /**
-   * Verify that can not update a taskType because that returned by repository is not right.
+   * Should not update task type because can not convert to an object.
    *
    * @param testContext context that executes the test.
    *
-   * @see TaskTypesRepository#searchTaskType(String, io.vertx.core.Handler)
+   * @see TaskTypesRepository#retrieveTaskTypesPageObject(eu.internetofus.common.vertx.ModelsPageContext, Handler)
    */
   @Test
-  public void shouldNotUpdateTaskTypeBecauseUpdateFailed(final VertxTestContext testContext) {
+  public void shouldFailRetrieveTaskTypesPageObjectWhenSearchFail(final VertxTestContext testContext) {
 
-    final Throwable cause = new IllegalArgumentException("Cause that can not be updated");
-    final TaskTypesRepository repository = new TaskTypesRepositoryImpl(null, null) {
+    final DummyTaskTypesRepository repository = spy(new DummyTaskTypesRepository());
+    final var context = new ModelsPageContext();
+    context.query = TaskTypesRepository.createTaskTypesPageQuery("name", "description", null);
+    context.sort = TaskTypesRepository.createTaskTypesPageSort(Arrays.asList("name", "-description"));
+    context.offset = 3;
+    context.limit = 11;
+    repository.retrieveTaskTypesPageObject(context, testContext.failing(error -> testContext.completeNow()));
 
-      @Override
-      public void updateTaskType(final JsonObject taskType, final Handler<AsyncResult<Void>> updateHandler) {
+    @SuppressWarnings("unchecked")
+    final ArgumentCaptor<Handler<AsyncResult<JsonObject>>> searchHandler = ArgumentCaptor.forClass(Handler.class);
+    verify(repository, timeout(30000).times(1)).retrieveTaskTypesPageObject(eq(context.query), eq(context.sort), eq(context.offset), eq(context.limit), searchHandler.capture());
+    searchHandler.getValue().handle(Future.failedFuture("Not found"));
 
-        updateHandler.handle(Future.failedFuture(cause));
-      }
-    };
+  }
 
-    repository.updateTaskType(new TaskType(), testContext.failing(fail -> {
+  /**
+   * Should not update task type because the obtained object not match.
+   *
+   * @param testContext context that executes the test.
+   *
+   * @see TaskTypesRepository#retrieveTaskTypesPage(ModelsPageContext, Handler)
+   */
+  @Test
+  public void shouldFailRetrieveTaskTypesPageWhenObjectNotMatch(final VertxTestContext testContext) {
 
-      assertThat(fail).isEqualTo(cause);
-      testContext.completeNow();
-    }));
+    final DummyTaskTypesRepository repository = spy(new DummyTaskTypesRepository());
+    final var context = new ModelsPageContext();
+    context.query = TaskTypesRepository.createTaskTypesPageQuery("name", "description", Arrays.asList("keyword2", "keyword2"));
+    context.sort = TaskTypesRepository.createTaskTypesPageSort(Arrays.asList("-name", "description"));
+    context.offset = 23;
+    context.limit = 100;
+    repository.retrieveTaskTypesPage(context, testContext.failing(error -> testContext.completeNow()));
+
+    @SuppressWarnings("unchecked")
+    final ArgumentCaptor<Handler<AsyncResult<JsonObject>>> searchHandler = ArgumentCaptor.forClass(Handler.class);
+    verify(repository, timeout(30000).times(1)).retrieveTaskTypesPageObject(eq(context.query), eq(context.sort), eq(context.offset), eq(context.limit), searchHandler.capture());
+    searchHandler.getValue().handle(Future.succeededFuture(new JsonObject().put("udefinedKey", "value")));
+
+  }
+
+  /**
+   * Should not update task type because the obtained object not found.
+   *
+   * @param testContext context that executes the test.
+   *
+   * @see TaskTypesRepository#retrieveTaskTypesPage(ModelsPageContext, Handler)
+   */
+  @Test
+  public void shouldFailRetrieveTaskTypesPageWhenObjectNotFound(final VertxTestContext testContext) {
+
+    final DummyTaskTypesRepository repository = spy(new DummyTaskTypesRepository());
+    final var context = new ModelsPageContext();
+    context.query = TaskTypesRepository.createTaskTypesPageQuery("name", "description", Arrays.asList("keyword2", "keyword2"));
+    context.sort = TaskTypesRepository.createTaskTypesPageSort(Arrays.asList("-name", "description"));
+    context.offset = 23;
+    context.limit = 100;
+    repository.retrieveTaskTypesPage(context, testContext.failing(error -> testContext.completeNow()));
+
+    @SuppressWarnings("unchecked")
+    final ArgumentCaptor<Handler<AsyncResult<JsonObject>>> searchHandler = ArgumentCaptor.forClass(Handler.class);
+    verify(repository, timeout(30000).times(1)).retrieveTaskTypesPageObject(eq(context.query), eq(context.sort), eq(context.offset), eq(context.limit), searchHandler.capture());
+    searchHandler.getValue().handle(Future.failedFuture("Not found"));
 
   }
 

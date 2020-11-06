@@ -81,22 +81,12 @@ public interface Tasks {
   /**
    * The sub path to retrieve a task.
    */
-  String TASK_ID_PATH = "/{taskId:^(?![types|transactions])}";
-
-  /**
-   * The path to the task types resource.
-   */
-  String TYPES_PATH = "/types";
+  String TASK_ID_PATH = "/{taskId}";
 
   /**
    * The path to the task transactions resource.
    */
   String TRANSACTIONS_PATH = "/transactions";
-
-  /**
-   * The sub path to retrieve a task type.
-   */
-  String TASK_TYPE_ID_PATH = "/{taskTypeId}";
 
   /**
    * Called when want to create a task.
@@ -166,8 +156,8 @@ public interface Tasks {
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(summary = "Search for some tasks", description = "Allow to get a page of task with the specified query parameters.")
-  @ApiResponse(responseCode = "200", description = "The task associated to the identifier", content = @Content(schema = @Schema(implementation = TasksPage.class)))
-  @ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @ApiResponse(responseCode = "200", description = "The page with the matching tasks", content = @Content(schema = @Schema(implementation = TasksPage.class)))
+  @ApiResponse(responseCode = "400", description = "If any of the search pattern is not valid", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   void retrieveTasksPage(
       @QueryParam(value = "appId") @Parameter(
           description = "An application identifier to be equals on the tasks to return. You can use a Perl compatible regular expressions (PCRE) that has to match the application identifier of the tasks to return if you write between '/'. For example to get the tasks for the aplications '1' and '2' you must pass as 'appId' '/^[1|2]$/'.",
@@ -296,163 +286,6 @@ public interface Tasks {
   void deleteTask(@PathParam("taskId") @Parameter(description = "The identifier of the task to delete") String taskId, @Parameter(hidden = true, required = false) OperationRequest context,
       @Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
 
-  /**
-   * Called when want to create a task type.
-   *
-   * @param body          the new task type to create.
-   * @param context       of the request.
-   * @param resultHandler to inform of the response.
-   */
-  @Tag(name = "Task Types")
-  @POST
-  @Path(TYPES_PATH)
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  @Operation(summary = "Create a task type", description = "Create a new task type")
-  @RequestBody(
-      description = "The new task type to create",
-      required = true,
-      content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
-  @ApiResponse(
-      responseCode = "200",
-      description = "The created task type",
-      content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
-  @ApiResponse(responseCode = "400", description = "Bad task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
-  void createTaskType(@Parameter(hidden = true, required = false) JsonObject body, @Parameter(hidden = true, required = false) OperationRequest context,
-      @Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
-
-  /**
-   * Called when want to get a task type.
-   *
-   * @param taskTypeId    identifier of the task type type to get.
-   * @param context       of the request.
-   * @param resultHandler to inform of the response.
-   */
-  @Tag(name = "Task Types")
-  @GET
-  @Path(TYPES_PATH + TASK_TYPE_ID_PATH)
-  @Produces(MediaType.APPLICATION_JSON)
-  @Operation(summary = "Return a task type associated to the identifier", description = "Allow to get a task type associated to an identifier")
-  @ApiResponse(
-      responseCode = "200",
-      description = "The task type associated to the identifier",
-      content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
-  @ApiResponse(responseCode = "404", description = "Not found task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
-  void retrieveTaskType(@PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to get", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
-      @Parameter(hidden = true, required = false) OperationRequest context, @Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
-
-  /**
-   * Called when want to search for some task types.
-   *
-   * @param name          the pattern to match with the names of the task types.
-   * @param description   the pattern to match with the descriptions of the task types.
-   * @param keywords      the patterns to match with the keywords of the task types.
-   * @param order         to return the found task types.
-   * @param offset        index of the first task type to return.
-   * @param limit         number maximum of task types to return.
-   * @param context       of the request.
-   * @param resultHandler to inform of the response.
-   */
-  @Tag(name = "Task Types")
-  @GET
-  @Path(TYPES_PATH)
-  @Produces(MediaType.APPLICATION_JSON)
-  @Operation(summary = "Return a task type associated to the identifier", description = "Allow to get a task type associated to an identifier")
-  @ApiResponse(responseCode = "200", description = "The task types that match the search.", content = @Content(schema = @Schema(implementation = TaskTypesPage.class)))
-  @ApiResponse(responseCode = "400", description = "If any of the search pattern is not valid", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
-  @ApiResponse(responseCode = "404", description = "Not found task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
-  void retrieveTaskTypesPage(
-      @QueryParam(value = "name") @Parameter(
-          description = "A name to be equals on the task types to return. You can use a Perl compatible regular expressions (PCRE) that has to match the name of the task types to return if you write between '/'. For example to get the task types with a name with the word 'eat' you must pass as 'goalName' '/.*eat.*/'",
-          example = "/.*eat.*/",
-          required = false) String name,
-      @QueryParam(value = "description") @Parameter(
-          description = "A description to be equals on the task types to return. You can use a Perl compatible regular expressions (PCRE) that has to match the description of the task types to return if you write between '/'. For example to get the task types with a description with the word 'eat' you must pass as 'goalDescription' '/.*eat.*/'",
-          example = "/.*eat.*/",
-          required = false) String description,
-      @QueryParam(value = "keywords") @Parameter(
-          description = "A set of keywords to be defined on the task types to be returned. For each keyword is separated by a ',' and each field keyword can be between '/' to use a Perl compatible regular expressions (PCRE) instead the exact value.",
-          example = "key1,/.*eat.*/,key3",
-          required = false,
-          explode = Explode.FALSE) List<String> keywords,
-      @QueryParam(value = "order") @Parameter(
-          description = "The order in witch the task types has to be returned. For each field it has be separated by a ',' and each field can start with '+' (or without it) to order on ascending order, or with the prefix '-' to do on descendant order.",
-          example = "name,-description",
-          required = false,
-          explode = Explode.FALSE) List<String> order,
-      @QueryParam("offset") @Parameter(description = "The index of the first task type to return") int offset, @QueryParam("limit") @Parameter(description = "The number maximum of task types to return") int limit,
-      @Parameter(hidden = true, required = false) OperationRequest context, @Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
-
-  /**
-   * Called when want to modify a task type.
-   *
-   * @param taskTypeId    identifier of the task type to modify.
-   * @param body          the new task attributes.
-   * @param context       of the request.
-   * @param resultHandler to inform of the response.
-   */
-  @Tag(name = "Task Types")
-  @PUT
-  @Path(TYPES_PATH + TASK_TYPE_ID_PATH)
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  @Operation(summary = "Modify a task type", description = "Change the attributes of a task type")
-  @RequestBody(
-      description = "The new values for the task type",
-      required = true,
-      content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
-  @ApiResponse(
-      responseCode = "200",
-      description = "The updated task type",
-      content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
-  @ApiResponse(responseCode = "400", description = "Bad task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
-  @ApiResponse(responseCode = "404", description = "Not found task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
-  void updateTaskType(@PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to update", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
-      @Parameter(hidden = true, required = false) JsonObject body, @Parameter(hidden = true, required = false) OperationRequest context, @Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
-
-  /**
-   * Called when want to modify a task type.
-   *
-   * @param taskTypeId    identifier of the task type to modify.
-   * @param body          the new task attributes.
-   * @param context       of the request.
-   * @param resultHandler to inform of the response.
-   */
-  @Tag(name = "Task Types")
-  @PATCH
-  @Path(TYPES_PATH + TASK_TYPE_ID_PATH)
-  @Consumes(MediaType.APPLICATION_JSON)
-  @Produces(MediaType.APPLICATION_JSON)
-  @Operation(summary = "Modify a task type", description = "Change the attributes of a task type")
-  @RequestBody(
-      description = "The new values for the task type",
-      required = true,
-      content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
-  @ApiResponse(
-      responseCode = "200",
-      description = "The merged task type",
-      content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
-  @ApiResponse(responseCode = "400", description = "Bad task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
-  @ApiResponse(responseCode = "404", description = "Not found task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
-  void mergeTaskType(@PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to merge", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
-      @Parameter(hidden = true, required = false) JsonObject body, @Parameter(hidden = true, required = false) OperationRequest context, @Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
-
-  /**
-   * Called when want to delete a task type.
-   *
-   * @param taskTypeId    identifier of the task type to delete.
-   * @param context       of the request.
-   * @param resultHandler to inform of the response.
-   */
-  @Tag(name = "Task Types")
-  @DELETE
-  @Path(TYPES_PATH + TASK_TYPE_ID_PATH)
-  @Produces(MediaType.APPLICATION_JSON)
-  @Operation(summary = "Delete the task type associated to the identifier", description = "Allow to delete a task type associated to an identifier")
-  @ApiResponse(responseCode = "204", description = "The task type was deleted successfully")
-  @ApiResponse(responseCode = "404", description = "Not found task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
-  void deleteTaskType(@PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to delete") String taskTypeId, @Parameter(hidden = true, required = false) OperationRequest context,
-      @Parameter(hidden = true, required = false) Handler<AsyncResult<OperationResponse>> resultHandler);
 
   /**
    * Called when want to do a transaction over a task.

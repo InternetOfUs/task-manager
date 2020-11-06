@@ -9,10 +9,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,6 +31,8 @@ import eu.internetofus.common.components.task_manager.WeNetTaskManagerClient;
 import eu.internetofus.common.vertx.AbstractAPIVerticle;
 import eu.internetofus.wenet_task_manager.api.help.Help;
 import eu.internetofus.wenet_task_manager.api.help.HelpResource;
+import eu.internetofus.wenet_task_manager.api.task_types.TaskTypes;
+import eu.internetofus.wenet_task_manager.api.task_types.TaskTypesResource;
 import eu.internetofus.wenet_task_manager.api.tasks.Tasks;
 import eu.internetofus.wenet_task_manager.api.tasks.TasksResource;
 import io.vertx.core.json.JsonObject;
@@ -65,6 +67,9 @@ public class APIVerticle extends AbstractAPIVerticle {
 
     routerFactory.mountServiceInterface(Tasks.class, Tasks.ADDRESS);
     new ServiceBinder(this.vertx).setAddress(Tasks.ADDRESS).register(Tasks.class, new TasksResource(this.vertx));
+
+    routerFactory.mountServiceInterface(TaskTypes.class, TaskTypes.ADDRESS);
+    new ServiceBinder(this.vertx).setAddress(TaskTypes.ADDRESS).register(TaskTypes.class, new TaskTypesResource(this.vertx));
 
   }
 

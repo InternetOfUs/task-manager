@@ -24,12 +24,13 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.wenet_task_manager.api.tasks;
+package eu.internetofus.wenet_task_manager.api.task_types;
 
 import java.util.ArrayList;
 
 import eu.internetofus.common.components.ModelTestCase;
 import eu.internetofus.common.components.task_manager.TaskTypeTest;
+import eu.internetofus.wenet_task_manager.api.task_types.TaskTypesPage;
 
 /**
  * Test the {@link TaskTypesPage}.

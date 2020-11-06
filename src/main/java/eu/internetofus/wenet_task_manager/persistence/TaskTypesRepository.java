@@ -30,8 +30,10 @@ import java.util.List;
 
 import eu.internetofus.common.components.Model;
 import eu.internetofus.common.components.task_manager.TaskType;
+import eu.internetofus.common.vertx.ModelsPageContext;
 import eu.internetofus.common.vertx.QueryBuilder;
-import eu.internetofus.wenet_task_manager.api.tasks.TaskTypesPage;
+import eu.internetofus.common.vertx.Repository;
+import eu.internetofus.wenet_task_manager.api.task_types.TaskTypesPage;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.core.AsyncResult;
@@ -179,7 +181,7 @@ public interface TaskTypesRepository {
   @GenIgnore
   default void updateTaskType(final TaskType taskType, final Handler<AsyncResult<Void>> updateHandler) {
 
-    final var object = taskType.toJsonObject();
+    final var object = taskType.toJsonObjectWithEmptyValues();
     if (object == null) {
 
       updateHandler.handle(Future.failedFuture("The taskType can not converted to JSON."));
@@ -216,25 +218,74 @@ public interface TaskTypesRepository {
    *
    * @return the query that you have to use to obtains some taskTypes.
    */
-  static JsonObject creteTaskTypesPageQuery(final String name, final String description, final List<String> keywords) {
+  static JsonObject createTaskTypesPageQuery(final String name, final String description, final List<String> keywords) {
 
     return new QueryBuilder().withEqOrRegex("name", name).withEqOrRegex("description", description).withEqOrRegex("keywords", keywords).build();
 
   }
 
   /**
-   * Obtain the taskTypes that satisfies a query.
+   * Create the sort query of the task type.
    *
-   * @param query         that define the taskTypes to add into the page.
-   * @param order         in witch has to return the taskTypes.
-   * @param offset        index of the first taskType to return.
-   * @param limit         number maximum of taskTypes to return.
-   * @param searchHandler handler to manage the search.
+   * @param order to sort the task types.
+   *
+   * @return the sort query of the task types page.
+   */
+  static JsonObject createTaskTypesPageSort(final List<String> order) {
+
+    return Repository.queryParamToSort(order, "bad_order", (value) -> {
+
+      switch (value) {
+      case "name":
+      case "description":
+      case "keywords":
+        return value;
+      default:
+        return null;
+      }
+
+    });
+
+  }
+
+  /**
+   * Retrieve the task types defined on the context.
+   *
+   * @param context that describe witch page want to obtain.
+   * @param handler for the obtained page.
    */
   @GenIgnore
-  default void retrieveTaskTypesPage(final JsonObject query, final JsonObject order, final int offset, final int limit, final Handler<AsyncResult<TaskTypesPage>> searchHandler) {
+  default void retrieveTaskTypesPageObject(final ModelsPageContext context, final Handler<AsyncResult<JsonObject>> handler) {
 
-    this.retrieveTaskTypesPageObject(query, order, offset, limit, search -> {
+    this.retrieveTaskTypesPageObject(context.query, context.sort, context.offset, context.limit, handler);
+  }
+
+  /**
+   * Retrieve the task types defined on the context.
+   *
+   * @param context       that describe witch page want to obtain.
+   * @param searchHandler for the obtained page.
+   */
+  @GenIgnore
+  default void retrieveTaskTypesPage(final ModelsPageContext context, final Handler<AsyncResult<TaskTypesPage>> searchHandler) {
+
+    this.retrieveTaskTypesPage(context.query, context.sort, context.offset, context.limit, searchHandler);
+
+  }
+
+  /**
+   * Retrieve the task types defined on the context.
+   *
+   * @param query         to obtain the required task types.
+   * @param sort          describe how has to be ordered the obtained task types.
+   * @param offset        the index of the first community to return.
+   * @param limit         the number maximum of task types to return.
+   * @param searchHandler for the obtained page.
+   */
+  @GenIgnore
+  default void retrieveTaskTypesPage(final JsonObject query, final JsonObject sort, final int offset, final int limit, final Handler<AsyncResult<TaskTypesPage>> searchHandler) {
+
+    this.retrieveTaskTypesPageObject(query, sort, offset, limit, search -> {
 
       if (search.failed()) {
 
@@ -246,7 +297,7 @@ public interface TaskTypesRepository {
         final var page = Model.fromJsonObject(value, TaskTypesPage.class);
         if (page == null) {
 
-          searchHandler.handle(Future.failedFuture("The stored taskType page is not valid."));
+          searchHandler.handle(Future.failedFuture("The stored task types page is not valid."));
 
         } else {
 
@@ -254,17 +305,18 @@ public interface TaskTypesRepository {
         }
       }
     });
+
   }
 
   /**
-   * Search for the taskType with the specified identifier.
+   * Retrieve a page with some task types.
    *
-   * @param query         that define the taskTypes to add into the page.
-   * @param order         in witch has to return the taskTypes.
-   * @param offset        index of the first taskType to return.
-   * @param limit         number maximum of taskTypes to return.
-   * @param searchHandler handler to manage the search.
+   * @param query   to obtain the required task types.
+   * @param sort    describe how has to be ordered the obtained task types.
+   * @param offset  the index of the first community to return.
+   * @param limit   the number maximum of task types to return.
+   * @param handler to inform of the found task types.
    */
-  void retrieveTaskTypesPageObject(JsonObject query, JsonObject order, int offset, int limit, Handler<AsyncResult<JsonObject>> searchHandler);
+  void retrieveTaskTypesPageObject(JsonObject query, JsonObject sort, int offset, int limit, Handler<AsyncResult<JsonObject>> handler);
 
 }
