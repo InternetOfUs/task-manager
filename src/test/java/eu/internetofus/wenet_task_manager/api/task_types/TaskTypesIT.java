@@ -27,8 +27,8 @@
 package eu.internetofus.wenet_task_manager.api.task_types;
 
 import static eu.internetofus.common.vertx.HttpResponses.assertThatBodyIs;
+import static io.reactiverse.junit5.web.TestRequest.queryParam;
 import static io.reactiverse.junit5.web.TestRequest.testRequest;
-import static io.vertx.junit5.web.TestRequest.queryParam;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import javax.ws.rs.core.Response.Status;
@@ -111,15 +111,6 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
     source.id = target.id;
     source._creationTs = target._creationTs;
     source._lastUpdateTs = target._lastUpdateTs;
-    if (source.norms != null && target.norms != null && source.norms.size() == target.norms.size()) {
-
-      final var max = source.norms.size();
-      for (var i = 0; i < max; i++) {
-
-        source.norms.get(i).id = target.norms.get(i).id;
-      }
-
-    }
     assertThat(source).isEqualTo(target);
 
   }

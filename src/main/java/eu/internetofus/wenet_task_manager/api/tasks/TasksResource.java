@@ -36,9 +36,6 @@ import org.tinylog.Logger;
 
 import eu.internetofus.common.components.Model;
 import eu.internetofus.common.components.ValidationErrorException;
-import eu.internetofus.common.components.interaction_protocol_engine.ProtocolAddress;
-import eu.internetofus.common.components.interaction_protocol_engine.ProtocolAddress.Component;
-import eu.internetofus.common.components.interaction_protocol_engine.ProtocolMessage;
 import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngine;
 import eu.internetofus.common.components.profile_manager.CommunityMember;
 import eu.internetofus.common.components.profile_manager.CommunityProfile;
@@ -218,27 +215,16 @@ public class TasksResource implements Tasks {
         OperationReponseHandlers.responseWith(resultHandler, Status.CREATED, model.value);
 
         Logger.debug("Created task {}", model.value);
-        final var message = new ProtocolMessage();
-        message.taskId = model.value.id;
-        message.appId = model.value.appId;
-        message.sender = new ProtocolAddress();
-        message.sender.component = Component.TASK_MANAGER;
-        message.receiver = new ProtocolAddress();
-        message.receiver.component = Component.INTERACTION_PROTOCOL_ENGINE;
-        message.receiver.userId = model.value.requesterId;
-        message.particle = "HARDCODED_TASK_CREATED";
-        message.content = model.value.toJsonObject();
-        this.interactionProtocolEngine.sendMessage(message.toJsonObject(), sent -> {
+        this.interactionProtocolEngine.createdTask(model.value, sent -> {
 
           if (sent.failed()) {
 
             final var cause = sent.cause();
-            Logger.debug(cause, "Cannot send message {}.", message);
-            OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+            Logger.debug(cause, "The interaction protocol engine does not accepted to process the creation of the task {}", model.value);
 
           } else {
 
-            Logger.debug("Interaction protocol engine accepted {}", model.value);
+            Logger.debug("The interaction protocol engine accepted to process the creation of the task {}", model.value);
 
           }
         });
@@ -309,26 +295,18 @@ public class TasksResource implements Tasks {
 
         } else {
 
-          final var message = new ProtocolMessage();
-          message.taskId = taskTransaction.taskId;
-          message.sender = new ProtocolAddress();
-          message.sender.component = Component.TASK_MANAGER;
-          message.receiver = new ProtocolAddress();
-          message.receiver.component = Component.INTERACTION_PROTOCOL_ENGINE;
-          message.particle = "HARDCODED_TASK_TRANSACTION";
-          message.content = taskTransaction.toJsonObject();
-          this.interactionProtocolEngine.sendMessage(message, send -> {
+          OperationReponseHandlers.responseWith(resultHandler, Status.ACCEPTED, taskTransaction);
+          this.interactionProtocolEngine.doTransaction(taskTransaction, send -> {
 
             if (send.failed()) {
 
               final var cause = send.cause();
-              Logger.trace(cause, "Fail doTaskTransaction: {} of {} is not accepted", message, body);
-              OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+              Logger.trace(cause, "The interaction protocol engine does not accepted to do the transaction {}", taskTransaction);
 
             } else {
 
-              Logger.trace("Accepted sendIncentive {} ", body);
-              OperationReponseHandlers.responseWith(resultHandler, Status.ACCEPTED, taskTransaction);
+              Logger.trace("The interaction protocol engine accepted to do the transaction {} ", taskTransaction);
+
             }
 
           });
@@ -405,6 +383,5 @@ public class TasksResource implements Tasks {
     }
 
   }
-
 
 }

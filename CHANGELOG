@@ -2,9 +2,10 @@
 
 All notable changes to `wenet-task-manager` will be documented in this file
 
-## Version 0.6.0 (2020-08-13)
+## Version 0.6.0 (2020-12-10)
 
- * 
+ * Adapt to the new task type that use OpenAPI description to define the components.
+ * Adapt to the new interaction protocol engine to inform when a task is created and has to be done a transaction.
  
 
 ## Version 0.5.0 (2020-07-17)

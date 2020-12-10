@@ -148,14 +148,14 @@ public class TasksResourceTest {
    * @param request     mocked request to do the operation.
    */
   @Test
-  public void shouldNotDoTransactionBecauseSendMessageFailed(final Vertx vertx, final VertxTestContext testContext, @Mock final OperationRequest request) {
+  public void shouldDoTransactionBecauseSendMessageFailed(final Vertx vertx, final VertxTestContext testContext, @Mock final OperationRequest request) {
 
     new TaskTransactionTest().createModelExample(1, vertx, testContext).onComplete(testContext.succeeding(transaction -> {
 
       final var resource = new TasksResource(vertx);
       resource.doTaskTransaction(transaction.toJsonObject(), request, testContext.succeeding(response -> testContext.verify(() -> {
 
-        assertThat(response.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+        assertThat(response.getStatusCode()).isEqualTo(Status.ACCEPTED.getStatusCode());
         testContext.completeNow();
 
       })));

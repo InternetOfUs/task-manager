@@ -27,6 +27,8 @@
 package eu.internetofus.wenet_task_manager.services;
 
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.tinylog.Level;
+import org.tinylog.provider.InternalLogger;
 
 import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngine;
 import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngineTestCase;
@@ -42,4 +44,8 @@ import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 @ExtendWith(WeNetTaskManagerIntegrationExtension.class)
 public class WeNetInteractionProtocolEngineIT extends WeNetInteractionProtocolEngineTestCase {
 
+  static {
+
+    InternalLogger.log(Level.DEBUG , "HERE");
+  }
 }
