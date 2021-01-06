@@ -9,10 +9,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,38 +24,37 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.common.components.service;
+package eu.internetofus.common.components;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.List;
 
-import org.junit.jupiter.api.Test;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Test the classes that extends the {@link TextualMessage}
+ * A model that has information when it is created and updated.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public class TextualMessageTest extends MessageTestCase<TextualMessage> {
+@Schema(hidden = true, description = "The attributes used to identify and describe a model for an human with timestamp details.")
+public class HumanDescriptionWithCreateUpdateTsDetails extends CreateUpdateTsDetails {
 
   /**
-   * {@inheritDoc}
-   *
-   * @see TextualMessage#TextualMessage()
+   * A name that identify the type.
    */
-  @Override
-  public TextualMessage createEmptyMessage() {
-
-    return new TextualMessage();
-  }
+  @Schema(description = "A name that identify the model.", example = "Eat together task")
+  public String name;
 
   /**
-   * Verify that the type is a textual message.
+   * A human readable description of the task type.
    */
-  @Test
-  public void shouldTypeByTextualMessage() {
+  @Schema(description = "A human readable description of the model.", example = "A task for organizing social dinners")
+  public String description;
 
-    final var model = this.createEmptyMessage();
-    assertThat(model.type).isEqualTo(BaseMessage.Type.textualMessage);
-  }
+  /**
+   * A name that identify the type.
+   */
+  @ArraySchema(schema = @Schema(implementation = String.class), arraySchema = @Schema(description = "The keywords that describe the model.", example = "[\"social interaction\",\"eat\"]"))
+  public List<String> keywords;
 
 }

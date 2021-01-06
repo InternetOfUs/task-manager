@@ -9,10 +9,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,35 +24,33 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.common.components.service;
+package eu.internetofus.common.components;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.ArrayList;
 
 /**
- * A notification to inform about a task volunteer.
+ * Test the {@link HumanDescription}
+ *
+ * @see HumanDescription
  *
  * @author UDT-IA, IIIA-CSIC
  */
-@Schema(hidden = true, name = "TaskVolunteerNotification", description = "This notification is used in order to notify the task creator that a new volunteer is proposing to participate to the task.")
-public class TaskVolunteerNotification extends TaskNotification {
+public class HumanDescriptionTest extends ModelTestCase<HumanDescription> {
 
   /**
-   * The identifier of the volunteer.
+   * {@inheritDoc}
    */
-  @Schema(description = "The wenet id of the user who is volunteering for the task.", example = "289615821")
-  public String volunteerId;
+  @Override
+  public HumanDescription createModelExample(int index) {
 
-  /**
-   * The explanation why the user has to be selected.
-   */
-  @Schema(description = "The reason why the user was selected to be a possible volunteer.", nullable = true, example = "It is your friend")
-  public String explanation;
-
-  /**
-   * Create a new task volunteer notification.
-   */
-  public TaskVolunteerNotification() {
-
-    this.notificationType = NotificationType.taskVolunteer;
+    var model = new HumanDescription();
+    model.name = "name_" + index;
+    model.description = "description_" + index;
+    model.keywords = new ArrayList<>();
+    model.keywords.add("keyword_" + (index - 1));
+    model.keywords.add("keyword_" + index);
+    model.keywords.add("keyword_" + (index + 1));
+    return model;
   }
+
 }

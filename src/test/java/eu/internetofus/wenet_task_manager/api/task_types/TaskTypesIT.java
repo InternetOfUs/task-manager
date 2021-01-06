@@ -27,14 +27,9 @@
 package eu.internetofus.wenet_task_manager.api.task_types;
 
 import static eu.internetofus.common.vertx.HttpResponses.assertThatBodyIs;
-import static io.reactiverse.junit5.web.TestRequest.queryParam;
-import static io.reactiverse.junit5.web.TestRequest.testRequest;
+import static eu.internetofus.common.vertx.ext.TestRequest.queryParam;
+import static eu.internetofus.common.vertx.ext.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import eu.internetofus.common.components.ErrorMessage;
 import eu.internetofus.common.components.StoreServices;
@@ -51,6 +46,9 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.VertxTestContext;
+import javax.ws.rs.core.Response.Status;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * The integration test over the {@link TaskTypes}.
@@ -87,7 +85,8 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
    * {@inheritDoc}
    */
   @Override
-  protected void createValidModelExample(final int index, final Vertx vertx, final VertxTestContext testContext, final Handler<AsyncResult<TaskType>> createHandler) {
+  protected void createValidModelExample(final int index, final Vertx vertx, final VertxTestContext testContext,
+      final Handler<AsyncResult<TaskType>> createHandler) {
 
     createHandler.handle(Future.succeededFuture(new TaskTypeTest().createModelExample(index)));
   }
@@ -96,9 +95,10 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
    * {@inheritDoc}
    */
   @Override
-  protected void storeModel(final TaskType source, final Vertx vertx, final VertxTestContext testContext, final Handler<AsyncResult<TaskType>> succeeding) {
+  protected void storeModel(final TaskType source, final Vertx vertx, final VertxTestContext testContext,
+      final Handler<AsyncResult<TaskType>> succeeding) {
 
-    StoreServices.storeTaskType(source, vertx, testContext, succeeding);
+    succeeding.handle(StoreServices.storeTaskType(source, vertx, testContext));
 
   }
 
@@ -131,10 +131,12 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
    * @param client      to connect to the server.
    * @param testContext context to test.
    *
-   * @see Tasks#createTask(io.vertx.core.json.JsonObject, io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
+   * @see Tasks#createTask(io.vertx.core.json.JsonObject,
+   *      io.vertx.ext.web.api.service.ServiceRequest, io.vertx.core.Handler)
    */
   @Test
-  public void shouldNotStoreEmptyTaskType(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldNotStoreEmptyTaskType(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     final var taskType = new TaskType();
     testRequest(client, HttpMethod.POST, this.modelPath()).expect(res -> {
@@ -155,12 +157,14 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
    * @param client      to connect to the server.
    * @param testContext context to test.
    *
-   * @see TaskTypes#retrieveTaskType(String, io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
+   * @see TaskTypes#retrieveTaskType(String,
+   *      io.vertx.ext.web.api.service.ServiceRequest, io.vertx.core.Handler)
    */
   @Test
-  public void shouldMergeOnlyNameOnTaskType(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldMergeOnlyNameOnTaskType(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
-    StoreServices.storeTaskTypeExample(1, vertx, testContext, testContext.succeeding(target -> {
+    StoreServices.storeTaskTypeExample(1, vertx, testContext).onSuccess(target -> {
 
       final var source = new TaskType();
       source.name = "NEW task type name";
@@ -174,7 +178,7 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
         assertThat(updated).isEqualTo(target);
 
       })).sendJson(source.toJsonObject(), testContext);
-    }));
+    });
 
   }
 
@@ -185,12 +189,14 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
    * @param client      to connect to the server.
    * @param testContext context to test.
    *
-   * @see TaskTypes#retrieveTaskType(String, io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
+   * @see TaskTypes#retrieveTaskType(String,
+   *      io.vertx.ext.web.api.service.ServiceRequest, io.vertx.core.Handler)
    */
   @Test
-  public void shouldNotMergeBecasueNotChangedOnTaskType(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldNotMergeBecasueNotChangedOnTaskType(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
-    StoreServices.storeTaskTypeExample(1, vertx, testContext, testContext.succeeding(target -> {
+    StoreServices.storeTaskTypeExample(1, vertx, testContext).onSuccess(target -> {
 
       final var source = new TaskType();
       testRequest(client, HttpMethod.PATCH, this.modelPath() + "/" + target.id).expect(res -> testContext.verify(() -> {
@@ -201,7 +207,7 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
       })).sendJson(source.toJsonObject(), testContext);
-    }));
+    });
 
   }
 
@@ -212,24 +218,27 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
    * @param client      to connect to the server.
    * @param testContext context to test.
    *
-   * @see TaskTypes#retrieveTaskTypesPage(String, String, java.util.List, java.util.List, int, int,
-   *      io.vertx.ext.web.api.OperationRequest, Handler)
+   * @see TaskTypes#retrieveTaskTypesPage(String, String, java.util.List,
+   *      java.util.List, int, int, io.vertx.ext.web.api.service.ServiceRequest,
+   *      Handler)
    */
   @Test
-  public void shouldNotRetrieveTaskTypesPageBecauseBadOrder(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldNotRetrieveTaskTypesPageBecauseBadOrder(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
-    StoreServices.storeTaskTypeExample(1, vertx, testContext, testContext.succeeding(target -> {
+    StoreServices.storeTaskTypeExample(1, vertx, testContext).onSuccess(target -> {
 
-      testRequest(client, HttpMethod.GET, this.modelPath()).with(queryParam("order", "name,-undefined")).expect(res -> testContext.verify(() -> {
+      testRequest(client, HttpMethod.GET, this.modelPath()).with(queryParam("order", "name,-undefined"))
+          .expect(res -> testContext.verify(() -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-        final var error = assertThatBodyIs(ErrorMessage.class, res);
-        assertThat(error).isNotNull();
-        assertThat(error.code).isNotEmpty().isEqualTo("bad_order[1]");
-        assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
+            assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+            final var error = assertThatBodyIs(ErrorMessage.class, res);
+            assertThat(error).isNotNull();
+            assertThat(error.code).isNotEmpty().isEqualTo("bad_order[1]");
+            assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
-      })).send(testContext);
-    }));
+          })).send(testContext);
+    });
 
   }
 
@@ -240,13 +249,15 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
    * @param client      to connect to the server.
    * @param testContext context to test.
    *
-   * @see TaskTypes#retrieveTaskTypesPage(String, String, java.util.List, java.util.List, int, int,
-   *      io.vertx.ext.web.api.OperationRequest, Handler)
+   * @see TaskTypes#retrieveTaskTypesPage(String, String, java.util.List,
+   *      java.util.List, int, int, io.vertx.ext.web.api.service.ServiceRequest,
+   *      Handler)
    */
   @Test
-  public void shouldRetrieveTaskTypesPage(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldRetrieveTaskTypesPage(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
-    StoreServices.storeTaskTypeExample(1, vertx, testContext, testContext.succeeding(target -> {
+    StoreServices.storeTaskTypeExample(1, vertx, testContext).onSuccess(target -> {
 
       testRequest(client, HttpMethod.GET, this.modelPath()).expect(res -> testContext.verify(() -> {
 
@@ -263,7 +274,7 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
         }
 
       })).send(testContext);
-    }));
+    });
 
   }
 

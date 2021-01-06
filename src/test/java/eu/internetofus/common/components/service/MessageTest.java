@@ -9,10 +9,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,38 +26,30 @@
 
 package eu.internetofus.common.components.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.jupiter.api.Test;
+import eu.internetofus.common.components.ModelTestCase;
+import io.vertx.core.json.JsonObject;
 
 /**
- * Test the {@link TaskProposalNotification}
- *
- * @see TaskProposalNotification
+ * Test the {@link Message}
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public class TaskProposalNotificationTest extends TaskNotificationTestCase<TaskProposalNotification> {
+public class MessageTest extends ModelTestCase<Message> {
 
   /**
    * {@inheritDoc}
-   *
-   * @see TaskProposalNotification#TaskProposalNotification()
    */
   @Override
-  public TaskProposalNotification createEmptyMessage() {
+  public Message createModelExample(final int index) {
 
-    return new TaskProposalNotification();
-  }
+    final var model = new Message();
+    model.appId = "appId_" + index;
+    model.attributes = new JsonObject().put("key", "value").put("index", index)
+        .put("communityId", "communityId_" + index).put("taskId", "taskId" + index);
+    model.label = "label_" + index;
+    model.receiverId = "receiverId_" + index;
+    return model;
 
-  /**
-   * Verify that the notification type is a task proposal.
-   */
-  @Test
-  public void shouldNotificationTypeByTaskProposal() {
-
-    final var model = this.createEmptyMessage();
-    assertThat(model.notificationType).isEqualTo(TaskNotification.NotificationType.taskProposal);
   }
 
 }

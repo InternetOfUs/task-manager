@@ -48,6 +48,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import eu.internetofus.common.components.Model;
 import eu.internetofus.common.components.ModelTestCase;
+import eu.internetofus.common.components.StoreServices;
 import eu.internetofus.common.components.ValidationsTest;
 import eu.internetofus.common.components.profile_manager.CommunityProfile;
 import eu.internetofus.common.components.profile_manager.WeNetUserProfile;
@@ -87,7 +88,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
   @AfterAll
   public static void stopMockers() {
 
-    taskManagerMocker.stop();
+    taskManagerMocker.stopServer();
   }
 
   /**
@@ -158,13 +159,13 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
   @Test
   public void shouldNotBeValidWithAnExistingId(final Vertx vertx, final VertxTestContext testContext) {
 
-    WeNetTaskManager.createProxy(vertx).createTaskType(this.createModelExample(1), testContext.succeeding(created -> {
+    StoreServices.storeTaskTypeExample(1, vertx, testContext).onSuccess(created -> {
 
       final var model = this.createModelExample(1);
       model.id = created.id;
       assertIsNotValid(model, "id", vertx, testContext);
 
-    }));
+    });
 
   }
 
@@ -198,7 +199,8 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
 
     final var target = this.createModelExample(1);
     final var source = this.createModelExample(23);
-    assertCanMerge(target, source, vertx, testContext, merged -> assertThat(merged).isNotEqualTo(target).isEqualTo(source));
+    assertCanMerge(target, source, vertx, testContext,
+        merged -> assertThat(merged).isNotEqualTo(target).isEqualTo(source));
 
   }
 
@@ -323,7 +325,8 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
     model.keywords.add(null);
     model.keywords.add("     ");
     model.keywords.add("\n\t");
-    assertIsValid(model, vertx, testContext, () -> assertThat(model.keywords).isNotEmpty().hasSize(1).contains("1234567890", atIndex(0)));
+    assertIsValid(model, vertx, testContext,
+        () -> assertThat(model.keywords).isNotEmpty().hasSize(1).contains("1234567890", atIndex(0)));
 
   }
 
@@ -452,7 +455,8 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
     target.name = "name";
     final var source = new TaskType();
     source.description = "   " + ValidationsTest.STRING_256 + "   ";
-    assertCanMerge(target, source, vertx, testContext, merged -> assertThat(merged.description).isEqualTo(ValidationsTest.STRING_256));
+    assertCanMerge(target, source, vertx, testContext,
+        merged -> assertThat(merged.description).isEqualTo(ValidationsTest.STRING_256));
 
   }
 
@@ -497,7 +501,8 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
     source.keywords.add("     ");
     source.keywords.add("\n\t");
 
-    assertCanMerge(target, source, vertx, testContext, merged -> assertThat(merged.keywords).isNotEmpty().hasSize(1).contains("1234567890", atIndex(0)));
+    assertCanMerge(target, source, vertx, testContext,
+        merged -> assertThat(merged.keywords).isNotEmpty().hasSize(1).contains("1234567890", atIndex(0)));
 
   }
 
@@ -593,7 +598,8 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
     target.name = "name";
     final var source = Model.fromJsonObject(target.toJsonObject(), TaskType.class);
     source.description = "   " + ValidationsTest.STRING_256 + "   ";
-    assertCanUpdate(target, source, vertx, testContext, updated -> assertThat(updated.description).isEqualTo(ValidationsTest.STRING_256));
+    assertCanUpdate(target, source, vertx, testContext,
+        updated -> assertThat(updated.description).isEqualTo(ValidationsTest.STRING_256));
 
   }
 
@@ -638,7 +644,8 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
     source.keywords.add("     ");
     source.keywords.add("\n\t");
 
-    assertCanUpdate(target, source, vertx, testContext, updated -> assertThat(updated.keywords).isNotEmpty().hasSize(1).contains("1234567890", atIndex(0)));
+    assertCanUpdate(target, source, vertx, testContext,
+        updated -> assertThat(updated.keywords).isNotEmpty().hasSize(1).contains("1234567890", atIndex(0)));
 
   }
 
@@ -666,24 +673,6 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
   }
 
   /**
-   * Should merge with {@code null}
-   *
-   * @param vertx       event bus to use.
-   * @param testContext context to test.
-   *
-   * @see CommunityProfile#merge(CommunityProfile, String, Vertx)
-   */
-  @Test
-  public void shoudMergeWithNull(final Vertx vertx, final VertxTestContext testContext) {
-
-    final var target = this.createModelExample(1);
-    assertCanMerge(target, null, vertx, testContext, merged -> {
-      assertThat(merged).isSameAs(target);
-    });
-
-  }
-
-  /**
    * Should update with {@code null}
    *
    * @param vertx       event bus to use.
@@ -692,7 +681,7 @@ public class TaskTypeTest extends ModelTestCase<TaskType> {
    * @see CommunityProfile#update(CommunityProfile, String, Vertx)
    */
   @Test
-  public void shoudUpdateWithNull(final Vertx vertx, final VertxTestContext testContext) {
+  public void shouldUpdateWithNull(final Vertx vertx, final VertxTestContext testContext) {
 
     final var target = this.createModelExample(1);
     assertCanUpdate(target, null, vertx, testContext, updated -> {

@@ -28,7 +28,6 @@ package eu.internetofus.wenet_task_manager.persistence;
 
 import eu.internetofus.common.components.Model;
 import eu.internetofus.common.components.task_manager.Task;
-import eu.internetofus.common.components.task_manager.TaskGoal;
 import eu.internetofus.common.vertx.QueryBuilder;
 import eu.internetofus.wenet_task_manager.api.tasks.TasksPage;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -212,25 +211,36 @@ public interface TasksRepository {
    * @param appId           the pattern to match the {@link Task#appId}.
    * @param requesterId     the pattern to match the {@link Task#requesterId}.
    * @param taskTypeId      the pattern to match the {@link Task#taskTypeId}.
-   * @param goalName        the pattern to match the {@link TaskGoal#name}.
-   * @param goalDescription the pattern to match the {@link TaskGoal#description}.
-   * @param startFrom       the minimum time stamp, inclusive, for the {@link Task#startTs}.
-   * @param startTo         the maximum time stamp, inclusive, for the {@link Task#startTs}.
-   * @param deadlineFrom    the minimum time stamp, inclusive, for the {@link Task#deadlineTs}.
-   * @param deadlineTo      the maximum time stamp, inclusive, for the {@link Task#deadlineTs}.
-   * @param endFrom         the minimum time stamp, inclusive, for the {@link Task#endTs}.
-   * @param endTo           the maximum time stamp, inclusive, for the {@link Task#endTs}.
-   * @param hasCloseTs      is {@code true} is the {@link Task#closeTs} has to be defined.
-   * @param closeFrom       the minimum time stamp, inclusive, for the {@link Task#closeTs}.
-   * @param closeTo         the maximum time stamp, inclusive, for the {@link Task#closeTs}.
+   * @param goalName        the pattern to match the {@link Task#goal} name.
+   * @param goalDescription the pattern to match the {@link Task#goal}
+   *                        description.
+   * @param creationFrom    the minimum time stamp, inclusive, for the
+   *                        {@link Task#_creationTs}.
+   * @param creationTo      the maximum time stamp, inclusive, for the
+   *                        {@link Task#_creationTs}.
+   * @param updateFrom      the minimum time stamp, inclusive, for the
+   *                        {@link Task#_lastUpdateTs}.
+   * @param updateTo        the maximum time stamp, inclusive, for the
+   *                        {@link Task#_lastUpdateTs}.
+   * @param hasCloseTs      is {@code true} is the {@link Task#closeTs} has to be
+   *                        defined.
+   * @param closeFrom       the minimum time stamp, inclusive, for the
+   *                        {@link Task#closeTs}.
+   * @param closeTo         the maximum time stamp, inclusive, for the
+   *                        {@link Task#closeTs}.
    *
    * @return the query that you have to use to obtains some tasks.
    */
-  static JsonObject creteTasksPageQuery(final String appId, final String requesterId, final String taskTypeId, final String goalName, final String goalDescription, final Number startFrom, final Number startTo, final Number deadlineFrom,
-      final Number deadlineTo, final Number endFrom, final Number endTo, final Boolean hasCloseTs, final Number closeFrom, final Number closeTo) {
+  static JsonObject creteTasksPageQuery(final String appId, final String requesterId, final String taskTypeId,
+      final String goalName, final String goalDescription, final Number creationFrom, final Number creationTo,
+      final Number updateFrom, final Number updateTo, final Boolean hasCloseTs, final Number closeFrom,
+      final Number closeTo) {
 
-    return new QueryBuilder().withEqOrRegex("appId", appId).withEqOrRegex("requesterId", requesterId).withEqOrRegex("taskTypeId", taskTypeId).withEqOrRegex("goal.name", goalName).withEqOrRegex("goal.description", goalDescription)
-        .withRange("startTs", startFrom, startTo).withRange("deadlineTs", deadlineFrom, deadlineTo).withRange("endTs", endFrom, endTo).withExist("closeTs", hasCloseTs).withRange("closeTs", closeFrom, closeTo).build();
+    return new QueryBuilder().withEqOrRegex("appId", appId).withEqOrRegex("requesterId", requesterId)
+        .withEqOrRegex("taskTypeId", taskTypeId).withEqOrRegex("goal.name", goalName)
+        .withEqOrRegex("goal.description", goalDescription).withRange("_creationTs", creationFrom, creationTo)
+        .withRange("_lastUpdateTs", updateFrom, updateTo).withExist("closeTs", hasCloseTs)
+        .withRange("closeTs", closeFrom, closeTo).build();
 
   }
 
@@ -244,7 +254,8 @@ public interface TasksRepository {
    * @param searchHandler handler to manage the search.
    */
   @GenIgnore
-  default void retrieveTasksPage(final JsonObject query, final JsonObject order, final int offset, final int limit, final Handler<AsyncResult<TasksPage>> searchHandler) {
+  default void retrieveTasksPage(final JsonObject query, final JsonObject order, final int offset, final int limit,
+      final Handler<AsyncResult<TasksPage>> searchHandler) {
 
     this.retrieveTasksPageObject(query, order, offset, limit, search -> {
 
@@ -277,6 +288,7 @@ public interface TasksRepository {
    * @param limit         number maximum of tasks to return.
    * @param searchHandler handler to manage the search.
    */
-  void retrieveTasksPageObject(JsonObject query, JsonObject order, int offset, int limit, Handler<AsyncResult<JsonObject>> searchHandler);
+  void retrieveTasksPageObject(JsonObject query, JsonObject order, int offset, int limit,
+      Handler<AsyncResult<JsonObject>> searchHandler);
 
 }

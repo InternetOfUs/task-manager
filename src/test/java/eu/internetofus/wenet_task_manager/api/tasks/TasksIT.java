@@ -27,18 +27,9 @@
 package eu.internetofus.wenet_task_manager.api.tasks;
 
 import static eu.internetofus.common.vertx.HttpResponses.assertThatBodyIs;
-import static io.reactiverse.junit5.web.TestRequest.queryParam;
-import static io.reactiverse.junit5.web.TestRequest.testRequest;
+import static eu.internetofus.common.vertx.ext.TestRequest.queryParam;
+import static eu.internetofus.common.vertx.ext.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.UUID;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import eu.internetofus.common.components.ErrorMessage;
 import eu.internetofus.common.components.StoreServices;
@@ -59,6 +50,12 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.VertxTestContext;
+import java.util.UUID;
+import javax.ws.rs.core.Response.Status;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * The integration test over the {@link Tasks}.
@@ -93,9 +90,10 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * {@inheritDoc}
    */
   @Override
-  protected void createValidModelExample(final int index, final Vertx vertx, final VertxTestContext testContext, final Handler<AsyncResult<Task>> createHandler) {
+  protected void createValidModelExample(final int index, final Vertx vertx, final VertxTestContext testContext,
+      final Handler<AsyncResult<Task>> createHandler) {
 
-    new TaskTest().createModelExample(index, vertx, testContext, createHandler);
+    createHandler.handle(testContext.assertComplete(new TaskTest().createModelExample(index, vertx, testContext)));
 
   }
 
@@ -103,9 +101,10 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * {@inheritDoc}
    */
   @Override
-  protected void storeModel(final Task source, final Vertx vertx, final VertxTestContext testContext, final Handler<AsyncResult<Task>> succeeding) {
+  protected void storeModel(final Task source, final Vertx vertx, final VertxTestContext testContext,
+      final Handler<AsyncResult<Task>> succeeding) {
 
-    StoreServices.storeTask(source, vertx, testContext, succeeding);
+    succeeding.handle(testContext.assertComplete(StoreServices.storeTask(source, vertx, testContext)));
 
   }
 
@@ -148,7 +147,8 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param client      to connect to the server.
    * @param testContext context to test.
    *
-   * @see Tasks#createTask(io.vertx.core.json.JsonObject, io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
+   * @see Tasks#createTask(io.vertx.core.json.JsonObject,
+   *      io.vertx.ext.web.api.service.ServiceRequest, io.vertx.core.Handler)
    */
   @Test
   public void shouldNotStoreEmptyTask(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
@@ -172,14 +172,16 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param client      to connect to the server.
    * @param testContext context to test.
    *
-   * @see Tasks#retrieveTask(String, io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
+   * @see Tasks#retrieveTask(String, io.vertx.ext.web.api.service.ServiceRequest,
+   *      io.vertx.core.Handler)
    */
   @Test
-  public void shouldMergeOnlyAppIdOnTask(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldMergeOnlyAppIdOnTask(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
-    StoreServices.storeTaskExample(2, vertx, testContext, testContext.succeeding(target -> {
+    StoreServices.storeTaskExample(2, vertx, testContext).onSuccess(target -> {
 
-      StoreServices.storeAppExample(1, vertx, testContext, testContext.succeeding(app -> {
+      StoreServices.storeAppExample(1, vertx, testContext).onSuccess(app -> {
 
         final var source = new Task();
         source.appId = app.appId;
@@ -193,8 +195,8 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
           assertThat(updated).isEqualTo(target);
 
         })).sendJson(source.toJsonObject(), testContext);
-      }));
-    }));
+      });
+    });
 
   }
 
@@ -204,10 +206,12 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param client      to connect to the server.
    * @param testContext context to test.
    *
-   * @see Tasks#doTaskTransaction(JsonObject, io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
+   * @see Tasks#doTaskTransaction(JsonObject,
+   *      io.vertx.ext.web.api.service.ServiceRequest, io.vertx.core.Handler)
    */
   @Test
-  public void shouldNotDoTaskTransactionWithAnonTaskTransactionObject(final WebClient client, final VertxTestContext testContext) {
+  public void shouldNotDoTaskTransactionWithAnonTaskTransactionObject(final WebClient client,
+      final VertxTestContext testContext) {
 
     testRequest(client, HttpMethod.POST, Tasks.PATH + Tasks.TRANSACTIONS_PATH).expect(res -> {
 
@@ -226,10 +230,12 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param client      to connect to the server.
    * @param testContext context to test.
    *
-   * @see Tasks#doTaskTransaction(JsonObject, io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
+   * @see Tasks#doTaskTransaction(JsonObject,
+   *      io.vertx.ext.web.api.service.ServiceRequest, io.vertx.core.Handler)
    */
   @Test
-  public void shouldNotDoTransactionIfItIsEmpty(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldNotDoTransactionIfItIsEmpty(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     final var taskTransaction = new TaskTransaction();
     testRequest(client, HttpMethod.POST, Tasks.PATH + Tasks.TRANSACTIONS_PATH).expect(res -> {
@@ -250,10 +256,12 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param client      to connect to the server.
    * @param testContext context to test.
    *
-   * @see Tasks#doTaskTransaction(JsonObject, io.vertx.ext.web.api.OperationRequest, io.vertx.core.Handler)
+   * @see Tasks#doTaskTransaction(JsonObject,
+   *      io.vertx.ext.web.api.service.ServiceRequest, io.vertx.core.Handler)
    */
   @Test
-  public void shouldNotDoTransactionIfTaskIsNotDefined(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldNotDoTransactionIfTaskIsNotDefined(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     final var taskTransaction = new TaskTransactionTest().createModelExample(1);
     testRequest(client, HttpMethod.POST, Tasks.PATH + Tasks.TRANSACTIONS_PATH).expect(res -> {
@@ -277,7 +285,8 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    */
   @ParameterizedTest(name = "Should get page order by {0}")
   @ValueSource(strings = { "undefined", "goal.name,", "-goalDescription,+", ",", "" })
-  public void shouldNotGetTasksPageWithBadOrder(final String order, final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldNotGetTasksPageWithBadOrder(final String order, final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("order", order)).expect(res -> {
 
@@ -295,18 +304,20 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetEmptyTasksPageWithLargeOffset(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetEmptyTasksPageWithLargeOffset(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
-    testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", String.valueOf(Integer.MAX_VALUE))).expect(res -> {
+    testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", String.valueOf(Integer.MAX_VALUE)))
+        .expect(res -> {
 
-      assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final var page = assertThatBodyIs(TasksPage.class, res);
-      assertThat(page).isNotNull();
-      assertThat(page.offset).isEqualTo(Integer.MAX_VALUE);
-      assertThat(page.total).isGreaterThanOrEqualTo(0);
-      assertThat(page.tasks).isNull();
+          assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+          final var page = assertThatBodyIs(TasksPage.class, res);
+          assertThat(page).isNotNull();
+          assertThat(page.offset).isEqualTo(Integer.MAX_VALUE);
+          assertThat(page.total).isGreaterThanOrEqualTo(0);
+          assertThat(page.tasks).isNull();
 
-    }).send(testContext);
+        }).send(testContext);
   }
 
   /**
@@ -318,18 +329,21 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @ParameterizedTest(name = "Should get page order by {0}")
-  @ValueSource(strings = { "goalName", "goal.name", "goalDescription", "goal.description", "start", "end", "deadline", "close", "id", "taskTypeId", "requesterId", "appId", "startTs", "endTs", "deadlineTs", "closeTs" })
-  public void shouldGetTasksPageOrderByField(final String field, final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  @ValueSource(strings = { "goalName", "goal.name", "goalDescription", "goal.description", "start", "end", "deadline",
+      "close", "id", "taskTypeId", "requesterId", "appId", "startTs", "endTs", "deadlineTs", "closeTs" })
+  public void shouldGetTasksPageOrderByField(final String field, final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
-    testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("order", field), queryParam("appId", UUID.randomUUID().toString())).expect(res -> {
+    testRequest(client, HttpMethod.GET, Tasks.PATH)
+        .with(queryParam("order", field), queryParam("appId", UUID.randomUUID().toString())).expect(res -> {
 
-      assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final var page = assertThatBodyIs(TasksPage.class, res);
-      assertThat(page).isNotNull();
-      assertThat(page.total).isEqualTo(0);
-      assertThat(page.tasks).isNull();
+          assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+          final var page = assertThatBodyIs(TasksPage.class, res);
+          assertThat(page).isNotNull();
+          assertThat(page.total).isEqualTo(0);
+          assertThat(page.tasks).isNull();
 
-    }).send(testContext);
+        }).send(testContext);
 
   }
 
@@ -341,7 +355,8 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetEmptyTasksPageWithUndefinedAppId(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetEmptyTasksPageWithUndefinedAppId(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     final var appId = UUID.randomUUID().toString();
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("appId", appId)).expect(res -> {
@@ -366,7 +381,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
   @Test
   public void shouldGetSomeTasksByAppId(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
-    StoreServices.storeApp(new App(), vertx, testContext, testContext.succeeding(app -> {
+    StoreServices.storeApp(new App(), vertx, testContext).onSuccess(app -> {
 
       StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> {
         if (index % 2 == 0) {
@@ -375,20 +390,21 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
         }
       }).onComplete(testContext.succeeding(tasks -> {
 
-        testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("appId", app.appId), queryParam("offset", "1"), queryParam("limit", "2")).expect(res -> {
+        testRequest(client, HttpMethod.GET, Tasks.PATH)
+            .with(queryParam("appId", app.appId), queryParam("offset", "1"), queryParam("limit", "2")).expect(res -> {
 
-          assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-          final var page = assertThatBodyIs(TasksPage.class, res);
-          assertThat(page).isNotNull();
-          assertThat(page.offset).isEqualTo(1);
-          assertThat(page.total).isEqualTo(4);
-          assertThat(page.tasks).isNotNull().hasSize(2).contains(tasks.get(2), tasks.get(4));
+              assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+              final var page = assertThatBodyIs(TasksPage.class, res);
+              assertThat(page).isNotNull();
+              assertThat(page.offset).isEqualTo(1);
+              assertThat(page.total).isEqualTo(4);
+              assertThat(page.tasks).isNotNull().hasSize(2).contains(tasks.get(2), tasks.get(4));
 
-        }).send(testContext);
+            }).send(testContext);
 
       }));
 
-    }));
+    });
 
   }
 
@@ -400,22 +416,25 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetSomeTasksByRegexAppId(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetSomeTasksByRegexAppId(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     StoreServices.storeSomeTask(8, vertx, testContext, null).onComplete(testContext.succeeding(tasks -> {
 
       tasks.sort((t1, t2) -> t1.goal.name.compareTo(t2.goal.name));
-      testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", "1"), queryParam("order", "-goalName,+appId,goalDescription"), queryParam("appId", "/^" + tasks.get(1).appId + "$|^" + tasks.get(7).appId + "$/"))
-      .expect(res -> {
+      testRequest(client, HttpMethod.GET, Tasks.PATH)
+          .with(queryParam("offset", "1"), queryParam("order", "-goalName,+appId,goalDescription"),
+              queryParam("appId", "/^" + tasks.get(1).appId + "$|^" + tasks.get(7).appId + "$/"))
+          .expect(res -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final var page = assertThatBodyIs(TasksPage.class, res);
-        assertThat(page).isNotNull();
-        assertThat(page.offset).isEqualTo(1);
-        assertThat(page.total).isEqualTo(2);
-        assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
+            assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+            final var page = assertThatBodyIs(TasksPage.class, res);
+            assertThat(page).isNotNull();
+            assertThat(page.offset).isEqualTo(1);
+            assertThat(page.total).isEqualTo(2);
+            assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
 
-      }).send(testContext);
+          }).send(testContext);
 
     }));
 
@@ -429,7 +448,8 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetEmptyTasksPageWithUndefinedRequesterId(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetEmptyTasksPageWithUndefinedRequesterId(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     final var requesterId = UUID.randomUUID().toString();
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("requesterId", requesterId)).expect(res -> {
@@ -452,9 +472,10 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetSomeTasksByRequesterId(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetSomeTasksByRequesterId(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
-    StoreServices.storeProfile(new WeNetUserProfile(), vertx, testContext, testContext.succeeding(requester -> {
+    StoreServices.storeProfile(new WeNetUserProfile(), vertx, testContext).onSuccess(requester -> {
 
       StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> {
         if (index % 2 == 0) {
@@ -463,47 +484,53 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
         }
       }).onComplete(testContext.succeeding(tasks -> {
 
-        testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", "3"), queryParam("limit", "1"), queryParam("requesterId", requester.id)).expect(res -> {
+        testRequest(client, HttpMethod.GET, Tasks.PATH)
+            .with(queryParam("offset", "3"), queryParam("limit", "1"), queryParam("requesterId", requester.id))
+            .expect(res -> {
 
-          assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-          final var page = assertThatBodyIs(TasksPage.class, res);
-          assertThat(page).isNotNull();
-          assertThat(page.offset).isEqualTo(3);
-          assertThat(page.total).isEqualTo(4);
-          assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(6));
+              assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+              final var page = assertThatBodyIs(TasksPage.class, res);
+              assertThat(page).isNotNull();
+              assertThat(page.offset).isEqualTo(3);
+              assertThat(page.total).isEqualTo(4);
+              assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(6));
 
-        }).send(testContext);
+            }).send(testContext);
 
       }));
 
-    }));
+    });
 
   }
 
   /**
-   * Verify get a page with the tasks that the requesterId match a regular expression.
+   * Verify get a page with the tasks that the requesterId match a regular
+   * expression.
    *
    * @param vertx       event bus to use.
    * @param client      to connect to the server.
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetSomeTasksByRegexRequesterId(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetSomeTasksByRegexRequesterId(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     StoreServices.storeSomeTask(8, vertx, testContext, null).onComplete(testContext.succeeding(tasks -> {
 
       tasks.sort((t1, t2) -> t1.goal.name.compareTo(t2.goal.name));
       testRequest(client, HttpMethod.GET, Tasks.PATH)
-      .with(queryParam("offset", "1"), queryParam("order", "-goalName,+requesterId,goalDescription"), queryParam("requesterId", "/^" + tasks.get(1).requesterId + "$|^" + tasks.get(7).requesterId + "$/")).expect(res -> {
+          .with(queryParam("offset", "1"), queryParam("order", "-goalName,+requesterId,goalDescription"),
+              queryParam("requesterId", "/^" + tasks.get(1).requesterId + "$|^" + tasks.get(7).requesterId + "$/"))
+          .expect(res -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final var page = assertThatBodyIs(TasksPage.class, res);
-        assertThat(page).isNotNull();
-        assertThat(page.offset).isEqualTo(1);
-        assertThat(page.total).isEqualTo(2);
-        assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
+            assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+            final var page = assertThatBodyIs(TasksPage.class, res);
+            assertThat(page).isNotNull();
+            assertThat(page.offset).isEqualTo(1);
+            assertThat(page.total).isEqualTo(2);
+            assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
 
-      }).send(testContext);
+          }).send(testContext);
 
     }));
 
@@ -517,7 +544,8 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetEmptyTasksPageWithUndefinedTaskTypeId(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetEmptyTasksPageWithUndefinedTaskTypeId(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     final var taskTypeId = UUID.randomUUID().toString();
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("taskTypeId", taskTypeId)).expect(res -> {
@@ -540,9 +568,10 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetSomeTasksByTaskTypeId(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetSomeTasksByTaskTypeId(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
-    StoreServices.storeTaskTypeExample(100, vertx, testContext, testContext.succeeding(taskType -> {
+    StoreServices.storeTaskTypeExample(100, vertx, testContext).onSuccess(taskType -> {
 
       StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> {
         if (index % 2 == 0) {
@@ -558,40 +587,45 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
           assertThat(page).isNotNull();
           assertThat(page.offset).isEqualTo(0);
           assertThat(page.total).isEqualTo(4);
-          assertThat(page.tasks).isNotNull().hasSize(4).contains(tasks.get(0), tasks.get(2), tasks.get(4), tasks.get(6));
+          assertThat(page.tasks).isNotNull().hasSize(4).contains(tasks.get(0), tasks.get(2), tasks.get(4),
+              tasks.get(6));
 
         }).send(testContext);
 
       }));
 
-    }));
+    });
 
   }
 
   /**
-   * Verify get a page with the tasks that the taskTypeId match a regular expression.
+   * Verify get a page with the tasks that the taskTypeId match a regular
+   * expression.
    *
    * @param vertx       event bus to use.
    * @param client      to connect to the server.
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetSomeTasksByRegexTaskTypeId(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetSomeTasksByRegexTaskTypeId(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     StoreServices.storeSomeTask(8, vertx, testContext, null).onComplete(testContext.succeeding(tasks -> {
 
       tasks.sort((t1, t2) -> t1.goal.name.compareTo(t2.goal.name));
-      testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", "1"), queryParam("order", "-goal.name,+taskTypeId"), queryParam("taskTypeId", "/^" + tasks.get(1).taskTypeId + "$|^" + tasks.get(7).taskTypeId + "$/"))
-      .expect(res -> {
+      testRequest(client, HttpMethod.GET, Tasks.PATH)
+          .with(queryParam("offset", "1"), queryParam("order", "-goal.name,+taskTypeId"),
+              queryParam("taskTypeId", "/^" + tasks.get(1).taskTypeId + "$|^" + tasks.get(7).taskTypeId + "$/"))
+          .expect(res -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final var page = assertThatBodyIs(TasksPage.class, res);
-        assertThat(page).isNotNull();
-        assertThat(page.offset).isEqualTo(1);
-        assertThat(page.total).isEqualTo(2);
-        assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
+            assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+            final var page = assertThatBodyIs(TasksPage.class, res);
+            assertThat(page).isNotNull();
+            assertThat(page.offset).isEqualTo(1);
+            assertThat(page.total).isEqualTo(2);
+            assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
 
-      }).send(testContext);
+          }).send(testContext);
 
     }));
 
@@ -605,7 +639,8 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetEmptyTasksPageWithUndefinedGoalName(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetEmptyTasksPageWithUndefinedGoalName(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     final var goalName = UUID.randomUUID().toString();
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", goalName)).expect(res -> {
@@ -628,7 +663,8 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetSomeTasksByGoalName(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetSomeTasksByGoalName(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     final var goalName = UUID.randomUUID().toString();
 
@@ -655,31 +691,36 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
   }
 
   /**
-   * Verify get a page with the tasks that the goalName match a regular expression.
+   * Verify get a page with the tasks that the goalName match a regular
+   * expression.
    *
    * @param vertx       event bus to use.
    * @param client      to connect to the server.
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetSomeTasksByRegexGoalName(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetSomeTasksByRegexGoalName(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     final var goalName = UUID.randomUUID().toString();
-    StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.name += goalName).onComplete(testContext.succeeding(tasks -> {
+    StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.name += goalName)
+        .onComplete(testContext.succeeding(tasks -> {
 
-      tasks.sort((t1, t2) -> t1.goal.name.compareTo(t2.goal.name));
-      testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", "1"), queryParam("limit", "1"), queryParam("order", "-goal.name"), queryParam("goalName", "/" + goalName.replaceAll("-", "\\-") + "$/")).expect(res -> {
+          tasks.sort((t1, t2) -> t1.goal.name.compareTo(t2.goal.name));
+          testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", "1"), queryParam("limit", "1"),
+              queryParam("order", "-goal.name"), queryParam("goalName", "/" + goalName.replaceAll("-", "\\-") + "$/"))
+              .expect(res -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final var page = assertThatBodyIs(TasksPage.class, res);
-        assertThat(page).isNotNull();
-        assertThat(page.offset).isEqualTo(1);
-        assertThat(page.total).isEqualTo(8);
-        assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(6));
+                assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+                final var page = assertThatBodyIs(TasksPage.class, res);
+                assertThat(page).isNotNull();
+                assertThat(page.offset).isEqualTo(1);
+                assertThat(page.total).isEqualTo(8);
+                assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(6));
 
-      }).send(testContext);
+              }).send(testContext);
 
-    }));
+        }));
 
   }
 
@@ -691,7 +732,8 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetEmptyTasksPageWithUndefinedGoalDescription(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetEmptyTasksPageWithUndefinedGoalDescription(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     final var goalDescription = UUID.randomUUID().toString();
     testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalDescription", goalDescription)).expect(res -> {
@@ -714,7 +756,8 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetSomeTasksByGoalDescription(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetSomeTasksByGoalDescription(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     final var goalDescription = UUID.randomUUID().toString();
 
@@ -725,48 +768,55 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
       }
     }).onComplete(testContext.succeeding(tasks -> {
 
-      testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalDescription", goalDescription)).expect(res -> {
+      testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalDescription", goalDescription))
+          .expect(res -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final var page = assertThatBodyIs(TasksPage.class, res);
-        assertThat(page).isNotNull();
-        assertThat(page.offset).isEqualTo(0);
-        assertThat(page.total).isEqualTo(4);
-        assertThat(page.tasks).isNotNull().hasSize(4).contains(tasks.get(0), tasks.get(2), tasks.get(4), tasks.get(6));
+            assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+            final var page = assertThatBodyIs(TasksPage.class, res);
+            assertThat(page).isNotNull();
+            assertThat(page.offset).isEqualTo(0);
+            assertThat(page.total).isEqualTo(4);
+            assertThat(page.tasks).isNotNull().hasSize(4).contains(tasks.get(0), tasks.get(2), tasks.get(4),
+                tasks.get(6));
 
-      }).send(testContext);
+          }).send(testContext);
 
     }));
 
   }
 
   /**
-   * Verify get a page with the tasks that the goalDescription match a regular expression.
+   * Verify get a page with the tasks that the goalDescription match a regular
+   * expression.
    *
    * @param vertx       event bus to use.
    * @param client      to connect to the server.
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetSomeTasksByRegexGoalDescription(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetSomeTasksByRegexGoalDescription(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     final var goalDescription = UUID.randomUUID().toString();
-    StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.description += goalDescription).onComplete(testContext.succeeding(tasks -> {
+    StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.description += goalDescription)
+        .onComplete(testContext.succeeding(tasks -> {
 
-      tasks.sort((t1, t2) -> t1.goal.description.compareTo(t2.goal.description));
-      testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("offset", "2"), queryParam("limit", "2"), queryParam("order", "-goal.description"), queryParam("goalDescription", "/" + goalDescription.replaceAll("-", "\\-") + "$/"))
-      .expect(res -> {
+          tasks.sort((t1, t2) -> t1.goal.description.compareTo(t2.goal.description));
+          testRequest(client, HttpMethod.GET, Tasks.PATH)
+              .with(queryParam("offset", "2"), queryParam("limit", "2"), queryParam("order", "-goal.description"),
+                  queryParam("goalDescription", "/" + goalDescription.replaceAll("-", "\\-") + "$/"))
+              .expect(res -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final var page = assertThatBodyIs(TasksPage.class, res);
-        assertThat(page).isNotNull();
-        assertThat(page.offset).isEqualTo(2);
-        assertThat(page.total).isEqualTo(8);
-        assertThat(page.tasks).isNotNull().hasSize(2).contains(tasks.get(5), tasks.get(4));
+                assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+                final var page = assertThatBodyIs(TasksPage.class, res);
+                assertThat(page).isNotNull();
+                assertThat(page.offset).isEqualTo(2);
+                assertThat(page.total).isEqualTo(8);
+                assertThat(page.tasks).isNotNull().hasSize(2).contains(tasks.get(5), tasks.get(4));
 
-      }).send(testContext);
+              }).send(testContext);
 
-    }));
+        }));
 
   }
 
@@ -778,145 +828,85 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetEmptyTasksPageWithAnytAskOnStartTsRange(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetEmptyTasksPageWithAnytAskOnStartTsRange(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
-    testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("startFrom", "0"), queryParam("startTo", "1")).expect(res -> {
+    testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("startFrom", "0"), queryParam("startTo", "1"))
+        .expect(res -> {
 
-      assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final var page = assertThatBodyIs(TasksPage.class, res);
-      assertThat(page).isNotNull();
-      assertThat(page.offset).isEqualTo(0);
-      assertThat(page.total).isEqualTo(0);
-      assertThat(page.tasks).isNull();
+          assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+          final var page = assertThatBodyIs(TasksPage.class, res);
+          assertThat(page).isNotNull();
+          assertThat(page.offset).isEqualTo(0);
+          assertThat(page.total).isEqualTo(0);
+          assertThat(page.tasks).isNull();
 
-    }).send(testContext);
+        }).send(testContext);
   }
 
   /**
-   * Verify get page of task that has a startTs on the specified range.
+   * Verify get page of task that has a _creationTs on the specified range.
    *
    * @param vertx       event bus to use.
    * @param client      to connect to the server.
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetTasksPageWithStartTsOnSpecificRange(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetTasksPageWith_creationTsOnSpecificRange(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     final var name = UUID.randomUUID().toString();
-    StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.name = name).onComplete(testContext.succeeding(tasks -> {
+    StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.name = name)
+        .onComplete(testContext.succeeding(tasks -> {
 
-      testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("startFrom", String.valueOf(tasks.get(2).startTs)), queryParam("startTo", String.valueOf(tasks.get(5).startTs))).expect(res -> {
+          testRequest(client, HttpMethod.GET, Tasks.PATH)
+              .with(queryParam("goalName", name), queryParam("creationFrom", String.valueOf(tasks.get(2)._creationTs)),
+                  queryParam("creationTo", String.valueOf(tasks.get(5)._creationTs)))
+              .expect(res -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final var page = assertThatBodyIs(TasksPage.class, res);
-        assertThat(page).isNotNull();
-        assertThat(page.offset).isEqualTo(0);
-        assertThat(page.total).isEqualTo(4);
-        assertThat(page.tasks).isNotNull().isEqualTo(tasks.subList(2, 6));
+                assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+                final var page = assertThatBodyIs(TasksPage.class, res);
+                assertThat(page).isNotNull();
+                assertThat(page.offset).isEqualTo(0);
+                assertThat(page.total).isEqualTo(4);
+                assertThat(page.tasks).isNotNull().isEqualTo(tasks.subList(2, 6));
 
-      }).send(testContext);
+              }).send(testContext);
 
-    }));
+        }));
 
   }
 
   /**
-   * Verify get empty tasks page if any task are in the range on the endTs.
+   * Verify get page of task that has a _lastUpdateTs on the specified range.
    *
    * @param vertx       event bus to use.
    * @param client      to connect to the server.
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetEmptyTasksPageWithAnytAskOnEndTsRange(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
-
-    testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("endFrom", "0"), queryParam("endTo", "1")).expect(res -> {
-
-      assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final var page = assertThatBodyIs(TasksPage.class, res);
-      assertThat(page).isNotNull();
-      assertThat(page.offset).isEqualTo(0);
-      assertThat(page.total).isEqualTo(0);
-      assertThat(page.tasks).isNull();
-
-    }).send(testContext);
-  }
-
-  /**
-   * Verify get page of task that has a endTs on the specified range.
-   *
-   * @param vertx       event bus to use.
-   * @param client      to connect to the server.
-   * @param testContext context to test.
-   */
-  @Test
-  public void shouldGetTasksPageWithEndTsOnSpecificRange(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetTasksPageWith_lastUpdateTsOnSpecificRange(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     final var name = UUID.randomUUID().toString();
-    StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.name = name).onComplete(testContext.succeeding(tasks -> {
+    StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.name = name)
+        .onComplete(testContext.succeeding(tasks -> {
 
-      testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("endFrom", String.valueOf(tasks.get(2).endTs)), queryParam("endTo", String.valueOf(tasks.get(5).endTs))).expect(res -> {
+          testRequest(client, HttpMethod.GET, Tasks.PATH)
+              .with(queryParam("goalName", name), queryParam("updateFrom", String.valueOf(tasks.get(2)._lastUpdateTs)),
+                  queryParam("updateTo", String.valueOf(tasks.get(5)._lastUpdateTs)))
+              .expect(res -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final var page = assertThatBodyIs(TasksPage.class, res);
-        assertThat(page).isNotNull();
-        assertThat(page.offset).isEqualTo(0);
-        assertThat(page.total).isEqualTo(4);
-        assertThat(page.tasks).isNotNull().isEqualTo(tasks.subList(2, 6));
+                assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+                final var page = assertThatBodyIs(TasksPage.class, res);
+                assertThat(page).isNotNull();
+                assertThat(page.offset).isEqualTo(0);
+                assertThat(page.total).isEqualTo(4);
+                assertThat(page.tasks).isNotNull().isEqualTo(tasks.subList(2, 6));
 
-      }).send(testContext);
+              }).send(testContext);
 
-    }));
-
-  }
-
-  /**
-   * Verify get empty tasks page if any task are in the range on the deadlineTs.
-   *
-   * @param vertx       event bus to use.
-   * @param client      to connect to the server.
-   * @param testContext context to test.
-   */
-  @Test
-  public void shouldGetEmptyTasksPageWithAnytAskOnDeadlineTsRange(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
-
-    testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("deadlineFrom", "0"), queryParam("deadlineTo", "1")).expect(res -> {
-
-      assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final var page = assertThatBodyIs(TasksPage.class, res);
-      assertThat(page).isNotNull();
-      assertThat(page.offset).isEqualTo(0);
-      assertThat(page.total).isEqualTo(0);
-      assertThat(page.tasks).isNull();
-
-    }).send(testContext);
-  }
-
-  /**
-   * Verify get page of task that has a deadlineTs on the specified range.
-   *
-   * @param vertx       event bus to use.
-   * @param client      to connect to the server.
-   * @param testContext context to test.
-   */
-  @Test
-  public void shouldGetTasksPageWithDeadlineTsOnSpecificRange(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
-
-    final var name = UUID.randomUUID().toString();
-    StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.name = name).onComplete(testContext.succeeding(tasks -> {
-
-      testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("deadlineFrom", String.valueOf(tasks.get(2).deadlineTs)), queryParam("deadlineTo", String.valueOf(tasks.get(5).deadlineTs))).expect(res -> {
-
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final var page = assertThatBodyIs(TasksPage.class, res);
-        assertThat(page).isNotNull();
-        assertThat(page.offset).isEqualTo(0);
-        assertThat(page.total).isEqualTo(4);
-        assertThat(page.tasks).isNotNull().isEqualTo(tasks.subList(2, 6));
-
-      }).send(testContext);
-
-    }));
+        }));
 
   }
 
@@ -928,18 +918,20 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetEmptyTasksPageWithAnytAskOnCloseTsRange(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetEmptyTasksPageWithAnytAskOnCloseTsRange(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
-    testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("closeFrom", "0"), queryParam("closeTo", "1")).expect(res -> {
+    testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("closeFrom", "0"), queryParam("closeTo", "1"))
+        .expect(res -> {
 
-      assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final var page = assertThatBodyIs(TasksPage.class, res);
-      assertThat(page).isNotNull();
-      assertThat(page.offset).isEqualTo(0);
-      assertThat(page.total).isEqualTo(0);
-      assertThat(page.tasks).isNull();
+          assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+          final var page = assertThatBodyIs(TasksPage.class, res);
+          assertThat(page).isNotNull();
+          assertThat(page.offset).isEqualTo(0);
+          assertThat(page.total).isEqualTo(0);
+          assertThat(page.tasks).isNull();
 
-    }).send(testContext);
+        }).send(testContext);
   }
 
   /**
@@ -950,24 +942,28 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetTasksPageWithCloseTsOnSpecificRange(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetTasksPageWithCloseTsOnSpecificRange(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     final var name = UUID.randomUUID().toString();
     StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> {
       task.goal.name = name;
-      task.closeTs = task.endTs + 10000;
+      task.closeTs = task._creationTs + 10000;
     }).onComplete(testContext.succeeding(tasks -> {
 
-      testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("closeFrom", String.valueOf(tasks.get(2).closeTs)), queryParam("closeTo", String.valueOf(tasks.get(5).closeTs))).expect(res -> {
+      testRequest(client, HttpMethod.GET, Tasks.PATH)
+          .with(queryParam("goalName", name), queryParam("closeFrom", String.valueOf(tasks.get(2).closeTs)),
+              queryParam("closeTo", String.valueOf(tasks.get(5).closeTs)))
+          .expect(res -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final var page = assertThatBodyIs(TasksPage.class, res);
-        assertThat(page).isNotNull();
-        assertThat(page.offset).isEqualTo(0);
-        assertThat(page.total).isEqualTo(4);
-        assertThat(page.tasks).isNotNull().isEqualTo(tasks.subList(2, 6));
+            assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+            final var page = assertThatBodyIs(TasksPage.class, res);
+            assertThat(page).isNotNull();
+            assertThat(page.offset).isEqualTo(0);
+            assertThat(page.total).isEqualTo(4);
+            assertThat(page.tasks).isNotNull().isEqualTo(tasks.subList(2, 6));
 
-      }).send(testContext);
+          }).send(testContext);
 
     }));
 
@@ -981,27 +977,29 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetTasksPageWithClosedTasks(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetTasksPageWithClosedTasks(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     final var name = UUID.randomUUID().toString();
     StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> {
       task.goal.name = name;
       if (index % 2 == 0) {
 
-        task.closeTs = task.endTs + 10000;
+        task.closeTs = task._creationTs + 10000;
       }
     }).onComplete(testContext.succeeding(tasks -> {
 
-      testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("hasCloseTs", "true")).expect(res -> {
+      testRequest(client, HttpMethod.GET, Tasks.PATH)
+          .with(queryParam("goalName", name), queryParam("hasCloseTs", "true")).expect(res -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final var page = assertThatBodyIs(TasksPage.class, res);
-        assertThat(page).isNotNull();
-        assertThat(page.offset).isEqualTo(0);
-        assertThat(page.total).isEqualTo(4);
-        assertThat(page.tasks).isNotNull().contains(tasks.get(0), tasks.get(2), tasks.get(4), tasks.get(6));
+            assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+            final var page = assertThatBodyIs(TasksPage.class, res);
+            assertThat(page).isNotNull();
+            assertThat(page.offset).isEqualTo(0);
+            assertThat(page.total).isEqualTo(4);
+            assertThat(page.tasks).isNotNull().contains(tasks.get(0), tasks.get(2), tasks.get(4), tasks.get(6));
 
-      }).send(testContext);
+          }).send(testContext);
 
     }));
 
@@ -1015,27 +1013,29 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldGetTasksPageWithNotClosedTasks(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldGetTasksPageWithNotClosedTasks(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
     final var name = UUID.randomUUID().toString();
     StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> {
       task.goal.name = name;
       if (index % 2 == 0) {
 
-        task.closeTs = task.endTs + 10000;
+        task.closeTs = task._creationTs + 10000;
       }
     }).onComplete(testContext.succeeding(tasks -> {
 
-      testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("goalName", name), queryParam("hasCloseTs", "false")).expect(res -> {
+      testRequest(client, HttpMethod.GET, Tasks.PATH)
+          .with(queryParam("goalName", name), queryParam("hasCloseTs", "false")).expect(res -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final var page = assertThatBodyIs(TasksPage.class, res);
-        assertThat(page).isNotNull();
-        assertThat(page.offset).isEqualTo(0);
-        assertThat(page.total).isEqualTo(4);
-        assertThat(page.tasks).isNotNull().contains(tasks.get(1), tasks.get(3), tasks.get(5), tasks.get(7));
+            assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+            final var page = assertThatBodyIs(TasksPage.class, res);
+            assertThat(page).isNotNull();
+            assertThat(page.offset).isEqualTo(0);
+            assertThat(page.total).isEqualTo(4);
+            assertThat(page.tasks).isNotNull().contains(tasks.get(1), tasks.get(3), tasks.get(5), tasks.get(7));
 
-      }).send(testContext);
+          }).send(testContext);
 
     }));
 
@@ -1049,9 +1049,10 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldCreateTaskWithTheCameCommunityOfTheApp(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldCreateTaskWithTheCameCommunityOfTheApp(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
-    StoreServices.storeTaskExample(1, vertx, testContext, testContext.succeeding(task -> {
+    StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
 
       final var communityId = task.communityId;
       task.id = null;
@@ -1064,7 +1065,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
 
       }).sendJson(task.toJsonObject(), testContext);
 
-    }));
+    });
   }
 
   /**
@@ -1075,11 +1076,12 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldNotCreateTaskBecauseNoUserOnTheApp(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldNotCreateTaskBecauseNoUserOnTheApp(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
-    StoreServices.storeApp(new App(), vertx, testContext, testContext.succeeding(app -> {
+    StoreServices.storeApp(new App(), vertx, testContext).onSuccess(app -> {
 
-      StoreServices.storeTaskExample(1, vertx, testContext, testContext.succeeding(task -> {
+      StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
 
         task.id = null;
         task.appId = app.appId;
@@ -1090,8 +1092,8 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
 
         }).sendJson(task.toJsonObject(), testContext);
 
-      }));
-    }));
+      });
+    });
   }
 
   /**
@@ -1102,30 +1104,32 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldCreateTaskCreatingCommunityForApp(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
+  public void shouldCreateTaskCreatingCommunityForApp(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
-    StoreServices.storeApp(new App(), vertx, testContext, testContext.succeeding(app -> {
+    StoreServices.storeApp(new App(), vertx, testContext).onSuccess(app -> {
 
-      StoreServices.storeTaskExample(1, vertx, testContext, testContext.succeeding(task -> {
+      StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
 
-        WeNetServiceSimulator.createProxy(vertx).addUsers(app.appId, new JsonArray().add(task.requesterId), testContext.succeeding(users -> {
+        WeNetServiceSimulator.createProxy(vertx).addUsers(app.appId, new JsonArray().add(task.requesterId),
+            testContext.succeeding(users -> {
 
-          final var communityId = task.communityId;
-          task.id = null;
-          task.appId = app.appId;
-          task.communityId = null;
-          testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
+              final var communityId = task.communityId;
+              task.id = null;
+              task.appId = app.appId;
+              task.communityId = null;
+              testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
 
-            assertThat(res.statusCode()).isEqualTo(Status.CREATED.getStatusCode());
-            final var task2 = assertThatBodyIs(Task.class, res);
-            assertThat(task2.communityId).isNotEqualTo(communityId);
+                assertThat(res.statusCode()).isEqualTo(Status.CREATED.getStatusCode());
+                final var task2 = assertThatBodyIs(Task.class, res);
+                assertThat(task2.communityId).isNotEqualTo(communityId);
 
-          }).sendJson(task.toJsonObject(), testContext);
+              }).sendJson(task.toJsonObject(), testContext);
 
-        }));
-      }));
+            }));
+      });
 
-    }));
+    });
   }
 
 }

@@ -9,10 +9,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,43 +24,37 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.common.components.service;
+package eu.internetofus.common.components;
 
+import java.util.List;
+
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * A notification is used in order to notify the user who volunteered about the decision of the task creator
+ * A model that has information when it is created and updated.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-@Schema(hidden = true, name = "TaskSelectionNotification", description = "This notification is used in order to notify the user who volunteered about the decision of the task creator.")
-public class TaskSelectionNotification extends TaskNotification {
+@Schema(hidden = true, description = "The attributes used to identify and describe a model for an human with timestamp details.")
+public class HumanDescription extends ReflectionModel implements Model {
 
   /**
-   * Explains how the selection.
+   * A name that identify the type.
    */
-  public enum Outcome {
-    /**
-     * This happens when the task is cancelled by its creator.
-     */
-    accepted,
-    /**
-     * This happens when the task completes correctly.
-     */
-    refused;
-  }
+  @Schema(description = "A name that identify the model.", example = "Eat together task")
+  public String name;
 
   /**
-   * The identifier of the selection.
+   * A human readable description of the task type.
    */
-  @Schema(description = "The outcome of the selection.", example = "accepted")
-  public Outcome outcome;
+  @Schema(description = "A human readable description of the model.", example = "A task for organizing social dinners")
+  public String description;
 
   /**
-   * Create a new task volunteer notification.
+   * A name that identify the type.
    */
-  public TaskSelectionNotification() {
+  @ArraySchema(schema = @Schema(implementation = String.class), arraySchema = @Schema(description = "The keywords that describe the model.", example = "[\"social interaction\",\"eat\"]"))
+  public List<String> keywords;
 
-    this.notificationType = NotificationType.selectionVolunteer;
-  }
 }

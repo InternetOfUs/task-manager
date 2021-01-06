@@ -36,8 +36,8 @@ import eu.internetofus.wenet_task_manager.api.task_types.TaskTypesResource;
 import eu.internetofus.wenet_task_manager.api.tasks.Tasks;
 import eu.internetofus.wenet_task_manager.api.tasks.TasksResource;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.client.WebClient;
+import io.vertx.ext.web.openapi.RouterBuilder;
 import io.vertx.serviceproxy.ServiceBinder;
 
 /**
@@ -60,7 +60,7 @@ public class APIVerticle extends AbstractAPIVerticle {
    * {@inheritDoc}
    */
   @Override
-  protected void mountServiceInterfaces(final OpenAPI3RouterFactory routerFactory) {
+  protected void mountServiceInterfaces(final RouterBuilder routerFactory) {
 
     routerFactory.mountServiceInterface(Help.class, Help.ADDRESS);
     new ServiceBinder(this.vertx).setAddress(Help.ADDRESS).register(Help.class, new HelpResource(this));
@@ -69,7 +69,8 @@ public class APIVerticle extends AbstractAPIVerticle {
     new ServiceBinder(this.vertx).setAddress(Tasks.ADDRESS).register(Tasks.class, new TasksResource(this.vertx));
 
     routerFactory.mountServiceInterface(TaskTypes.class, TaskTypes.ADDRESS);
-    new ServiceBinder(this.vertx).setAddress(TaskTypes.ADDRESS).register(TaskTypes.class, new TaskTypesResource(this.vertx));
+    new ServiceBinder(this.vertx).setAddress(TaskTypes.ADDRESS).register(TaskTypes.class,
+        new TaskTypesResource(this.vertx));
 
   }
 

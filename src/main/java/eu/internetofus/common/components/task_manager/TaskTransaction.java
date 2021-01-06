@@ -26,16 +26,19 @@
 
 package eu.internetofus.common.components.task_manager;
 
+import java.util.List;
+
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
-import eu.internetofus.common.TimeManager;
+import eu.internetofus.common.components.CreateUpdateTsDetails;
 import eu.internetofus.common.components.JsonObjectDeserializer;
 import eu.internetofus.common.components.Model;
-import eu.internetofus.common.components.ReflectionModel;
 import eu.internetofus.common.components.Validable;
 import eu.internetofus.common.components.ValidationErrorException;
 import eu.internetofus.common.components.Validations;
 import eu.internetofus.common.components.profile_manager.WeNetProfileManager;
+import eu.internetofus.common.components.service.Message;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
@@ -48,13 +51,32 @@ import io.vertx.core.json.JsonObject;
  * @author UDT-IA, IIIA-CSIC
  */
 @Schema(hidden = true, name = "TaskTransaction", description = "Describe a transition to do over a task.")
-public class TaskTransaction extends ReflectionModel implements Model, Validable {
+public class TaskTransaction extends CreateUpdateTsDetails implements Model, Validable {
 
   /**
    * The identifier of the task that it refers.
    */
-  @Schema(description = "The unique identifier this transaction is associated to.", example = "b129e5509c9bb79")
+  @Schema(description = "The unique identified of the transaction.", example = "9dihugkdjfgndfg")
+  public String id;
+
+  /**
+   * The identifier of the task that it refers.
+   */
+  @Schema(description = "The identifier of the WeNet task where the transaction is done.", example = "b129e5509c9bb79")
   public String taskId;
+
+  /**
+   * The identifier of the task type.
+   */
+  @Schema(description = "The label that identify the transaction to do.", example = "acceptVolunteer")
+  public String label;
+
+  /**
+   * The attributes set to the transaction.
+   */
+  @Schema(type = "object", description = "The attributes that parameterize the transaction.")
+  @JsonDeserialize(using = JsonObjectDeserializer.class)
+  public JsonObject attributes;
 
   /**
    * The identifier of the WeNet user who created the transaction.
@@ -63,23 +85,11 @@ public class TaskTransaction extends ReflectionModel implements Model, Validable
   public String actioneerId;
 
   /**
-   * The UTC epoch timestamp representing the time whne the transaction is created.
+   * The list of messages that has provokes the execution of this task
+   * transaction.
    */
-  @Schema(description = "The UTC epoch timestamp representing the time whne the transaction is created.", example = "1563930000")
-  public long _creationTs = TimeManager.now();
-
-  /**
-   * The identifier of the task type.
-   */
-  @Schema(description = "The label associated to the transaction type.", example = "acceptVolunteer")
-  public String label;
-
-  /**
-   * The attributes set to the transaction.
-   */
-  @Schema(type = "object", description = "The attributes that are set in the associated transaction type.")
-  @JsonDeserialize(using = JsonObjectDeserializer.class)
-  public JsonObject attributes;
+  @ArraySchema(schema = @Schema(implementation = TaskTransaction.class), arraySchema = @Schema(description = "The list of messages that has provokes the execution of this task transaction."))
+  public List<Message> messages;
 
   /**
    * {@inheritDoc}
@@ -92,12 +102,14 @@ public class TaskTransaction extends ReflectionModel implements Model, Validable
     try {
 
       this.taskId = Validations.validateStringField(codePrefix, "taskId", 255, this.taskId);
-      future = Validations.composeValidateId(future, codePrefix, "taskId", this.taskId, true, WeNetTaskManager.createProxy(vertx)::retrieveTask);
+      future = Validations.composeValidateId(future, codePrefix, "taskId", this.taskId, true,
+          WeNetTaskManager.createProxy(vertx)::retrieveTask);
 
       this.actioneerId = Validations.validateNullableStringField(codePrefix, "actioneerId", 255, this.actioneerId);
       if (this.actioneerId != null) {
 
-        future = Validations.composeValidateId(future, codePrefix, "actioneerId", this.actioneerId, true, WeNetProfileManager.createProxy(vertx)::retrieveProfile);
+        future = Validations.composeValidateId(future, codePrefix, "actioneerId", this.actioneerId, true,
+            WeNetProfileManager.createProxy(vertx)::retrieveProfile);
 
       }
       this.label = Validations.validateStringField(codePrefix, "label", 255, this.label);

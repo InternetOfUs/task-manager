@@ -28,8 +28,22 @@ package eu.internetofus.wenet_task_manager.api.tasks;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngine;
+import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngineMocker;
+import eu.internetofus.common.components.profile_manager.WeNetProfileManager;
+import eu.internetofus.common.components.profile_manager.WeNetProfileManagerMocker;
+import eu.internetofus.common.components.service.WeNetService;
+import eu.internetofus.common.components.service.WeNetServiceSimulator;
+import eu.internetofus.common.components.service.WeNetServiceSimulatorMocker;
+import eu.internetofus.common.components.task_manager.TaskTransactionTest;
+import eu.internetofus.common.components.task_manager.WeNetTaskManager;
+import eu.internetofus.common.components.task_manager.WeNetTaskManagerMocker;
+import io.vertx.core.Vertx;
+import io.vertx.ext.web.api.service.ServiceRequest;
+import io.vertx.ext.web.client.WebClient;
+import io.vertx.junit5.VertxExtension;
+import io.vertx.junit5.VertxTestContext;
 import javax.ws.rs.core.Response.Status;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,22 +51,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngine;
-import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngineMocker;
-import eu.internetofus.common.components.profile_manager.WeNetProfileManager;
-import eu.internetofus.common.components.profile_manager.WeNetProfileManagerMocker;
-import eu.internetofus.common.components.service.WeNetService;
-import eu.internetofus.common.components.service.WeNetServiceMocker;
-import eu.internetofus.common.components.service.WeNetServiceSimulator;
-import eu.internetofus.common.components.task_manager.TaskTransactionTest;
-import eu.internetofus.common.components.task_manager.WeNetTaskManager;
-import eu.internetofus.common.components.task_manager.WeNetTaskManagerMocker;
-import io.vertx.core.Vertx;
-import io.vertx.ext.web.api.OperationRequest;
-import io.vertx.ext.web.client.WebClient;
-import io.vertx.junit5.VertxExtension;
-import io.vertx.junit5.VertxTestContext;
 
 /**
  * Test the {@link TasksResource}
@@ -75,7 +73,7 @@ public class TasksResourceTest {
   /**
    * The service mocked server.
    */
-  protected static WeNetServiceMocker serviceMocker;
+  protected static WeNetServiceSimulatorMocker serviceMocker;
 
   /**
    * Start the mocker server.
@@ -85,7 +83,7 @@ public class TasksResourceTest {
 
     profileManagerMocker = WeNetProfileManagerMocker.start();
     taskManagerMocker = WeNetTaskManagerMocker.start();
-    serviceMocker = WeNetServiceMocker.start();
+    serviceMocker = WeNetServiceSimulatorMocker.start();
   }
 
   /**
@@ -94,9 +92,9 @@ public class TasksResourceTest {
   @AfterAll
   public static void stopMockers() {
 
-    profileManagerMocker.stop();
-    taskManagerMocker.stop();
-    serviceMocker.stop();
+    profileManagerMocker.stopServer();
+    taskManagerMocker.stopServer();
+    serviceMocker.stopServer();
   }
 
   /**
@@ -128,38 +126,44 @@ public class TasksResourceTest {
    * @param request     mocked request to do the operation.
    */
   @Test
-  public void shouldNotRetrieveTaskPageBecuaseRetrieveFailed(final Vertx vertx, final VertxTestContext testContext, @Mock final OperationRequest request) {
+  public void shouldNotRetrieveTaskPageBecuaseRetrieveFailed(final Vertx vertx, final VertxTestContext testContext,
+      @Mock final ServiceRequest request) {
 
     final var resource = new TasksResource(vertx);
-    resource.retrieveTasksPage(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 100, request, testContext.succeeding(response -> testContext.verify(() -> {
+    resource.retrieveTasksPage(null, null, null, null, null, null, null, null, null, null, null, null, null, 0, 100,
+        request, testContext.succeeding(response -> testContext.verify(() -> {
 
-      assertThat(response.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-      testContext.completeNow();
+          assertThat(response.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+          testContext.completeNow();
 
-    })));
+        })));
 
   }
 
   /**
-   * Should not do a transaction because can not send message to the interaction protocol engine.
+   * Should not do a transaction because can not send message to the interaction
+   * protocol engine.
    *
    * @param vertx       event bus to use.
    * @param testContext context of the test.
    * @param request     mocked request to do the operation.
    */
   @Test
-  public void shouldDoTransactionBecauseSendMessageFailed(final Vertx vertx, final VertxTestContext testContext, @Mock final OperationRequest request) {
+  public void shouldDoTransactionBecauseSendMessageFailed(final Vertx vertx, final VertxTestContext testContext,
+      @Mock final ServiceRequest request) {
 
-    new TaskTransactionTest().createModelExample(1, vertx, testContext).onComplete(testContext.succeeding(transaction -> {
+    new TaskTransactionTest().createModelExample(1, vertx, testContext)
+        .onComplete(testContext.succeeding(transaction -> {
 
-      final var resource = new TasksResource(vertx);
-      resource.doTaskTransaction(transaction.toJsonObject(), request, testContext.succeeding(response -> testContext.verify(() -> {
+          final var resource = new TasksResource(vertx);
+          resource.doTaskTransaction(transaction.toJsonObject(), request,
+              testContext.succeeding(response -> testContext.verify(() -> {
 
-        assertThat(response.getStatusCode()).isEqualTo(Status.ACCEPTED.getStatusCode());
-        testContext.completeNow();
+                assertThat(response.getStatusCode()).isEqualTo(Status.ACCEPTED.getStatusCode());
+                testContext.completeNow();
 
-      })));
-    }));
+              })));
+        }));
 
   }
 
@@ -171,24 +175,27 @@ public class TasksResourceTest {
    * @param request     mocked request to do the operation.
    */
   @Test
-  public void shouldDoTransaction(final Vertx vertx, final VertxTestContext testContext, @Mock final OperationRequest request) {
+  public void shouldDoTransaction(final Vertx vertx, final VertxTestContext testContext,
+      @Mock final ServiceRequest request) {
 
     final var client = WebClient.create(vertx);
     final var interactionProtocolEngineMocker = WeNetInteractionProtocolEngineMocker.start();
     final var interactionProtocolEngineConf = interactionProtocolEngineMocker.getComponentConfiguration();
     WeNetInteractionProtocolEngine.register(vertx, client, interactionProtocolEngineConf);
 
-    new TaskTransactionTest().createModelExample(1, vertx, testContext).onComplete(testContext.succeeding(transaction -> {
+    new TaskTransactionTest().createModelExample(1, vertx, testContext)
+        .onComplete(testContext.succeeding(transaction -> {
 
-      final var resource = new TasksResource(vertx);
-      resource.doTaskTransaction(transaction.toJsonObject(), request, testContext.succeeding(response -> testContext.verify(() -> {
+          final var resource = new TasksResource(vertx);
+          resource.doTaskTransaction(transaction.toJsonObject(), request,
+              testContext.succeeding(response -> testContext.verify(() -> {
 
-        assertThat(response.getStatusCode()).isEqualTo(Status.ACCEPTED.getStatusCode());
-        interactionProtocolEngineMocker.stop();
-        testContext.completeNow();
+                assertThat(response.getStatusCode()).isEqualTo(Status.ACCEPTED.getStatusCode());
+                interactionProtocolEngineMocker.stopServer();
+                testContext.completeNow();
 
-      })));
-    }));
+              })));
+        }));
 
   }
 

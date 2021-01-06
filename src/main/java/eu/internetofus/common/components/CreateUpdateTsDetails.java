@@ -24,47 +24,37 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.common.components.service;
+package eu.internetofus.common.components;
 
+import eu.internetofus.common.TimeManager;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * A notification to inform about a task concluded.
+ * A model that has information when it is created and updated.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-@Schema(hidden = true, name = "TaskConcludedNotification", description = "This notification is used in order to notify task participants that a task has been completed.")
-public class TaskConcludedNotification extends TaskNotification {
+@Schema(hidden = true, description = "Generic model for the models that can be created and updated.")
+public class CreateUpdateTsDetails extends ReflectionModel implements Model {
 
   /**
-   * Explains how the task is concluded.
+   * The instant of the creation.
    */
-  public enum Outcome {
-    /**
-     * The creator cancelled the task.
-     */
-    cancelled,
-    /**
-     * If completed correctly.
-     */
-    completed,
-    /**
-     * If something went wrong
-     */
-    failed;
-  }
+  @Schema(description = "The time stamp representing the account creation instant.", example = "1563871899")
+  public long _creationTs;
 
   /**
-   * The identifier of the concluded.
+   * The instant of the last update.
    */
-  @Schema(description = "The outcome of the task (has it been completed with success or not).", example = "successfull")
-  public Outcome outcome;
+  @Schema(description = "The time stamp representing the last update instant.", example = "1563898764")
+  public long _lastUpdateTs;
 
   /**
-   * Create a new task concluded notification.
+   * Create a new model.
    */
-  public TaskConcludedNotification() {
+  public CreateUpdateTsDetails() {
 
-    this.notificationType = NotificationType.taskConcluded;
+    this._creationTs = this._lastUpdateTs = TimeManager.now();
+
   }
 }

@@ -26,14 +26,6 @@
 
 package eu.internetofus.wenet_task_manager.api.tasks;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.tinylog.Logger;
-
 import eu.internetofus.common.components.Model;
 import eu.internetofus.common.components.ValidationErrorException;
 import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngine;
@@ -45,16 +37,21 @@ import eu.internetofus.common.components.task_manager.Task;
 import eu.internetofus.common.components.task_manager.TaskTransaction;
 import eu.internetofus.common.vertx.ModelContext;
 import eu.internetofus.common.vertx.ModelResources;
-import eu.internetofus.common.vertx.OperationContext;
-import eu.internetofus.common.vertx.OperationReponseHandlers;
 import eu.internetofus.common.vertx.Repository;
+import eu.internetofus.common.vertx.ServiceContext;
+import eu.internetofus.common.vertx.ServiceResponseHandlers;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.api.OperationRequest;
-import io.vertx.ext.web.api.OperationResponse;
+import io.vertx.ext.web.api.service.ServiceRequest;
+import io.vertx.ext.web.api.service.ServiceResponse;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+import javax.ws.rs.core.Response.Status;
+import org.tinylog.Logger;
 
 /**
  * Resource that provide the methods for the {@link Tasks}.
@@ -114,11 +111,12 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTask(final String taskId, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void retrieveTask(final String taskId, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var model = this.createTaskContext();
     model.id = taskId;
-    final var context = new OperationContext(request, resultHandler);
+    final var context = new ServiceContext(request, resultHandler);
     ModelResources.retrieveModel(model, this.repository::searchTask, context);
 
   }
@@ -126,18 +124,20 @@ public class TasksResource implements Tasks {
   /**
    * Return the community associated to an application.
    *
-   * @param appId            identifier of the application to obtain the associated community.
-   * @param consumeCommunity function to consume the found community. If no community found it pass a {@code null}.
+   * @param appId            identifier of the application to obtain the
+   *                         associated community.
+   * @param consumeCommunity function to consume the found community. If no
+   *                         community found it pass a {@code null}.
    */
   protected void retrieveAppCommunity(final String appId, final Consumer<CommunityProfile> consumeCommunity) {
 
     final var service = WeNetProfileManager.createProxy(this.vertx);
-    service.retrieveCommunityProfilesPage(appId, null, null, null, null, "-_creationTs", 0, 1, retrieve -> {
+    service.retrieveCommunityProfilesPage(appId, null, null, null, null, "-_creationTs", 0, 1).onComplete(retrieve -> {
 
       final var page = retrieve.result();
       if (retrieve.failed() || page.communities == null || page.communities.isEmpty()) {
 
-        WeNetService.createProxy(this.vertx).retrieveJsonArrayAppUserIds(appId, retrieveUsers -> {
+        WeNetService.createProxy(this.vertx).retrieveAppUserIds(appId).onComplete(retrieveUsers -> {
 
           final var value = retrieveUsers.result();
           if (value == null || value.isEmpty()) {
@@ -157,7 +157,7 @@ public class TasksResource implements Tasks {
               newCommunity.members.add(member);
 
             }
-            service.createCommunity(newCommunity, createHandler -> {
+            service.createCommunity(newCommunity).onComplete(createHandler -> {
 
               final var community = createHandler.result();
               if (community == null) {
@@ -188,7 +188,8 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void createTask(final JsonObject body, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void createTask(final JsonObject body, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     if (body.getString("communityId", null) == null) {
 
@@ -196,7 +197,8 @@ public class TasksResource implements Tasks {
 
         if (community == null) {
 
-          OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task.communityId", "You must define the community where the task happens.");
+          ServiceResponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task.communityId",
+              "You must define the community where the task happens.");
 
         } else {
 
@@ -209,22 +211,25 @@ public class TasksResource implements Tasks {
     } else {
 
       final var model = this.createTaskContext();
-      final var context = new OperationContext(request, resultHandler);
+      final var context = new ServiceContext(request, resultHandler);
       ModelResources.createModelChain(this.vertx, body, model, this.repository::storeTask, context, () -> {
 
-        OperationReponseHandlers.responseWith(resultHandler, Status.CREATED, model.value);
+        ServiceResponseHandlers.responseWith(resultHandler, Status.CREATED, model.value);
 
         Logger.debug("Created task {}", model.value);
-        this.interactionProtocolEngine.createdTask(model.value, sent -> {
+        this.interactionProtocolEngine.createdTask(model.value).onComplete(sent -> {
 
           if (sent.failed()) {
 
             final var cause = sent.cause();
-            Logger.debug(cause, "The interaction protocol engine does not accepted to process the creation of the task {}", model.value);
+            Logger.debug(cause,
+                "The interaction protocol engine does not accepted to process the creation of the task {}",
+                model.value);
 
           } else {
 
-            Logger.debug("The interaction protocol engine accepted to process the creation of the task {}", model.value);
+            Logger.debug("The interaction protocol engine accepted to process the creation of the task {}",
+                model.value);
 
           }
         });
@@ -236,12 +241,14 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void updateTask(final String taskId, final JsonObject body, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void updateTask(final String taskId, final JsonObject body, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var model = this.createTaskContext();
     model.id = taskId;
-    final var context = new OperationContext(request, resultHandler);
-    ModelResources.updateModel(this.vertx, body, model, this.repository::searchTask, this.repository::updateTask, context);
+    final var context = new ServiceContext(request, resultHandler);
+    ModelResources.updateModel(this.vertx, body, model, this.repository::searchTask, this.repository::updateTask,
+        context);
 
   }
 
@@ -249,12 +256,14 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void mergeTask(final String taskId, final JsonObject body, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void mergeTask(final String taskId, final JsonObject body, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var model = this.createTaskContext();
     model.id = taskId;
-    final var context = new OperationContext(request, resultHandler);
-    ModelResources.mergeModel(this.vertx, body, model, this.repository::searchTask, this.repository::updateTask, context);
+    final var context = new ServiceContext(request, resultHandler);
+    ModelResources.mergeModel(this.vertx, body, model, this.repository::searchTask, this.repository::updateTask,
+        context);
 
   }
 
@@ -262,11 +271,12 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void deleteTask(final String taskId, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void deleteTask(final String taskId, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var model = this.createTaskContext();
     model.id = taskId;
-    final var context = new OperationContext(request, resultHandler);
+    final var context = new ServiceContext(request, resultHandler);
     ModelResources.deleteModel(model, this.repository::deleteTask, context);
 
   }
@@ -275,13 +285,15 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void doTaskTransaction(final JsonObject body, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void doTaskTransaction(final JsonObject body, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var taskTransaction = Model.fromJsonObject(body, TaskTransaction.class);
     if (taskTransaction == null) {
 
       Logger.debug("The {} is not a valid TaskTransaction.", body);
-      OperationReponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task_transaction", "The task transaction is not right.");
+      ServiceResponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task_transaction",
+          "The task transaction is not right.");
 
     } else {
 
@@ -291,17 +303,18 @@ public class TasksResource implements Tasks {
 
           final var cause = validation.cause();
           Logger.debug(cause, "The {} is not valid.", taskTransaction);
-          OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+          ServiceResponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
         } else {
 
-          OperationReponseHandlers.responseWith(resultHandler, Status.ACCEPTED, taskTransaction);
-          this.interactionProtocolEngine.doTransaction(taskTransaction, send -> {
+          ServiceResponseHandlers.responseWith(resultHandler, Status.ACCEPTED, taskTransaction);
+          this.interactionProtocolEngine.doTransaction(taskTransaction).onComplete(send -> {
 
             if (send.failed()) {
 
               final var cause = send.cause();
-              Logger.trace(cause, "The interaction protocol engine does not accepted to do the transaction {}", taskTransaction);
+              Logger.trace(cause, "The interaction protocol engine does not accepted to do the transaction {}",
+                  taskTransaction);
 
             } else {
 
@@ -321,11 +334,13 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTasksPage(final String appId, final String requesterId, final String taskTypeId, final String goalName, final String goalDescription, final Long startFrom, final Long startTo, final Long endFrom, final Long endTo,
-      final Long deadlineFrom, final Long deadlineTo, final Boolean hasCloseTs, final Long closeFrom, final Long closeTo, final List<String> order, final int offset, final int limit, final OperationRequest request,
-      final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void retrieveTasksPage(String appId, String requesterId, String taskTypeId, String goalName,
+      String goalDescription, Long creationFrom, Long creationTo, Long updateFrom, Long updateTo, Boolean hasCloseTs,
+      Long closeFrom, Long closeTo, List<String> order, int offset, int limit, ServiceRequest context,
+      Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
-    final var query = TasksRepository.creteTasksPageQuery(appId, requesterId, taskTypeId, goalName, goalDescription, startFrom, startTo, deadlineFrom, deadlineTo, endFrom, endTo, hasCloseTs, closeFrom, closeTo);
+    final var query = TasksRepository.creteTasksPageQuery(appId, requesterId, taskTypeId, goalName, goalDescription,
+        creationFrom, creationTo, updateFrom, updateTo, hasCloseTs, closeFrom, closeTo);
 
     try {
 
@@ -338,11 +353,17 @@ public class TasksResource implements Tasks {
         case "goalDescription":
         case "goal.description":
           return "goal.description";
-        case "start":
-        case "end":
-        case "deadline":
-        case "close":
-          return value + "Ts";
+        case "updateTs":
+        case "update":
+        case "_updateTs":
+        case "lastUpdateTs":
+        case "lastUpdate":
+        case "_lastUpdateTs":
+          return "_lastUpdateTs";
+        case "creationTs":
+        case "creation":
+        case "_creationTs":
+          return "_creationTs";
         case "id":
         case "taskTypeId":
         case "requesterId":
@@ -364,13 +385,13 @@ public class TasksResource implements Tasks {
 
           final var cause = retrieve.cause();
           Logger.debug(cause, "GET /tasks with {} => Retrieve error", query);
-          OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+          ServiceResponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
         } else {
 
           final var tasksPage = retrieve.result();
           Logger.debug("GET /tasks with {} => {}.", query, tasksPage);
-          OperationReponseHandlers.responseOk(resultHandler, tasksPage);
+          ServiceResponseHandlers.responseOk(resultHandler, tasksPage);
         }
 
       });
@@ -378,7 +399,7 @@ public class TasksResource implements Tasks {
     } catch (final ValidationErrorException error) {
 
       Logger.debug(error, "GET /tasks with {} => Retrieve error", query);
-      OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, error);
+      ServiceResponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, error);
 
     }
 

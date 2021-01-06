@@ -24,24 +24,54 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.common.components.service;
+package eu.internetofus.common.vertx;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import javax.validation.constraints.NotNull;
+
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.ext.web.api.service.ServiceRequest;
+import io.vertx.ext.web.api.service.ServiceResponse;
 
 /**
- * A message to send to an {@link App}.
+ * The context of the HTTP context.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-@Schema(hidden = true, name = "message", description = "A textual message that can be send into an application.")
-public class TextualMessage extends Message {
+public class ServiceContext {
 
   /**
-   * Create a new textual message.
+   * The information of the request operation.
    */
-  public TextualMessage() {
+  @NotNull
+  public ServiceRequest request;
 
-    this.type = Type.textualMessage;
+  /**
+   * The handler to inform of the response.
+   */
+  @NotNull
+  public Handler<AsyncResult<ServiceResponse>> resultHandler;
+
+  /**
+   * Create a new context.
+   *
+   * @param request       information of the request operation.
+   * @param resultHandler handler to inform of the response.
+   */
+  public ServiceContext(@NotNull final ServiceRequest request, @NotNull final Handler<AsyncResult<ServiceResponse>> resultHandler) {
+
+    this.request = request;
+    this.resultHandler = resultHandler;
+
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+
+    return this.request.toJson().encodePrettily();
+
+  }
 }

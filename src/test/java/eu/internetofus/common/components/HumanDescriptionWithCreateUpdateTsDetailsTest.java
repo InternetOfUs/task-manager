@@ -9,10 +9,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -24,38 +24,36 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.common.components.service;
+package eu.internetofus.common.components;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.jupiter.api.Test;
-
-import eu.internetofus.common.components.ModelTestCase;
+import java.util.ArrayList;
 
 /**
- * Test the classes that extends the {@link BaseMessage}
+ * Test the {@link HumanDescriptionWithCreateUpdateTsDetails}
  *
- * @param <T> type of message to test.
+ * @see HumanDescriptionWithCreateUpdateTsDetails
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public abstract class BaseMessageTestCase<T extends BaseMessage> extends ModelTestCase<T> {
+public class HumanDescriptionWithCreateUpdateTsDetailsTest
+    extends ModelTestCase<HumanDescriptionWithCreateUpdateTsDetails> {
 
   /**
-   * Create an empty message.
-   *
-   * @return the created empty message.
+   * {@inheritDoc}
    */
-  public abstract T createEmptyMessage();
+  @Override
+  public HumanDescriptionWithCreateUpdateTsDetails createModelExample(int index) {
 
-  /**
-   * Verify that is the the type of the message when it is created.
-   */
-  @Test
-  public void shouldHaveType() {
-
-    final var model = this.createEmptyMessage();
-    assertThat(model.type).isNotNull();
+    var model = new HumanDescriptionWithCreateUpdateTsDetails();
+    model._creationTs = index;
+    model._lastUpdateTs = index + 1;
+    model.name = "name_" + index;
+    model.description = "description_" + index;
+    model.keywords = new ArrayList<>();
+    model.keywords.add("keyword_" + (index - 1));
+    model.keywords.add("keyword_" + index);
+    model.keywords.add("keyword_" + (index + 1));
+    return model;
   }
 
 }

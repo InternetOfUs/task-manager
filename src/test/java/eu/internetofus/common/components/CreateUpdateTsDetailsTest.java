@@ -9,10 +9,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,50 +23,26 @@
  *
  * -----------------------------------------------------------------------------
  */
-
-package eu.internetofus.common.components.service;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-import org.junit.jupiter.api.Test;
+package eu.internetofus.common.components;
 
 /**
- * Test the classes that extends the {@link TaskNotification}
+ * Test the {@link CreateUpdateTsDetails}
  *
- * @param <T> type of notification to test.
+ * @see CreateUpdateTsDetails
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public abstract class TaskNotificationTestCase<T extends TaskNotification> extends MessageTestCase<T> {
-
-  /**
-   * Verify that is the the notification has a type.
-   */
-  @Test
-  public void shouldHaveNotificationType() {
-
-    final var model = this.createEmptyMessage();
-    assertThat(model.notificationType).isNotNull();
-  }
-
-  /**
-   * Verify that the type is a task notification.
-   */
-  @Test
-  public void shouldTypeByTaskNotification() {
-
-    final var model = this.createEmptyMessage();
-    assertThat(model.type).isEqualTo(BaseMessage.Type.taskNotification);
-  }
+public class CreateUpdateTsDetailsTest extends ModelTestCase<CreateUpdateTsDetails> {
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public T createModelExample(final int index) {
+  public CreateUpdateTsDetails createModelExample(int index) {
 
-    final var model = super.createModelExample(index);
-    model.taskId = "TaskId_" + index;
+    var model = new CreateUpdateTsDetails();
+    model._creationTs = index;
+    model._lastUpdateTs = index + 1;
     return model;
   }
 

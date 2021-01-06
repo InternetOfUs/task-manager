@@ -36,16 +36,16 @@ import eu.internetofus.common.components.ValidationErrorException;
 import eu.internetofus.common.components.task_manager.TaskType;
 import eu.internetofus.common.vertx.ModelContext;
 import eu.internetofus.common.vertx.ModelResources;
-import eu.internetofus.common.vertx.OperationContext;
-import eu.internetofus.common.vertx.OperationReponseHandlers;
+import eu.internetofus.common.vertx.ServiceContext;
+import eu.internetofus.common.vertx.ServiceResponseHandlers;
 import eu.internetofus.wenet_task_manager.api.tasks.Tasks;
 import eu.internetofus.wenet_task_manager.persistence.TaskTypesRepository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.api.OperationRequest;
-import io.vertx.ext.web.api.OperationResponse;
+import io.vertx.ext.web.api.service.ServiceRequest;
+import io.vertx.ext.web.api.service.ServiceResponse;
 
 /**
  * Resource that provide the methods for the {@link TaskTypes}.
@@ -94,11 +94,11 @@ public class TaskTypesResource implements TaskTypes {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTaskType(final String taskTypeId, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void retrieveTaskType(final String taskTypeId, final ServiceRequest request, final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var model = this.createTaskTypeContext();
     model.id = taskTypeId;
-    final var context = new OperationContext(request, resultHandler);
+    final var context = new ServiceContext(request, resultHandler);
     ModelResources.retrieveModel(model, this.typesRepository::searchTaskType, context);
 
   }
@@ -107,10 +107,10 @@ public class TaskTypesResource implements TaskTypes {
    * {@inheritDoc}
    */
   @Override
-  public void createTaskType(final JsonObject body, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void createTaskType(final JsonObject body, final ServiceRequest request, final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var model = this.createTaskTypeContext();
-    final var context = new OperationContext(request, resultHandler);
+    final var context = new ServiceContext(request, resultHandler);
     ModelResources.createModel(this.vertx, body, model, this.typesRepository::storeTaskType, context);
 
   }
@@ -119,11 +119,11 @@ public class TaskTypesResource implements TaskTypes {
    * {@inheritDoc}
    */
   @Override
-  public void updateTaskType(final String taskTypeId, final JsonObject body, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void updateTaskType(final String taskTypeId, final JsonObject body, final ServiceRequest request, final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var model = this.createTaskTypeContext();
     model.id = taskTypeId;
-    final var context = new OperationContext(request, resultHandler);
+    final var context = new ServiceContext(request, resultHandler);
     ModelResources.updateModel(this.vertx, body, model, this.typesRepository::searchTaskType, this.typesRepository::updateTaskType, context);
 
   }
@@ -132,11 +132,11 @@ public class TaskTypesResource implements TaskTypes {
    * {@inheritDoc}
    */
   @Override
-  public void deleteTaskType(final String taskTypeId, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void deleteTaskType(final String taskTypeId, final ServiceRequest request, final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var model = this.createTaskTypeContext();
     model.id = taskTypeId;
-    final var context = new OperationContext(request, resultHandler);
+    final var context = new ServiceContext(request, resultHandler);
     ModelResources.deleteModel(model, this.typesRepository::deleteTaskType, context);
 
   }
@@ -145,8 +145,8 @@ public class TaskTypesResource implements TaskTypes {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTaskTypesPage(final String name, final String description, final List<String> keywords, final List<String> order, final int offset, final int limit, final OperationRequest request,
-      final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void retrieveTaskTypesPage(final String name, final String description, final List<String> keywords, final List<String> order, final int offset, final int limit, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var query = TaskTypesRepository.createTaskTypesPageQuery(name, description, keywords);
 
@@ -159,13 +159,13 @@ public class TaskTypesResource implements TaskTypes {
 
           final var cause = retrieve.cause();
           Logger.debug(cause, "GET /tasks/types with {} => Retrieve error", query);
-          OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+          ServiceResponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
         } else {
 
           final var taskTypesPage = retrieve.result();
           Logger.debug("GET /tasks/types with {} => {}.", query, taskTypesPage);
-          OperationReponseHandlers.responseOk(resultHandler, taskTypesPage);
+          ServiceResponseHandlers.responseOk(resultHandler, taskTypesPage);
         }
 
       });
@@ -173,7 +173,7 @@ public class TaskTypesResource implements TaskTypes {
     } catch (final ValidationErrorException error) {
 
       Logger.debug(error, "GET /tasks/types with {} => Retrieve error", query);
-      OperationReponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, error);
+      ServiceResponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, error);
 
     }
 
@@ -183,11 +183,11 @@ public class TaskTypesResource implements TaskTypes {
    * {@inheritDoc}
    */
   @Override
-  public void mergeTaskType(final String taskTypeId, final JsonObject body, final OperationRequest request, final Handler<AsyncResult<OperationResponse>> resultHandler) {
+  public void mergeTaskType(final String taskTypeId, final JsonObject body, final ServiceRequest request, final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var model = this.createTaskTypeContext();
     model.id = taskTypeId;
-    final var context = new OperationContext(request, resultHandler);
+    final var context = new ServiceContext(request, resultHandler);
     ModelResources.mergeModel(this.vertx, body, model, this.typesRepository::searchTaskType, this.typesRepository::updateTaskType, context);
 
   }
