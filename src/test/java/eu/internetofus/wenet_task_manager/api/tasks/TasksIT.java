@@ -42,8 +42,7 @@ import eu.internetofus.common.components.task_manager.TaskTransaction;
 import eu.internetofus.common.components.task_manager.TaskTransactionTest;
 import eu.internetofus.common.vertx.AbstractModelResourcesIT;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
@@ -90,10 +89,10 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * {@inheritDoc}
    */
   @Override
-  protected void createValidModelExample(final int index, final Vertx vertx, final VertxTestContext testContext,
-      final Handler<AsyncResult<Task>> createHandler) {
+  protected Future<Task> createValidModelExample(final int index, final Vertx vertx,
+      final VertxTestContext testContext) {
 
-    createHandler.handle(testContext.assertComplete(new TaskTest().createModelExample(index, vertx, testContext)));
+    return testContext.assertComplete(new TaskTest().createModelExample(index, vertx, testContext));
 
   }
 
@@ -101,10 +100,9 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * {@inheritDoc}
    */
   @Override
-  protected void storeModel(final Task source, final Vertx vertx, final VertxTestContext testContext,
-      final Handler<AsyncResult<Task>> succeeding) {
+  protected Future<Task> storeModel(final Task source, final Vertx vertx, final VertxTestContext testContext) {
 
-    succeeding.handle(testContext.assertComplete(StoreServices.storeTask(source, vertx, testContext)));
+    return StoreServices.storeTask(source, vertx, testContext);
 
   }
 

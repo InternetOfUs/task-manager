@@ -39,7 +39,6 @@ import eu.internetofus.common.components.task_manager.TaskTypeTest;
 import eu.internetofus.common.vertx.AbstractModelResourcesIT;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import eu.internetofus.wenet_task_manager.api.tasks.Tasks;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -85,20 +84,19 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
    * {@inheritDoc}
    */
   @Override
-  protected void createValidModelExample(final int index, final Vertx vertx, final VertxTestContext testContext,
-      final Handler<AsyncResult<TaskType>> createHandler) {
+  protected Future<TaskType> createValidModelExample(final int index, final Vertx vertx,
+      final VertxTestContext testContext) {
 
-    createHandler.handle(Future.succeededFuture(new TaskTypeTest().createModelExample(index)));
+    return Future.succeededFuture(new TaskTypeTest().createModelExample(index));
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  protected void storeModel(final TaskType source, final Vertx vertx, final VertxTestContext testContext,
-      final Handler<AsyncResult<TaskType>> succeeding) {
+  protected Future<TaskType> storeModel(final TaskType source, final Vertx vertx, final VertxTestContext testContext) {
 
-    succeeding.handle(StoreServices.storeTaskType(source, vertx, testContext));
+    return StoreServices.storeTaskType(source, vertx, testContext);
 
   }
 
