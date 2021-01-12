@@ -30,6 +30,7 @@ import static eu.internetofus.common.vertx.HttpResponses.assertThatBodyIs;
 import static eu.internetofus.common.vertx.ext.TestRequest.queryParam;
 import static eu.internetofus.common.vertx.ext.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThat;
 
 import eu.internetofus.common.components.ErrorMessage;
 import eu.internetofus.common.components.StoreServices;
@@ -282,7 +283,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @ParameterizedTest(name = "Should get page order by {0}")
-  @ValueSource(strings = { "undefined", "goal.name,", "-goalDescription,+", ",", "" })
+  @ValueSource(strings = { "undefined", "goal.name,undefined", "-goalDescription,+", ",-" })
   public void shouldNotGetTasksPageWithBadOrder(final String order, final Vertx vertx, final WebClient client,
       final VertxTestContext testContext) {
 
@@ -327,8 +328,9 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @ParameterizedTest(name = "Should get page order by {0}")
-  @ValueSource(strings = { "goalName", "goal.name", "goalDescription", "goal.description", "start", "end", "deadline",
-      "close", "id", "taskTypeId", "requesterId", "appId", "startTs", "endTs", "deadlineTs", "closeTs" })
+  @ValueSource(strings = { "goalName", "goal.name", "goalDescription", "goal.description", "updateTs", "update",
+      "_updateTs", "lastUpdateTs", "_lastUpdateTs", "creationTs", "creation", "_creationTs", "id", "taskTypeId",
+      "requesterId", "appId" })
   public void shouldGetTasksPageOrderByField(final String field, final Vertx vertx, final WebClient client,
       final VertxTestContext testContext) {
 
@@ -819,30 +821,6 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
   }
 
   /**
-   * Verify get empty tasks page if any task are in the range on the startTs.
-   *
-   * @param vertx       event bus to use.
-   * @param client      to connect to the server.
-   * @param testContext context to test.
-   */
-  @Test
-  public void shouldGetEmptyTasksPageWithAnytAskOnStartTsRange(final Vertx vertx, final WebClient client,
-      final VertxTestContext testContext) {
-
-    testRequest(client, HttpMethod.GET, Tasks.PATH).with(queryParam("startFrom", "0"), queryParam("startTo", "1"))
-        .expect(res -> {
-
-          assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-          final var page = assertThatBodyIs(TasksPage.class, res);
-          assertThat(page).isNotNull();
-          assertThat(page.offset).isEqualTo(0);
-          assertThat(page.total).isEqualTo(0);
-          assertThat(page.tasks).isNull();
-
-        }).send(testContext);
-  }
-
-  /**
    * Verify get page of task that has a _creationTs on the specified range.
    *
    * @param vertx       event bus to use.
@@ -854,7 +832,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
       final VertxTestContext testContext) {
 
     final var name = UUID.randomUUID().toString();
-    StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.name = name)
+    StoreServices.storeSomeTask(8, 1000, vertx, testContext, (index, task) -> task.goal.name = name)
         .onComplete(testContext.succeeding(tasks -> {
 
           testRequest(client, HttpMethod.GET, Tasks.PATH)
@@ -887,7 +865,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
       final VertxTestContext testContext) {
 
     final var name = UUID.randomUUID().toString();
-    StoreServices.storeSomeTask(8, vertx, testContext, (index, task) -> task.goal.name = name)
+    StoreServices.storeSomeTask(8, 1000, vertx, testContext, (index, task) -> task.goal.name = name)
         .onComplete(testContext.succeeding(tasks -> {
 
           testRequest(client, HttpMethod.GET, Tasks.PATH)

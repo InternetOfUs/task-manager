@@ -68,7 +68,7 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
     this.findOneDocument(TASKS_COLLECTION, query, null, found -> {
       final var _id = (String) found.remove("_id");
       return found.put("id", _id);
-    }, searchHandler);
+    }).onComplete(searchHandler);
 
   }
 
@@ -88,7 +88,7 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
       final var _id = (String) stored.remove("_id");
       return stored.put("id", _id);
 
-    }, storeHandler);
+    }).onComplete(storeHandler);
 
   }
 
@@ -100,7 +100,7 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 
     final var id = task.remove("id");
     final var query = new JsonObject().put("_id", id);
-    this.updateOneDocument(TASKS_COLLECTION, query, task, updateHandler);
+    this.updateOneDocument(TASKS_COLLECTION, query, task).onComplete(updateHandler);
 
   }
 
@@ -111,7 +111,7 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
   public void deleteTask(final String id, final Handler<AsyncResult<Void>> deleteHandler) {
 
     final var query = new JsonObject().put("_id", id);
-    this.deleteOneDocument(TASKS_COLLECTION, query, deleteHandler);
+    this.deleteOneDocument(TASKS_COLLECTION, query).onComplete(deleteHandler);
 
   }
 
@@ -119,13 +119,15 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTasksPageObject(final JsonObject query, final JsonObject order, final int offset, final int limit, final Handler<AsyncResult<JsonObject>> searchHandler) {
+  public void retrieveTasksPageObject(final JsonObject query, final JsonObject order, final int offset, final int limit,
+      final Handler<AsyncResult<JsonObject>> searchHandler) {
 
     final var options = new FindOptions();
     options.setSort(order);
     options.setSkip(offset);
     options.setLimit(limit);
-    this.searchPageObject(TASKS_COLLECTION, query, options, "tasks", task -> task.put("id", task.remove("_id")), searchHandler);
+    this.searchPageObject(TASKS_COLLECTION, query, options, "tasks", task -> task.put("id", task.remove("_id")))
+        .onComplete(searchHandler);
 
   }
 

@@ -68,7 +68,7 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
     this.findOneDocument(TASK_TYPES_COLLECTION, query, null, found -> {
       final var _id = (String) found.remove("_id");
       return found.put("id", _id);
-    }, searchHandler);
+    }).onComplete(searchHandler);
 
   }
 
@@ -88,7 +88,7 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
       final var _id = (String) stored.remove("_id");
       return stored.put("id", _id);
 
-    }, storeHandler);
+    }).onComplete(storeHandler);
 
   }
 
@@ -100,7 +100,7 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
 
     final var id = taskType.remove("id");
     final var query = new JsonObject().put("_id", id);
-    this.updateOneDocument(TASK_TYPES_COLLECTION, query, taskType, updateHandler);
+    this.updateOneDocument(TASK_TYPES_COLLECTION, query, taskType).onComplete(updateHandler);
 
   }
 
@@ -111,7 +111,7 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
   public void deleteTaskType(final String id, final Handler<AsyncResult<Void>> deleteHandler) {
 
     final var query = new JsonObject().put("_id", id);
-    this.deleteOneDocument(TASK_TYPES_COLLECTION, query, deleteHandler);
+    this.deleteOneDocument(TASK_TYPES_COLLECTION, query).onComplete(deleteHandler);
 
   }
 
@@ -119,13 +119,15 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTaskTypesPageObject(final JsonObject query, final JsonObject order, final int offset, final int limit, final Handler<AsyncResult<JsonObject>> searchHandler) {
+  public void retrieveTaskTypesPageObject(final JsonObject query, final JsonObject order, final int offset,
+      final int limit, final Handler<AsyncResult<JsonObject>> searchHandler) {
 
     final var options = new FindOptions();
     options.setSort(order);
     options.setSkip(offset);
     options.setLimit(limit);
-    this.searchPageObject(TASK_TYPES_COLLECTION, query, options, "taskTypes", taskType -> taskType.put("id", taskType.remove("_id")), searchHandler);
+    this.searchPageObject(TASK_TYPES_COLLECTION, query, options, "taskTypes",
+        taskType -> taskType.put("id", taskType.remove("_id"))).onComplete(searchHandler);
 
   }
 

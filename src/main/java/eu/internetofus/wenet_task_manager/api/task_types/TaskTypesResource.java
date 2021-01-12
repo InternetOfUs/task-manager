@@ -26,17 +26,12 @@
 
 package eu.internetofus.wenet_task_manager.api.task_types;
 
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
-import org.tinylog.Logger;
-
 import eu.internetofus.common.components.ValidationErrorException;
 import eu.internetofus.common.components.task_manager.TaskType;
 import eu.internetofus.common.vertx.ModelContext;
 import eu.internetofus.common.vertx.ModelResources;
 import eu.internetofus.common.vertx.ServiceContext;
+import eu.internetofus.common.vertx.ServiceRequests;
 import eu.internetofus.common.vertx.ServiceResponseHandlers;
 import eu.internetofus.wenet_task_manager.api.tasks.Tasks;
 import eu.internetofus.wenet_task_manager.persistence.TaskTypesRepository;
@@ -46,6 +41,8 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.service.ServiceRequest;
 import io.vertx.ext.web.api.service.ServiceResponse;
+import javax.ws.rs.core.Response.Status;
+import org.tinylog.Logger;
 
 /**
  * Resource that provide the methods for the {@link TaskTypes}.
@@ -94,7 +91,8 @@ public class TaskTypesResource implements TaskTypes {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTaskType(final String taskTypeId, final ServiceRequest request, final Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public void retrieveTaskType(final String taskTypeId, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var model = this.createTaskTypeContext();
     model.id = taskTypeId;
@@ -107,7 +105,8 @@ public class TaskTypesResource implements TaskTypes {
    * {@inheritDoc}
    */
   @Override
-  public void createTaskType(final JsonObject body, final ServiceRequest request, final Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public void createTaskType(final JsonObject body, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var model = this.createTaskTypeContext();
     final var context = new ServiceContext(request, resultHandler);
@@ -119,12 +118,14 @@ public class TaskTypesResource implements TaskTypes {
    * {@inheritDoc}
    */
   @Override
-  public void updateTaskType(final String taskTypeId, final JsonObject body, final ServiceRequest request, final Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public void updateTaskType(final String taskTypeId, final JsonObject body, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var model = this.createTaskTypeContext();
     model.id = taskTypeId;
     final var context = new ServiceContext(request, resultHandler);
-    ModelResources.updateModel(this.vertx, body, model, this.typesRepository::searchTaskType, this.typesRepository::updateTaskType, context);
+    ModelResources.updateModel(this.vertx, body, model, this.typesRepository::searchTaskType,
+        this.typesRepository::updateTaskType, context);
 
   }
 
@@ -132,7 +133,8 @@ public class TaskTypesResource implements TaskTypes {
    * {@inheritDoc}
    */
   @Override
-  public void deleteTaskType(final String taskTypeId, final ServiceRequest request, final Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public void deleteTaskType(final String taskTypeId, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var model = this.createTaskTypeContext();
     model.id = taskTypeId;
@@ -145,9 +147,12 @@ public class TaskTypesResource implements TaskTypes {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTaskTypesPage(final String name, final String description, final List<String> keywords, final List<String> order, final int offset, final int limit, final ServiceRequest request,
+  public void retrieveTaskTypesPage(final String name, final String description, final String keywordsValue,
+      final String orderValue, final int offset, final int limit, final ServiceRequest request,
       final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
+    var keywords = ServiceRequests.extractQueryArray(keywordsValue);
+    var order = ServiceRequests.extractQueryArray(orderValue);
     final var query = TaskTypesRepository.createTaskTypesPageQuery(name, description, keywords);
 
     try {
@@ -183,12 +188,14 @@ public class TaskTypesResource implements TaskTypes {
    * {@inheritDoc}
    */
   @Override
-  public void mergeTaskType(final String taskTypeId, final JsonObject body, final ServiceRequest request, final Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public void mergeTaskType(final String taskTypeId, final JsonObject body, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var model = this.createTaskTypeContext();
     model.id = taskTypeId;
     final var context = new ServiceContext(request, resultHandler);
-    ModelResources.mergeModel(this.vertx, body, model, this.typesRepository::searchTaskType, this.typesRepository::updateTaskType, context);
+    ModelResources.mergeModel(this.vertx, body, model, this.typesRepository::searchTaskType,
+        this.typesRepository::updateTaskType, context);
 
   }
 

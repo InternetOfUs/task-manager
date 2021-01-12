@@ -39,6 +39,7 @@ import eu.internetofus.common.vertx.ModelContext;
 import eu.internetofus.common.vertx.ModelResources;
 import eu.internetofus.common.vertx.Repository;
 import eu.internetofus.common.vertx.ServiceContext;
+import eu.internetofus.common.vertx.ServiceRequests;
 import eu.internetofus.common.vertx.ServiceResponseHandlers;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
 import io.vertx.core.AsyncResult;
@@ -48,7 +49,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.service.ServiceRequest;
 import io.vertx.ext.web.api.service.ServiceResponse;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Consumer;
 import javax.ws.rs.core.Response.Status;
 import org.tinylog.Logger;
@@ -336,9 +336,10 @@ public class TasksResource implements Tasks {
   @Override
   public void retrieveTasksPage(String appId, String requesterId, String taskTypeId, String goalName,
       String goalDescription, Long creationFrom, Long creationTo, Long updateFrom, Long updateTo, Boolean hasCloseTs,
-      Long closeFrom, Long closeTo, List<String> order, int offset, int limit, ServiceRequest context,
+      Long closeFrom, Long closeTo, String orderValue, int offset, int limit, ServiceRequest context,
       Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
+    var order = ServiceRequests.extractQueryArray(orderValue);
     final var query = TasksRepository.creteTasksPageQuery(appId, requesterId, taskTypeId, goalName, goalDescription,
         creationFrom, creationTo, updateFrom, updateTo, hasCloseTs, closeFrom, closeTo);
 
@@ -368,10 +369,6 @@ public class TasksResource implements Tasks {
         case "taskTypeId":
         case "requesterId":
         case "appId":
-        case "startTs":
-        case "endTs":
-        case "deadlineTs":
-        case "closeTs":
           return value;
         default:
           return null;
