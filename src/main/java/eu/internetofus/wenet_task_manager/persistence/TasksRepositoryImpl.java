@@ -62,7 +62,7 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
    * {@inheritDoc}
    */
   @Override
-  public void searchTaskObject(final String id, final Handler<AsyncResult<JsonObject>> searchHandler) {
+  public void searchTask(final String id, final Handler<AsyncResult<JsonObject>> searchHandler) {
 
     final var query = new JsonObject().put("_id", id);
     this.findOneDocument(TASKS_COLLECTION, query, null, found -> {
@@ -138,7 +138,23 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
    */
   public Future<Void> migrateDocumentsToCurrentVersions() {
 
-    return this.updateSchemaVersionOnCollection(TASKS_COLLECTION);
+    return this.migrateTaskTo_0_6_0().compose(empty -> this.updateSchemaVersionOnCollection(TASKS_COLLECTION));
+
+  }
+
+  /**
+   * Migrate the data base Task to the new model of the task for the API {0.6.0}.
+   *
+   * @return the future with the update result.
+   */
+  protected Future<Void> migrateTaskTo_0_6_0() {
+
+    final var query = createQueryToReturnDocumentsWithAVersionLessThan("0.6.0");
+    final var update = new JsonObject().put("$set", new JsonObject().put(SCHEMA_VERSION, "0.6.0")).put("$rename",
+        new JsonObject().put("startTs", "attributes.startTs").put("endTs", "attributes.endTs").put("deadlineTs",
+            "attributes.deadlineTs"));
+
+    return this.updateCollection(TASKS_COLLECTION, query, update);
 
   }
 

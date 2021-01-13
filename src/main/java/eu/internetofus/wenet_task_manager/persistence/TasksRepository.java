@@ -35,6 +35,7 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
@@ -85,32 +86,17 @@ public interface TasksRepository {
   /**
    * Search for the task with the specified identifier.
    *
-   * @param id            identifier of the task to search.
-   * @param searchHandler handler to manage the search.
+   * @param id identifier of the task to search.
+   *
+   * @return tyeh future found task.
    */
   @GenIgnore
-  default void searchTask(final String id, final Handler<AsyncResult<Task>> searchHandler) {
+  default Future<Task> searchTask(final String id) {
 
-    this.searchTaskObject(id, search -> {
+    Promise<JsonObject> promise = Promise.promise();
+    this.searchTask(id, promise);
+    return Model.fromFutureJsonObject(promise.future(), Task.class);
 
-      if (search.failed()) {
-
-        searchHandler.handle(Future.failedFuture(search.cause()));
-
-      } else {
-
-        final var value = search.result();
-        final var task = Model.fromJsonObject(value, Task.class);
-        if (task == null) {
-
-          searchHandler.handle(Future.failedFuture("The stored task is not valid."));
-
-        } else {
-
-          searchHandler.handle(Future.succeededFuture(task));
-        }
-      }
-    });
   }
 
   /**
@@ -119,7 +105,7 @@ public interface TasksRepository {
    * @param id            identifier of the task to search.
    * @param searchHandler handler to manage the search.
    */
-  void searchTaskObject(String id, Handler<AsyncResult<JsonObject>> searchHandler);
+  void searchTask(String id, Handler<AsyncResult<JsonObject>> searchHandler);
 
   /**
    * Store a task.

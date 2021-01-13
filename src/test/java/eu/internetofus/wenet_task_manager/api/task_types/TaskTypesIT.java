@@ -216,9 +216,8 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
    * @param client      to connect to the server.
    * @param testContext context to test.
    *
-   * @see TaskTypes#retrieveTaskTypesPage(String, String, java.util.List,
-   *      java.util.List, int, int, io.vertx.ext.web.api.service.ServiceRequest,
-   *      Handler)
+   * @see TaskTypes#retrieveTaskTypesPage(String, String, String, String, int,
+   *      int, io.vertx.ext.web.api.service.ServiceRequest, Handler)
    */
   @Test
   public void shouldNotRetrieveTaskTypesPageBecauseBadOrder(final Vertx vertx, final WebClient client,
@@ -247,9 +246,8 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
    * @param client      to connect to the server.
    * @param testContext context to test.
    *
-   * @see TaskTypes#retrieveTaskTypesPage(String, String, java.util.List,
-   *      java.util.List, int, int, io.vertx.ext.web.api.service.ServiceRequest,
-   *      Handler)
+   * @see TaskTypes#retrieveTaskTypesPage(String, String, String, String, int,
+   *      int, io.vertx.ext.web.api.service.ServiceRequest, Handler)
    */
   @Test
   public void shouldRetrieveTaskTypesPage(final Vertx vertx, final WebClient client,

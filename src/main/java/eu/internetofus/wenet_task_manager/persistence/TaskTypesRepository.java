@@ -26,8 +26,6 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
-import java.util.List;
-
 import eu.internetofus.common.components.Model;
 import eu.internetofus.common.components.task_manager.TaskType;
 import eu.internetofus.common.vertx.ModelsPageContext;
@@ -39,10 +37,12 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.serviceproxy.ServiceBinder;
+import java.util.List;
 
 /**
  * The service to manage the {@link TaskType} on the database.
@@ -89,32 +89,17 @@ public interface TaskTypesRepository {
   /**
    * Search for the task type with the specified identifier.
    *
-   * @param id            identifier of the task type to search.
-   * @param searchHandler handler to manage the search.
+   * @param id identifier of the task type to search.
+   *
+   * @return the future found task type.
    */
   @GenIgnore
-  default void searchTaskType(final String id, final Handler<AsyncResult<TaskType>> searchHandler) {
+  default Future<TaskType> searchTaskType(final String id) {
 
-    this.searchTaskTypeObject(id, search -> {
+    Promise<JsonObject> promise = Promise.promise();
+    this.searchTaskType(id, promise);
+    return Model.fromFutureJsonObject(promise.future(), TaskType.class);
 
-      if (search.failed()) {
-
-        searchHandler.handle(Future.failedFuture(search.cause()));
-
-      } else {
-
-        final var value = search.result();
-        final var taskType = Model.fromJsonObject(value, TaskType.class);
-        if (taskType == null) {
-
-          searchHandler.handle(Future.failedFuture("The stored taskType is not valid."));
-
-        } else {
-
-          searchHandler.handle(Future.succeededFuture(taskType));
-        }
-      }
-    });
   }
 
   /**
@@ -123,7 +108,7 @@ public interface TaskTypesRepository {
    * @param id            identifier of the task type to search.
    * @param searchHandler handler to manage the search.
    */
-  void searchTaskTypeObject(String id, Handler<AsyncResult<JsonObject>> searchHandler);
+  void searchTaskType(String id, Handler<AsyncResult<JsonObject>> searchHandler);
 
   /**
    * Store a task type.
@@ -220,7 +205,8 @@ public interface TaskTypesRepository {
    */
   static JsonObject createTaskTypesPageQuery(final String name, final String description, final List<String> keywords) {
 
-    return new QueryBuilder().withEqOrRegex("name", name).withEqOrRegex("description", description).withEqOrRegex("keywords", keywords).build();
+    return new QueryBuilder().withEqOrRegex("name", name).withEqOrRegex("description", description)
+        .withEqOrRegex("keywords", keywords).build();
 
   }
 
@@ -255,7 +241,8 @@ public interface TaskTypesRepository {
    * @param handler for the obtained page.
    */
   @GenIgnore
-  default void retrieveTaskTypesPageObject(final ModelsPageContext context, final Handler<AsyncResult<JsonObject>> handler) {
+  default void retrieveTaskTypesPageObject(final ModelsPageContext context,
+      final Handler<AsyncResult<JsonObject>> handler) {
 
     this.retrieveTaskTypesPageObject(context.query, context.sort, context.offset, context.limit, handler);
   }
@@ -267,7 +254,8 @@ public interface TaskTypesRepository {
    * @param searchHandler for the obtained page.
    */
   @GenIgnore
-  default void retrieveTaskTypesPage(final ModelsPageContext context, final Handler<AsyncResult<TaskTypesPage>> searchHandler) {
+  default void retrieveTaskTypesPage(final ModelsPageContext context,
+      final Handler<AsyncResult<TaskTypesPage>> searchHandler) {
 
     this.retrieveTaskTypesPage(context.query, context.sort, context.offset, context.limit, searchHandler);
 
@@ -283,7 +271,8 @@ public interface TaskTypesRepository {
    * @param searchHandler for the obtained page.
    */
   @GenIgnore
-  default void retrieveTaskTypesPage(final JsonObject query, final JsonObject sort, final int offset, final int limit, final Handler<AsyncResult<TaskTypesPage>> searchHandler) {
+  default void retrieveTaskTypesPage(final JsonObject query, final JsonObject sort, final int offset, final int limit,
+      final Handler<AsyncResult<TaskTypesPage>> searchHandler) {
 
     this.retrieveTaskTypesPageObject(query, sort, offset, limit, search -> {
 
@@ -317,6 +306,7 @@ public interface TaskTypesRepository {
    * @param limit   the number maximum of task types to return.
    * @param handler to inform of the found task types.
    */
-  void retrieveTaskTypesPageObject(JsonObject query, JsonObject sort, int offset, int limit, Handler<AsyncResult<JsonObject>> handler);
+  void retrieveTaskTypesPageObject(JsonObject query, JsonObject sort, int offset, int limit,
+      Handler<AsyncResult<JsonObject>> handler);
 
 }

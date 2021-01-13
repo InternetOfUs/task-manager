@@ -117,7 +117,7 @@ public class TasksResource implements Tasks {
     final var model = this.createTaskContext();
     model.id = taskId;
     final var context = new ServiceContext(request, resultHandler);
-    ModelResources.retrieveModel(model, this.repository::searchTask, context);
+    ModelResources.retrieveModel(model, (id, hanlder) -> this.repository.searchTask(id).onComplete(hanlder), context);
 
   }
 
@@ -247,8 +247,8 @@ public class TasksResource implements Tasks {
     final var model = this.createTaskContext();
     model.id = taskId;
     final var context = new ServiceContext(request, resultHandler);
-    ModelResources.updateModel(this.vertx, body, model, this.repository::searchTask, this.repository::updateTask,
-        context);
+    ModelResources.updateModel(this.vertx, body, model,
+        (id, hanlder) -> this.repository.searchTask(id).onComplete(hanlder), this.repository::updateTask, context);
 
   }
 
@@ -262,8 +262,8 @@ public class TasksResource implements Tasks {
     final var model = this.createTaskContext();
     model.id = taskId;
     final var context = new ServiceContext(request, resultHandler);
-    ModelResources.mergeModel(this.vertx, body, model, this.repository::searchTask, this.repository::updateTask,
-        context);
+    ModelResources.mergeModel(this.vertx, body, model,
+        (id, hanlder) -> this.repository.searchTask(id).onComplete(hanlder), this.repository::updateTask, context);
 
   }
 

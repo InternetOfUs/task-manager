@@ -78,12 +78,12 @@ public class TasksRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TasksRepository#searchTaskObject(String, io.vertx.core.Handler)
+   * @see TasksRepository#searchTask(String, io.vertx.core.Handler)
    */
   @Test
   public void shouldNotFoundUndefinedTaskObject(final Vertx vertx, final VertxTestContext testContext) {
 
-    TasksRepository.createProxy(vertx).searchTaskObject("undefined user identifier", testContext.failing(failed -> {
+    TasksRepository.createProxy(vertx).searchTask("undefined user identifier", testContext.failing(failed -> {
       testContext.completeNow();
     }));
 
@@ -102,12 +102,11 @@ public class TasksRepositoryIT {
 
     TasksRepository.createProxy(vertx).storeTask(new Task(), testContext.succeeding(storedTask -> {
 
-      TasksRepository.createProxy(vertx).searchTask(storedTask.id,
-          testContext.succeeding(foundTask -> testContext.verify(() -> {
+      testContext.assertComplete(TasksRepository.createProxy(vertx).searchTask(storedTask.id))
+          .onSuccess(foundTask -> testContext.verify(() -> {
             assertThat(foundTask).isEqualTo(storedTask);
             testContext.completeNow();
-          })));
-
+          }));
     }));
 
   }
@@ -118,14 +117,14 @@ public class TasksRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TasksRepository#searchTaskObject(String, io.vertx.core.Handler)
+   * @see TasksRepository#searchTask(String, io.vertx.core.Handler)
    */
   @Test
   public void shouldFoundTaskObject(final Vertx vertx, final VertxTestContext testContext) {
 
     TasksRepository.createProxy(vertx).storeTask(new JsonObject(), testContext.succeeding(storedTask -> {
 
-      TasksRepository.createProxy(vertx).searchTaskObject(storedTask.getString("id"),
+      TasksRepository.createProxy(vertx).searchTask(storedTask.getString("id"),
           testContext.succeeding(foundTask -> testContext.verify(() -> {
             assertThat(foundTask).isEqualTo(storedTask);
             testContext.completeNow();
@@ -349,8 +348,8 @@ public class TasksRepositoryIT {
       update._lastUpdateTs = 1;
       TasksRepository.createProxy(vertx).updateTask(update, testContext.succeeding(empty -> {
 
-        TasksRepository.createProxy(vertx).searchTask(stored.id,
-            testContext.succeeding(foundTask -> testContext.verify(() -> {
+        testContext.assertComplete(TasksRepository.createProxy(vertx).searchTask(stored.id))
+            .onSuccess(foundTask -> testContext.verify(() -> {
 
               assertThat(stored).isNotNull();
               assertThat(foundTask.id).isNotEmpty().isEqualTo(stored.id);
@@ -360,7 +359,7 @@ public class TasksRepositoryIT {
               update._lastUpdateTs = foundTask._lastUpdateTs;
               assertThat(foundTask).isEqualTo(update);
               testContext.completeNow();
-            })));
+            }));
       }));
 
     }));
@@ -388,7 +387,7 @@ public class TasksRepositoryIT {
           TasksRepository.createProxy(vertx).updateTask(update,
               testContext.succeeding(empty -> testContext.verify(() -> {
 
-                TasksRepository.createProxy(vertx).searchTaskObject(id,
+                TasksRepository.createProxy(vertx).searchTask(id,
                     testContext.succeeding(foundTask -> testContext.verify(() -> {
                       stored.put("attributes", new JsonObject().put("attributeKey", "Attribute value"));
                       assertThat(foundTask).isEqualTo(stored);
@@ -433,7 +432,7 @@ public class TasksRepositoryIT {
       final var id = stored.getString("id");
       TasksRepository.createProxy(vertx).deleteTask(id, testContext.succeeding(success -> {
 
-        TasksRepository.createProxy(vertx).searchTaskObject(id, testContext.failing(search -> {
+        TasksRepository.createProxy(vertx).searchTask(id, testContext.failing(search -> {
 
           testContext.completeNow();
 

@@ -41,7 +41,7 @@ public class DummyTaskTypesRepository implements TaskTypesRepository {
    * {@inheritDoc}
    */
   @Override
-  public void searchTaskTypeObject(final String id, final Handler<AsyncResult<JsonObject>> searchHandler) {
+  public void searchTaskType(final String id, final Handler<AsyncResult<JsonObject>> searchHandler) {
 
   }
 

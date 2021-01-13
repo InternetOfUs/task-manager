@@ -34,14 +34,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-
 import eu.internetofus.common.components.ValidationErrorException;
 import eu.internetofus.common.components.task_manager.TaskType;
 import eu.internetofus.common.vertx.ModelsPageContext;
@@ -51,6 +43,12 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 
 /**
  * Unit test to increases coverage of the {@link TaskTypesRepository}
@@ -99,7 +97,8 @@ public class TaskTypesRepositoryTest {
   }
 
   /**
-   * Should not obtain task type if the obtainer object not match a {@link TaskType}.
+   * Should not obtain task type if the obtainer object not match a
+   * {@link TaskType}.
    *
    * @param testContext context that executes the test.
    *
@@ -109,11 +108,11 @@ public class TaskTypesRepositoryTest {
   public void shouldFailSearchTaskTypeWhenFoundObjectNotMatch(final VertxTestContext testContext) {
 
     final DummyTaskTypesRepository repository = spy(new DummyTaskTypesRepository());
-    repository.searchTaskType("id", testContext.failing(error -> testContext.completeNow()));
+    testContext.assertFailure(repository.searchTaskType("id")).onFailure(error -> testContext.completeNow());
 
     @SuppressWarnings("unchecked")
     final ArgumentCaptor<Handler<AsyncResult<JsonObject>>> searchHandler = ArgumentCaptor.forClass(Handler.class);
-    verify(repository, timeout(30000).times(1)).searchTaskTypeObject(any(), searchHandler.capture());
+    verify(repository, timeout(30000).times(1)).searchTaskType(any(), searchHandler.capture());
     searchHandler.getValue().handle(Future.succeededFuture(new JsonObject().put("udefinedKey", "value")));
 
   }
@@ -170,7 +169,8 @@ public class TaskTypesRepositoryTest {
    *
    * @param testContext context that executes the test.
    *
-   * @see TaskTypesRepository#retrieveTaskTypesPageObject(eu.internetofus.common.vertx.ModelsPageContext, Handler)
+   * @see TaskTypesRepository#retrieveTaskTypesPageObject(eu.internetofus.common.vertx.ModelsPageContext,
+   *      Handler)
    */
   @Test
   public void shouldFailRetrieveTaskTypesPageObjectWhenSearchFail(final VertxTestContext testContext) {
@@ -185,7 +185,8 @@ public class TaskTypesRepositoryTest {
 
     @SuppressWarnings("unchecked")
     final ArgumentCaptor<Handler<AsyncResult<JsonObject>>> searchHandler = ArgumentCaptor.forClass(Handler.class);
-    verify(repository, timeout(30000).times(1)).retrieveTaskTypesPageObject(eq(context.query), eq(context.sort), eq(context.offset), eq(context.limit), searchHandler.capture());
+    verify(repository, timeout(30000).times(1)).retrieveTaskTypesPageObject(eq(context.query), eq(context.sort),
+        eq(context.offset), eq(context.limit), searchHandler.capture());
     searchHandler.getValue().handle(Future.failedFuture("Not found"));
 
   }
@@ -202,7 +203,8 @@ public class TaskTypesRepositoryTest {
 
     final DummyTaskTypesRepository repository = spy(new DummyTaskTypesRepository());
     final var context = new ModelsPageContext();
-    context.query = TaskTypesRepository.createTaskTypesPageQuery("name", "description", Arrays.asList("keyword2", "keyword2"));
+    context.query = TaskTypesRepository.createTaskTypesPageQuery("name", "description",
+        Arrays.asList("keyword2", "keyword2"));
     context.sort = TaskTypesRepository.createTaskTypesPageSort(Arrays.asList("-name", "description"));
     context.offset = 23;
     context.limit = 100;
@@ -210,7 +212,8 @@ public class TaskTypesRepositoryTest {
 
     @SuppressWarnings("unchecked")
     final ArgumentCaptor<Handler<AsyncResult<JsonObject>>> searchHandler = ArgumentCaptor.forClass(Handler.class);
-    verify(repository, timeout(30000).times(1)).retrieveTaskTypesPageObject(eq(context.query), eq(context.sort), eq(context.offset), eq(context.limit), searchHandler.capture());
+    verify(repository, timeout(30000).times(1)).retrieveTaskTypesPageObject(eq(context.query), eq(context.sort),
+        eq(context.offset), eq(context.limit), searchHandler.capture());
     searchHandler.getValue().handle(Future.succeededFuture(new JsonObject().put("udefinedKey", "value")));
 
   }
@@ -227,7 +230,8 @@ public class TaskTypesRepositoryTest {
 
     final DummyTaskTypesRepository repository = spy(new DummyTaskTypesRepository());
     final var context = new ModelsPageContext();
-    context.query = TaskTypesRepository.createTaskTypesPageQuery("name", "description", Arrays.asList("keyword2", "keyword2"));
+    context.query = TaskTypesRepository.createTaskTypesPageQuery("name", "description",
+        Arrays.asList("keyword2", "keyword2"));
     context.sort = TaskTypesRepository.createTaskTypesPageSort(Arrays.asList("-name", "description"));
     context.offset = 23;
     context.limit = 100;
@@ -235,7 +239,8 @@ public class TaskTypesRepositoryTest {
 
     @SuppressWarnings("unchecked")
     final ArgumentCaptor<Handler<AsyncResult<JsonObject>>> searchHandler = ArgumentCaptor.forClass(Handler.class);
-    verify(repository, timeout(30000).times(1)).retrieveTaskTypesPageObject(eq(context.query), eq(context.sort), eq(context.offset), eq(context.limit), searchHandler.capture());
+    verify(repository, timeout(30000).times(1)).retrieveTaskTypesPageObject(eq(context.query), eq(context.sort),
+        eq(context.offset), eq(context.limit), searchHandler.capture());
     searchHandler.getValue().handle(Future.failedFuture("Not found"));
 
   }

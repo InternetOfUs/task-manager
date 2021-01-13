@@ -26,10 +26,12 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
+import eu.internetofus.common.TimeManager;
 import eu.internetofus.common.vertx.Repository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.FindOptions;
 import io.vertx.ext.mongo.MongoClient;
@@ -62,7 +64,7 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
    * {@inheritDoc}
    */
   @Override
-  public void searchTaskTypeObject(final String id, final Handler<AsyncResult<JsonObject>> searchHandler) {
+  public void searchTaskType(final String id, final Handler<AsyncResult<JsonObject>> searchHandler) {
 
     final var query = new JsonObject().put("_id", id);
     this.findOneDocument(TASK_TYPES_COLLECTION, query, null, found -> {
@@ -138,7 +140,26 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
    */
   public Future<Void> migrateDocumentsToCurrentVersions() {
 
-    return this.updateSchemaVersionOnCollection(TASK_TYPES_COLLECTION);
+    return this.migrateTaskTo_0_6_0().compose(empty -> this.updateSchemaVersionOnCollection(TASK_TYPES_COLLECTION));
+
+  }
+
+  /**
+   * Migrate the data base Task to the new model of the task for the API {0.6.0}.
+   *
+   * @return the future with the update result.
+   */
+  protected Future<Void> migrateTaskTo_0_6_0() {
+
+    final var notExists = new JsonObject().put(SCHEMA_VERSION, new JsonObject().put("$exists", false));
+    final var notEq = new JsonObject().put(SCHEMA_VERSION, new JsonObject().put("$lt", "0.6.0"));
+    final var query = new JsonObject().put("$or", new JsonArray().add(notExists).add(notEq));
+
+    var now = TimeManager.now();
+    final var update = new JsonObject().put("$set", new JsonObject().put(SCHEMA_VERSION, "0.6.0")
+        .put("transactions", new JsonObject()).put("_creationTs", now).put("_lastUpdateTs", now));
+
+    return this.updateCollection(TASK_TYPES_COLLECTION, query, update);
 
   }
 

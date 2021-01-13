@@ -28,9 +28,6 @@ package eu.internetofus.wenet_task_manager.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 import eu.internetofus.common.components.task_manager.Task;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -38,6 +35,8 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxExtension;
 import io.vertx.junit5.VertxTestContext;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Unit test to increases coverage of the {@link TasksRepository}
@@ -50,7 +49,8 @@ import io.vertx.junit5.VertxTestContext;
 public class TasksRepositoryTest {
 
   /**
-   * Verify that can not found a task because that returned by repository is not right.
+   * Verify that can not found a task because that returned by repository is not
+   * right.
    *
    * @param testContext context that executes the test.
    *
@@ -59,24 +59,23 @@ public class TasksRepositoryTest {
   @Test
   public void shouldNotFoundTaskBecauseReturnedJsonObjectIsNotRight(final VertxTestContext testContext) {
 
-    final TasksRepository repository = new TasksRepositoryImpl(null,null) {
+    final TasksRepository repository = new TasksRepositoryImpl(null, null) {
 
       @Override
-      public void searchTaskObject(final String id, final Handler<AsyncResult<JsonObject>> searchHandler) {
+      public void searchTask(final String id, final Handler<AsyncResult<JsonObject>> searchHandler) {
 
         searchHandler.handle(Future.succeededFuture(new JsonObject().put("key", "value")));
 
       }
     };
 
-    repository.searchTask("any identifier", testContext.failing(fail -> {
-      testContext.completeNow();
-    }));
+    testContext.assertFailure(repository.searchTask("any identifier")).onFailure(fail -> testContext.completeNow());
 
   }
 
   /**
-   * Verify that can not store a task because that returned by repository is not right.
+   * Verify that can not store a task because that returned by repository is not
+   * right.
    *
    * @param testContext context that executes the test.
    *
@@ -85,7 +84,7 @@ public class TasksRepositoryTest {
   @Test
   public void shouldNotStoreTaskBecauseReturnedJsonObjectIsNotRight(final VertxTestContext testContext) {
 
-    final TasksRepository repository = new TasksRepositoryImpl(null,null) {
+    final TasksRepository repository = new TasksRepositoryImpl(null, null) {
 
       @Override
       public void storeTask(final JsonObject task, final Handler<AsyncResult<JsonObject>> storeHandler) {
@@ -101,7 +100,8 @@ public class TasksRepositoryTest {
   }
 
   /**
-   * Verify that can not store a task because that returned by repository is not right.
+   * Verify that can not store a task because that returned by repository is not
+   * right.
    *
    * @param testContext context that executes the test.
    *
@@ -111,7 +111,7 @@ public class TasksRepositoryTest {
   public void shouldNotStoreTaskBecauseStoreFailed(final VertxTestContext testContext) {
 
     final Throwable cause = new IllegalArgumentException("Cause that can not be stored");
-    final TasksRepository repository = new TasksRepositoryImpl(null,null) {
+    final TasksRepository repository = new TasksRepositoryImpl(null, null) {
 
       @Override
       public void storeTask(final JsonObject task, final Handler<AsyncResult<JsonObject>> storeHandler) {
@@ -129,7 +129,8 @@ public class TasksRepositoryTest {
   }
 
   /**
-   * Verify that can not update a task because that returned by repository is not right.
+   * Verify that can not update a task because that returned by repository is not
+   * right.
    *
    * @param testContext context that executes the test.
    *
@@ -139,7 +140,7 @@ public class TasksRepositoryTest {
   public void shouldNotUpdateTaskBecauseUpdateFailed(final VertxTestContext testContext) {
 
     final Throwable cause = new IllegalArgumentException("Cause that can not be updated");
-    final TasksRepository repository = new TasksRepositoryImpl(null,null) {
+    final TasksRepository repository = new TasksRepositoryImpl(null, null) {
 
       @Override
       public void updateTask(final JsonObject task, final Handler<AsyncResult<Void>> updateHandler) {
