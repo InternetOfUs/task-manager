@@ -31,10 +31,12 @@ import eu.internetofus.common.vertx.Repository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.FindOptions;
 import io.vertx.ext.mongo.MongoClient;
+import io.vertx.ext.mongo.UpdateOptions;
 
 /**
  * Implementation of the {@link TaskTypesRepository}.
@@ -154,12 +156,62 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
     final var notExists = new JsonObject().put(SCHEMA_VERSION, new JsonObject().put("$exists", false));
     final var notEq = new JsonObject().put(SCHEMA_VERSION, new JsonObject().put("$lt", "0.6.0"));
     final var query = new JsonObject().put("$or", new JsonArray().add(notExists).add(notEq));
+    Promise<Void> promise = Promise.promise();
+    this.pool.findBatch(TASK_TYPES_COLLECTION, query).handler(taskType -> {
 
-    var now = TimeManager.now();
-    final var update = new JsonObject().put("$set", new JsonObject().put(SCHEMA_VERSION, "0.6.0")
-        .put("transactions", new JsonObject()).put("_creationTs", now).put("_lastUpdateTs", now));
+      var newTransactions = new JsonObject();
+      var oldTransactions = taskType.getJsonArray("transactions", new JsonArray());
+      var maxTransactions = oldTransactions.size();
+      for (var i = 0; i < maxTransactions; i++) {
 
-    return this.updateCollection(TASK_TYPES_COLLECTION, query, update);
+        var taskTransactionType = oldTransactions.getJsonObject(i);
+        var properties = new JsonObject();
+        var taskAttributeTypes = taskTransactionType.getJsonArray("attributes", new JsonArray());
+        var maxAttributes = taskAttributeTypes.size();
+        for (var j = 0; j < maxAttributes; j++) {
+
+          var taskAttribute = taskAttributeTypes.getJsonObject(j);
+          var newAttribute = new JsonObject();
+          properties.put(taskAttribute.getString("name"), newAttribute);
+          var description = taskAttribute.getString("description");
+          if (description != null) {
+
+            newAttribute.put("description", description);
+          }
+
+          var type = taskAttribute.getString("type");
+          if (type != null) {
+
+            newAttribute.put("type", type);
+          }
+
+        }
+        var newTransaction = new JsonObject();
+        var description = taskTransactionType.getString("description");
+        if (description != null) {
+
+          newTransaction.put("description", description);
+        }
+        if (!properties.isEmpty()) {
+
+          newTransaction.put("properties", properties);
+        }
+        newTransactions.put(taskTransactionType.getString("label"), newTransaction);
+
+      }
+
+      var now = TimeManager.now();
+      var updateQuery = new JsonObject().put("$set", new JsonObject().put(SCHEMA_VERSION, "0.6.0")
+          .put("_creationTs", now).put("_lastUpdateTs", now).put("transactions", newTransactions));
+
+      final var options = new UpdateOptions().setMulti(false);
+      this.pool.updateCollectionWithOptions(TASK_TYPES_COLLECTION,
+          new JsonObject().put("_id", taskType.getString("_id")), updateQuery, options)
+          .onFailure(cause -> promise.tryFail(cause));
+
+    }).exceptionHandler(error -> promise.tryFail(error)).endHandler(end -> promise.tryComplete());
+
+    return promise.future();
 
   }
 

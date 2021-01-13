@@ -52,12 +52,12 @@ public class TaskTypesRepositoryImplIT {
   /**
    * The JSON codification of a task on API {@code 0.5.0}.
    */
-  public static final String TASK_TYPE_0_5_0 = "{\"name\":\"Eat together\",\"transactions\":[{\"label\":\"acceptToAttend\"}],\"schema_version\":\"0.5.0\",\"id\":\"1\"}";
+  public static final String TASK_TYPE_0_5_0 = "{\"name\":\"Eat together\",\"transactions\":[{\"label\":\"cancel\"},{\"label\":\"acceptToAttend\",\"description\":\"Accept to attend\",\"attributes\":[{\"name\":\"volunteerId\",\"description\":\"Identifier of the volunteer\",\"type\":\"string\"}]}],\"schema_version\":\"0.5.0\",\"id\":\"1\"}";
 
   /**
    * The JSON codification of a task on API {@code 0.6.0}.
    */
-  public static final String TASK_TYPE_0_6_0 = "{\"name\":\"Eat together\",\"transactions\":{},\"schema_version\":\"0.6.0\",\"id\":\"1\",\"_creationTs\":1590686833,\"_lastUpdateTs\":1590686920}";
+  public static final String TASK_TYPE_0_6_0 = "{\"name\":\"Eat together\",\"transactions\":{\"cancel\":{},\"acceptToAttend\":{\"description\":\"Accept to attend\",\"properties\":{\"volunteerId\":{\"description\":\"Identifier of the volunteer\",\"type\":\"string\"}}}},\"schema_version\":\"0.6.0\",\"id\":\"1\",\"_creationTs\":1590686833,\"_lastUpdateTs\":1590686920}";
 
   /**
    * Start a mongo container.
