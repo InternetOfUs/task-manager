@@ -32,6 +32,7 @@ import eu.internetofus.common.components.interaction_protocol_engine.WeNetIntera
 import eu.internetofus.common.components.profile_manager.CommunityMember;
 import eu.internetofus.common.components.profile_manager.CommunityProfile;
 import eu.internetofus.common.components.profile_manager.WeNetProfileManager;
+import eu.internetofus.common.components.service.Message;
 import eu.internetofus.common.components.service.WeNetService;
 import eu.internetofus.common.components.task_manager.Task;
 import eu.internetofus.common.components.task_manager.TaskTransaction;
@@ -103,6 +104,34 @@ public class TasksResource implements Tasks {
     final var context = new ModelContext<Task, String>();
     context.name = "task";
     context.type = Task.class;
+    return context;
+
+  }
+
+  /**
+   * Create the task transaction context.
+   *
+   * @return the context of the {@link TaskTransaction}.
+   */
+  protected ModelContext<TaskTransaction, String> createTaskTransactionContext() {
+
+    final var context = new ModelContext<TaskTransaction, String>();
+    context.name = "taskTransaction";
+    context.type = TaskTransaction.class;
+    return context;
+
+  }
+
+  /**
+   * Create the task transaction context.
+   *
+   * @return the context of the {@link Message}.
+   */
+  protected ModelContext<Message, Void> createMessageContext() {
+
+    final var context = new ModelContext<Message, Void>();
+    context.name = "message";
+    context.type = Message.class;
     return context;
 
   }
@@ -212,28 +241,29 @@ public class TasksResource implements Tasks {
 
       final var model = this.createTaskContext();
       final var context = new ServiceContext(request, resultHandler);
-      ModelResources.createModelChain(this.vertx, body, model, this.repository::storeTask, context, () -> {
+      ModelResources.createModelChain(this.vertx, body, model,
+          (task, handler) -> this.repository.storeTask(task).onComplete(handler), context, () -> {
 
-        ServiceResponseHandlers.responseWith(resultHandler, Status.CREATED, model.value);
+            ServiceResponseHandlers.responseWith(resultHandler, Status.CREATED, model.value);
 
-        Logger.debug("Created task {}", model.value);
-        this.interactionProtocolEngine.createdTask(model.value).onComplete(sent -> {
+            Logger.debug("Created task {}", model.value);
+            this.interactionProtocolEngine.createdTask(model.value).onComplete(sent -> {
 
-          if (sent.failed()) {
+              if (sent.failed()) {
 
-            final var cause = sent.cause();
-            Logger.debug(cause,
-                "The interaction protocol engine does not accepted to process the creation of the task {}",
-                model.value);
+                final var cause = sent.cause();
+                Logger.debug(cause,
+                    "The interaction protocol engine does not accepted to process the creation of the task {}",
+                    model.value);
 
-          } else {
+              } else {
 
-            Logger.debug("The interaction protocol engine accepted to process the creation of the task {}",
-                model.value);
+                Logger.debug("The interaction protocol engine accepted to process the creation of the task {}",
+                    model.value);
 
-          }
-        });
-      });
+              }
+            });
+          });
     }
   }
 
@@ -400,6 +430,95 @@ public class TasksResource implements Tasks {
 
     }
 
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addTransactionIntoTask(String taskId, JsonObject body, ServiceRequest request,
+      Handler<AsyncResult<ServiceResponse>> resultHandler) {
+
+    final var transactionModel = this.createTaskTransactionContext();
+    final var context = new ServiceContext(request, resultHandler);
+
+    ModelResources.toModel(body, transactionModel, context, () -> {
+
+      if (transactionModel.source.taskId != null && !taskId.equals(transactionModel.source.taskId)) {
+
+        Logger.debug("POST /tasks/{}/transactions with {} => BAD REQUEST", taskId, transactionModel.source);
+        ServiceResponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task_id",
+            "The identifier of the transaction task not match the identifier of the task to add it");
+
+      } else {
+
+        transactionModel.source.taskId = taskId;
+        ModelResources.validate(this.vertx, transactionModel, context, () -> {
+
+          this.repository.addTransactionIntoTask(taskId, transactionModel.source).onComplete(added -> {
+
+            if (added.failed()) {
+
+              final var cause = added.cause();
+              Logger.debug(cause, "POST /tasks/{}/transactions with {} => NOT FOUND", taskId, transactionModel.source);
+              ServiceResponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND, "not_found_task",
+                  "Not found task to add the transaction");
+
+            } else {
+
+              var result = added.result();
+              Logger.debug(" \"POST /tasks/{}/transactions with {} => CREATED {}.", taskId, transactionModel.source,
+                  result);
+              ServiceResponseHandlers.responseWith(resultHandler, Status.CREATED, result);
+
+            }
+
+          });
+
+        });
+      }
+
+    });
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addMessageIntoTransaction(String taskId, String taskTransactionId, JsonObject body,
+      ServiceRequest request, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+
+    final var messageModel = this.createMessageContext();
+    final var context = new ServiceContext(request, resultHandler);
+    ModelResources.toModel(body, messageModel, context, () -> {
+
+      ModelResources.validate(this.vertx, messageModel, context, () -> {
+
+        this.repository.addMessageIntoTransaction(taskId, taskTransactionId, messageModel.source).onComplete(added -> {
+
+          if (added.failed()) {
+
+            final var cause = added.cause();
+            Logger.debug(cause, "POST /tasks/{}/transactions/{}/messages with {} => NOT FOUND", taskId,
+                taskTransactionId, messageModel.source);
+            ServiceResponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND,
+                "undefined_task_or_transaction",
+                "Not found task where is the transaction or not found the transaction in it to add the message");
+
+          } else {
+
+            var result = added.result();
+            Logger.debug(" \"POST /tasks/{}/transactions/{}/messages with {} => CREATED {}.", taskId, taskTransactionId,
+                messageModel.source, result);
+            ServiceResponseHandlers.responseWith(resultHandler, Status.CREATED, result);
+
+          }
+
+        });
+
+      });
+
+    });
   }
 
 }

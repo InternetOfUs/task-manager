@@ -29,10 +29,13 @@ package eu.internetofus.wenet_task_manager.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import eu.internetofus.common.components.HumanDescriptionTest;
+import eu.internetofus.common.components.service.Message;
+import eu.internetofus.common.components.service.MessageTest;
 import eu.internetofus.common.components.task_manager.Task;
 import eu.internetofus.common.components.task_manager.TaskTest;
+import eu.internetofus.common.components.task_manager.TaskTransaction;
+import eu.internetofus.common.components.task_manager.TaskTransactionTest;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -100,14 +103,12 @@ public class TasksRepositoryIT {
   @Test
   public void shouldFoundTask(final Vertx vertx, final VertxTestContext testContext) {
 
-    TasksRepository.createProxy(vertx).storeTask(new Task(), testContext.succeeding(storedTask -> {
-
-      testContext.assertComplete(TasksRepository.createProxy(vertx).searchTask(storedTask.id))
-          .onSuccess(foundTask -> testContext.verify(() -> {
-            assertThat(foundTask).isEqualTo(storedTask);
-            testContext.completeNow();
-          }));
-    }));
+    testContext
+        .assertComplete(TasksRepository.createProxy(vertx).storeTask(new Task()).compose(storedTask -> TasksRepository
+            .createProxy(vertx).searchTask(storedTask.id).onSuccess(foundTask -> testContext.verify(() -> {
+              assertThat(foundTask).isEqualTo(storedTask);
+              testContext.completeNow();
+            }))));
 
   }
 
@@ -140,7 +141,7 @@ public class TasksRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TasksRepository#storeTask(Task, Handler)
+   * @see TasksRepository#storeTask(Task)
    */
   @Test
   public void shouldNotStoreATaskThatCanNotBeAnObject(final Vertx vertx, final VertxTestContext testContext) {
@@ -157,9 +158,8 @@ public class TasksRepositoryIT {
       }
     };
     task.id = "undefined user identifier";
-    TasksRepository.createProxy(vertx).storeTask(task, testContext.failing(failed -> {
-      testContext.completeNow();
-    }));
+    testContext.assertFailure(TasksRepository.createProxy(vertx).storeTask(task))
+        .onFailure(failed -> testContext.completeNow());
 
   }
 
@@ -169,7 +169,7 @@ public class TasksRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TasksRepository#storeTask(Task, Handler)
+   * @see TasksRepository#storeTask(Task)
    */
   @Test
   public void shouldStoreTask(final Vertx vertx, final VertxTestContext testContext) {
@@ -178,14 +178,15 @@ public class TasksRepositoryIT {
     task._creationTs = 0;
     task._lastUpdateTs = 1;
 
-    TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(storedTask -> testContext.verify(() -> {
+    testContext.assertComplete(TasksRepository.createProxy(vertx).storeTask(task))
+        .onSuccess(storedTask -> testContext.verify(() -> {
 
-      assertThat(storedTask).isNotNull();
-      assertThat(storedTask.id).isNotEmpty();
-      assertThat(storedTask._creationTs).isEqualTo(0);
-      assertThat(storedTask._lastUpdateTs).isEqualTo(1);
-      testContext.completeNow();
-    })));
+          assertThat(storedTask).isNotNull();
+          assertThat(storedTask.id).isNotEmpty();
+          assertThat(storedTask._creationTs).isEqualTo(0);
+          assertThat(storedTask._lastUpdateTs).isEqualTo(1);
+          testContext.completeNow();
+        }));
 
   }
 
@@ -195,7 +196,7 @@ public class TasksRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TasksRepository#storeTask(Task, Handler)
+   * @see TasksRepository#storeTask(Task)
    */
   @Test
   public void shouldStoreTaskWithAnId(final Vertx vertx, final VertxTestContext testContext) {
@@ -205,13 +206,14 @@ public class TasksRepositoryIT {
     task.id = id;
     task._creationTs = 2;
     task._lastUpdateTs = 3;
-    TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(storedTask -> testContext.verify(() -> {
+    testContext.assertComplete(TasksRepository.createProxy(vertx).storeTask(task))
+        .onSuccess(storedTask -> testContext.verify(() -> {
 
-      assertThat(storedTask.id).isEqualTo(id);
-      assertThat(storedTask._creationTs).isEqualTo(2);
-      assertThat(storedTask._lastUpdateTs).isEqualTo(3);
-      testContext.completeNow();
-    })));
+          assertThat(storedTask.id).isEqualTo(id);
+          assertThat(storedTask._creationTs).isEqualTo(2);
+          assertThat(storedTask._lastUpdateTs).isEqualTo(3);
+          testContext.completeNow();
+        }));
 
   }
 
@@ -221,7 +223,7 @@ public class TasksRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TasksRepository#storeTask(Task, Handler)
+   * @see TasksRepository#storeTask(Task)
    */
   @Test
   public void shouldNotStoreTwoTaskWithTheSameId(final Vertx vertx, final VertxTestContext testContext) {
@@ -229,35 +231,13 @@ public class TasksRepositoryIT {
     final var id = UUID.randomUUID().toString();
     final var task = new Task();
     task.id = id;
-    TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(storedTask -> testContext.verify(() -> {
+    testContext.assertComplete(TasksRepository.createProxy(vertx).storeTask(task))
+        .onSuccess(storedTask -> testContext.verify(() -> {
 
-      TasksRepository.createProxy(vertx).storeTask(task, testContext.failing(error -> testContext.completeNow()));
+          testContext.assertFailure(TasksRepository.createProxy(vertx).storeTask(task))
+              .onFailure(error -> testContext.completeNow());
 
-    })));
-
-  }
-
-  /**
-   * Verify that can store a task object.
-   *
-   * @param vertx       event bus to use.
-   * @param testContext context that executes the test.
-   *
-   * @see TasksRepository#storeTask(Task, Handler)
-   */
-  @Test
-  public void shouldStoreTaskObject(final Vertx vertx, final VertxTestContext testContext) {
-
-    TasksRepository.createProxy(vertx).storeTask(new JsonObject(),
-        testContext.succeeding(storedTask -> testContext.verify(() -> {
-
-          assertThat(storedTask).isNotNull();
-          final var id = storedTask.getString("id");
-          assertThat(id).isNotEmpty();
-          assertThat(storedTask.containsKey("_creationTs")).isFalse();
-          assertThat(storedTask.containsKey("_lastUpdateTs")).isFalse();
-          testContext.completeNow();
-        })));
+        }));
 
   }
 
@@ -340,7 +320,7 @@ public class TasksRepositoryIT {
 
     final var task = new Task();
     task.goal = new HumanDescriptionTest().createModelExample(23);
-    TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(stored -> {
+    testContext.assertComplete(TasksRepository.createProxy(vertx).storeTask(task)).onSuccess(stored -> {
 
       final var update = new TaskTest().createModelExample(23);
       update.id = stored.id;
@@ -362,7 +342,7 @@ public class TasksRepositoryIT {
             }));
       }));
 
-    }));
+    });
 
   }
 
@@ -468,29 +448,28 @@ public class TasksRepositoryIT {
           assertThat(search.offset).isEqualTo(0);
           assertThat(search.tasks).isNull();
           final List<Task> tasks = new ArrayList<>();
-          this.storeSomeTasks(vertx, testContext, task -> task.goal.name = name, 10, tasks,
-              testContext.succeeding(empty -> {
+          this.storeSomeTasks(vertx, testContext, task -> task.goal.name = name, 10, tasks).onSuccess(empty -> {
 
-                TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10,
-                    testContext.succeeding(search2 -> testContext.verify(() -> {
+            TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10,
+                testContext.succeeding(search2 -> testContext.verify(() -> {
 
-                      assertThat(search2).isNotNull();
-                      assertThat(search2.total).isEqualTo(10);
-                      assertThat(search2.offset).isEqualTo(0);
-                      assertThat(search2.tasks).isEqualTo(tasks);
-                      TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 2, 5,
-                          testContext.succeeding(search3 -> testContext.verify(() -> {
+                  assertThat(search2).isNotNull();
+                  assertThat(search2.total).isEqualTo(10);
+                  assertThat(search2.offset).isEqualTo(0);
+                  assertThat(search2.tasks).isEqualTo(tasks);
+                  TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 2, 5,
+                      testContext.succeeding(search3 -> testContext.verify(() -> {
 
-                            assertThat(search3).isNotNull();
-                            assertThat(search3.total).isEqualTo(10);
-                            assertThat(search3.offset).isEqualTo(2);
-                            assertThat(search3.tasks).isEqualTo(tasks.subList(2, 7));
-                            testContext.completeNow();
+                        assertThat(search3).isNotNull();
+                        assertThat(search3.total).isEqualTo(10);
+                        assertThat(search3.offset).isEqualTo(2);
+                        assertThat(search3.tasks).isEqualTo(tasks.subList(2, 7));
+                        testContext.completeNow();
 
-                          })));
+                      })));
 
-                    })));
-              }));
+                })));
+          });
         })));
 
   }
@@ -498,29 +477,29 @@ public class TasksRepositoryIT {
   /**
    * Create some {@link TaskTest#createModelExample(int)}.
    *
-   * @param vertx           event bus to use.
-   * @param testContext     context that executes the test.
-   * @param change          function to modify the pattern before to store it.
-   * @param max             number maximum of tasks to create.
-   * @param tasks           list to add the created tasks.
-   * @param creationHandler that manage the creation.
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   * @param change      function to modify the pattern before to store it.
+   * @param max         number maximum of tasks to create.
+   * @param tasks       list to add the created tasks.
+   *
+   * @return the future creation result.
    */
-  public void storeSomeTasks(final Vertx vertx, final VertxTestContext testContext, final Consumer<Task> change,
-      final int max, final List<Task> tasks, final Handler<AsyncResult<Void>> creationHandler) {
+  public Future<Void> storeSomeTasks(final Vertx vertx, final VertxTestContext testContext, final Consumer<Task> change,
+      final int max, final List<Task> tasks) {
 
     if (tasks.size() == max) {
 
-      creationHandler.handle(Future.succeededFuture());
+      return Future.succeededFuture();
 
     } else {
 
       final var task = new TaskTest().createModelExample(tasks.size());
       change.accept(task);
-      TasksRepository.createProxy(vertx).storeTask(task, testContext.succeeding(stored -> {
-
+      return testContext.assertComplete(TasksRepository.createProxy(vertx).storeTask(task)).compose(stored -> {
         tasks.add(stored);
-        this.storeSomeTasks(vertx, testContext, change, max, tasks, creationHandler);
-      }));
+        return this.storeSomeTasks(vertx, testContext, change, max, tasks);
+      });
     }
 
   }
@@ -548,8 +527,8 @@ public class TasksRepositoryIT {
           assertThat(search.total).isEqualTo(0);
           assertThat(search.offset).isEqualTo(0);
           final List<Task> tasks = new ArrayList<>();
-          this.storeSomeTasks(vertx, testContext, task -> task.goal.description = description, 10, tasks,
-              testContext.succeeding(empty -> {
+          this.storeSomeTasks(vertx, testContext, task -> task.goal.description = description, 10, tasks)
+              .onSuccess(empty -> {
 
                 TasksRepository.createProxy(vertx).retrieveTasksPage(query, new JsonObject(), 0, 10,
                     testContext.succeeding(search2 -> testContext.verify(() -> {
@@ -570,7 +549,7 @@ public class TasksRepositoryIT {
                           })));
 
                     })));
-              }));
+              });
         })));
 
   }
@@ -598,8 +577,8 @@ public class TasksRepositoryIT {
           assertThat(search.total).isEqualTo(0);
           assertThat(search.offset).isEqualTo(0);
           final List<Task> tasks = new ArrayList<>();
-          this.storeSomeTasks(vertx, testContext, task -> task.requesterId = requesterId, 10, tasks,
-              testContext.succeeding(empty -> {
+          this.storeSomeTasks(vertx, testContext, task -> task.requesterId = requesterId, 10, tasks)
+              .onSuccess(empty -> {
 
                 TasksRepository.createProxy(vertx).retrieveTasksPage(query, new JsonObject(), 0, 10,
                     testContext.succeeding(search2 -> testContext.verify(() -> {
@@ -620,7 +599,7 @@ public class TasksRepositoryIT {
                           })));
 
                     })));
-              }));
+              });
         })));
 
   }
@@ -648,31 +627,30 @@ public class TasksRepositoryIT {
           assertThat(search.total).isEqualTo(0);
           assertThat(search.offset).isEqualTo(0);
           final List<Task> tasks = new ArrayList<>();
-          this.storeSomeTasks(vertx, testContext, task -> task.appId = appId, 10, tasks,
-              testContext.succeeding(empty -> {
+          this.storeSomeTasks(vertx, testContext, task -> task.appId = appId, 10, tasks).onSuccess(empty -> {
 
-                TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10,
-                    testContext.succeeding(search2 -> testContext.verify(() -> {
+            TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10,
+                testContext.succeeding(search2 -> testContext.verify(() -> {
 
-                      assertThat(search2).isNotNull();
-                      assertThat(search2.total).isEqualTo(10);
-                      assertThat(search2.offset).isEqualTo(0);
-                      assertThat(search2.tasks).isEqualTo(tasks);
-                      this.storeSomeTasks(vertx, testContext, task -> {
-                      }, 10, tasks, testContext.succeeding(empty2 -> {
-                        TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 2, 5,
-                            testContext.succeeding(search3 -> testContext.verify(() -> {
+                  assertThat(search2).isNotNull();
+                  assertThat(search2.total).isEqualTo(10);
+                  assertThat(search2.offset).isEqualTo(0);
+                  assertThat(search2.tasks).isEqualTo(tasks);
+                  this.storeSomeTasks(vertx, testContext, task -> {
+                  }, 10, tasks).onSuccess(empty2 -> {
+                    TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 2, 5,
+                        testContext.succeeding(search3 -> testContext.verify(() -> {
 
-                              assertThat(search3).isNotNull();
-                              assertThat(search3.total).isEqualTo(10);
-                              assertThat(search3.offset).isEqualTo(2);
-                              assertThat(search3.tasks).isEqualTo(tasks.subList(2, 7));
-                              testContext.completeNow();
+                          assertThat(search3).isNotNull();
+                          assertThat(search3.total).isEqualTo(10);
+                          assertThat(search3.offset).isEqualTo(2);
+                          assertThat(search3.tasks).isEqualTo(tasks.subList(2, 7));
+                          testContext.completeNow();
 
-                            })));
-                      }));
-                    })));
-              }));
+                        })));
+                  });
+                })));
+          });
         })));
 
   }
@@ -700,33 +678,242 @@ public class TasksRepositoryIT {
           assertThat(search.total).isEqualTo(0);
           assertThat(search.offset).isEqualTo(0);
           final List<Task> tasks = new ArrayList<>();
-          this.storeSomeTasks(vertx, testContext, task -> task.taskTypeId = taskTypeId, 10, tasks,
-              testContext.succeeding(empty -> {
+          this.storeSomeTasks(vertx, testContext, task -> task.taskTypeId = taskTypeId, 10, tasks).onSuccess(empty -> {
 
-                TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10,
-                    testContext.succeeding(search2 -> testContext.verify(() -> {
+            TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10,
+                testContext.succeeding(search2 -> testContext.verify(() -> {
 
-                      assertThat(search2).isNotNull();
-                      assertThat(search2.total).isEqualTo(10);
-                      assertThat(search2.offset).isEqualTo(0);
-                      assertThat(search2.tasks).isEqualTo(tasks);
-                      this.storeSomeTasks(vertx, testContext, task -> {
-                      }, 10, tasks, testContext.succeeding(empty2 -> {
-                        TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 2, 5,
-                            testContext.succeeding(search3 -> testContext.verify(() -> {
+                  assertThat(search2).isNotNull();
+                  assertThat(search2.total).isEqualTo(10);
+                  assertThat(search2.offset).isEqualTo(0);
+                  assertThat(search2.tasks).isEqualTo(tasks);
+                  this.storeSomeTasks(vertx, testContext, task -> {
+                  }, 10, tasks).onSuccess(empty2 -> {
+                    TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 2, 5,
+                        testContext.succeeding(search3 -> testContext.verify(() -> {
 
-                              assertThat(search3).isNotNull();
-                              assertThat(search3.total).isEqualTo(10);
-                              assertThat(search3.offset).isEqualTo(2);
-                              assertThat(search3.tasks).isEqualTo(tasks.subList(2, 7));
-                              testContext.completeNow();
+                          assertThat(search3).isNotNull();
+                          assertThat(search3.total).isEqualTo(10);
+                          assertThat(search3.offset).isEqualTo(2);
+                          assertThat(search3.tasks).isEqualTo(tasks.subList(2, 7));
+                          testContext.completeNow();
 
-                            })));
-                      }));
-                    })));
-              }));
+                        })));
+                  });
+                })));
+          });
         })));
 
   }
 
+  /**
+   * Check can not add a transaction over an undefined task.
+   *
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   *
+   * @see TasksRepository#addTransactionIntoTask(String, TaskTransaction)
+   */
+  @Test
+  public void shouldNotAddTransactionIntoUndefinedTask(final Vertx vertx, final VertxTestContext testContext) {
+
+    testContext
+        .assertFailure(TasksRepository.createProxy(vertx).addTransactionIntoTask("undefined", new TaskTransaction()))
+        .onFailure(error -> testContext.completeNow());
+  }
+
+  /**
+   * Check can not add message over undefined task.
+   *
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   *
+   * @see TasksRepository#addMessageIntoTransaction(String, String, Message)
+   */
+  @Test
+  public void shouldNotAddMessageIntoTransactionForUndefinedTask(final Vertx vertx,
+      final VertxTestContext testContext) {
+
+    testContext
+        .assertFailure(
+            TasksRepository.createProxy(vertx).addMessageIntoTransaction("undefined", "undefined", new Message()))
+        .onFailure(error -> testContext.completeNow());
+  }
+
+  /**
+   * Check can not add message over undefined transaction.
+   *
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   *
+   * @see TasksRepository#addMessageIntoTransaction(String, String, Message)
+   */
+  @Test
+  public void shouldNotAddMessageIntoUndefinedTransaction(final Vertx vertx, final VertxTestContext testContext) {
+
+    testContext.assertComplete(TasksRepository.createProxy(vertx).storeTask(new Task())).onSuccess(stored -> {
+
+      testContext
+          .assertFailure(
+              TasksRepository.createProxy(vertx).addMessageIntoTransaction(stored.id, "undefined", new Message()))
+          .onFailure(error -> testContext.completeNow());
+
+    });
+  }
+
+  /**
+   * Check add transaction into task.
+   *
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   *
+   * @see TasksRepository#addTransactionIntoTask(String, TaskTransaction)
+   */
+  @Test
+  public void shouldAddTransactionIntoTask(final Vertx vertx, final VertxTestContext testContext) {
+
+    var future = TasksRepository.createProxy(vertx).storeTask(new Task());
+    for (var i = 0; i < 10; i++) {
+
+      final var index = i;
+      future = future.compose(task -> {
+
+        var transaction = new TaskTransactionTest().createModelExample(index);
+        transaction.id = UUID.randomUUID().toString();
+        transaction.taskId = task.id;
+        return TasksRepository.createProxy(vertx).addTransactionIntoTask(task.id, transaction).compose(stored -> {
+
+          testContext.verify(() -> {
+
+            assertThat(stored.id).isEqualTo(String.valueOf(index));
+            assertThat(stored).isNotEqualTo(transaction);
+            transaction._creationTs = stored._creationTs;
+            transaction._lastUpdateTs = stored._lastUpdateTs;
+            assertThat(stored).isNotEqualTo(transaction);
+            transaction.id = stored.id;
+            assertThat(stored).isEqualTo(transaction);
+
+          });
+          return TasksRepository.createProxy(vertx).searchTask(task.id).compose(foundTask -> {
+
+            testContext.verify(() -> {
+
+              assertThat(foundTask._lastUpdateTs).isEqualTo(stored._lastUpdateTs);
+              assertThat(foundTask.transactions).isNotEmpty().contains(stored);
+
+            });
+
+            return Future.succeededFuture(task);
+
+          });
+
+        });
+      });
+
+    }
+
+    testContext.assertComplete(future).onSuccess(done -> testContext.completeNow());
+  }
+
+  /**
+   * Check add message into task transaction.
+   *
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   *
+   * @see TasksRepository#addMessageIntoTransaction(String, String, Message)
+   */
+  @Test
+  public void shouldAddMessageIntoTransaction(final Vertx vertx, final VertxTestContext testContext) {
+
+    var exampleTask = new TaskTest().createModelExample(1);
+    var transactionId = exampleTask.transactions.get(0).id;
+    var future = TasksRepository.createProxy(vertx).storeTask(exampleTask);
+    for (var i = 0; i < 10; i++) {
+
+      final var index = i;
+      future = future.compose(task -> {
+
+        var message = new MessageTest().createModelExample(index);
+        message.appId = task.appId;
+        return TasksRepository.createProxy(vertx).addMessageIntoTransaction(task.id, transactionId, message)
+            .compose(stored -> {
+
+              testContext.verify(() -> {
+
+                assertThat(stored).isEqualTo(message);
+
+              });
+              return TasksRepository.createProxy(vertx).searchTask(task.id).compose(foundTask -> {
+
+                testContext.verify(() -> {
+
+                  assertThat(foundTask._lastUpdateTs).isEqualTo(foundTask.transactions.get(0)._lastUpdateTs)
+                      .isNotEqualTo(exampleTask._lastUpdateTs);
+                  assertThat(foundTask.transactions.get(0).messages).isNotEmpty().contains(stored);
+
+                });
+
+                return Future.succeededFuture(task);
+
+              });
+
+            });
+      });
+
+    }
+
+    testContext.assertComplete(future).onSuccess(done -> testContext.completeNow());
+  }
+
+  /**
+   * Check add transaction and message into a task.
+   *
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   *
+   * @see TasksRepository#addMessageIntoTransaction(String, String, Message)
+   */
+  @Test
+  public void shouldAddTransactionAndMessageIntoTask(final Vertx vertx, final VertxTestContext testContext) {
+
+    var task = new TaskTest().createModelExample(1);
+    task.id = null;
+    var transaction = new TaskTransactionTest().createModelExample(2);
+    transaction.id = null;
+    var message = new MessageTest().createModelExample(3);
+    var future = TasksRepository.createProxy(vertx).storeTask(task).compose(createdTask -> {
+
+      task.id = createdTask.id;
+      task._creationTs = createdTask._creationTs;
+      task._lastUpdateTs = createdTask._lastUpdateTs;
+      transaction.taskId = task.id;
+      return TasksRepository.createProxy(vertx).addTransactionIntoTask(task.id, transaction);
+
+    }).compose(addedTransaction -> {
+
+      transaction.id = addedTransaction.id;
+      transaction._creationTs = addedTransaction._creationTs;
+      transaction._lastUpdateTs = task._lastUpdateTs = addedTransaction._lastUpdateTs;
+      return TasksRepository.createProxy(vertx).addMessageIntoTransaction(task.id, transaction.id, message);
+
+    }).compose(addedMessage -> TasksRepository.createProxy(vertx).searchTask(task.id));
+
+    testContext.assertComplete(future).onSuccess(updatedTask -> testContext.verify(() -> {
+
+      assertThat(updatedTask._lastUpdateTs).isBetween(task._lastUpdateTs, task._lastUpdateTs + 1);
+      task._lastUpdateTs = updatedTask._lastUpdateTs;
+      var updatedTransaction = updatedTask.transactions.get(1);
+      assertThat(updatedTransaction._lastUpdateTs).isBetween(transaction._lastUpdateTs, transaction._lastUpdateTs + 1);
+      transaction._lastUpdateTs = updatedTransaction._lastUpdateTs;
+      assertThat(updatedTask).isNotEqualTo(task);
+      task.transactions.add(transaction);
+      assertThat(updatedTask).isNotEqualTo(task);
+      transaction.messages.add(message);
+      assertThat(updatedTask).isEqualTo(task);
+
+      testContext.completeNow();
+
+    }));
+  }
 }

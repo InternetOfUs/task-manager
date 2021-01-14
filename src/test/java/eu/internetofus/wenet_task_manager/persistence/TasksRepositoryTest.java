@@ -79,7 +79,7 @@ public class TasksRepositoryTest {
    *
    * @param testContext context that executes the test.
    *
-   * @see TasksRepository#storeTask(Task, Handler)
+   * @see TasksRepository#storeTask(Task)
    */
   @Test
   public void shouldNotStoreTaskBecauseReturnedJsonObjectIsNotRight(final VertxTestContext testContext) {
@@ -93,9 +93,7 @@ public class TasksRepositoryTest {
       }
     };
 
-    repository.storeTask(new Task(), testContext.failing(fail -> {
-      testContext.completeNow();
-    }));
+    testContext.assertFailure(repository.storeTask(new Task())).onFailure(error -> testContext.completeNow());
 
   }
 
@@ -105,7 +103,7 @@ public class TasksRepositoryTest {
    *
    * @param testContext context that executes the test.
    *
-   * @see TasksRepository#storeTask(Task, Handler)
+   * @see TasksRepository#storeTask(Task)
    */
   @Test
   public void shouldNotStoreTaskBecauseStoreFailed(final VertxTestContext testContext) {
@@ -121,9 +119,11 @@ public class TasksRepositoryTest {
 
     };
 
-    repository.storeTask(new Task(), testContext.failing(fail -> {
-      assertThat(fail).isEqualTo(cause);
+    testContext.assertFailure(repository.storeTask(new Task())).onFailure(error -> testContext.verify(() -> {
+
+      assertThat(error).isEqualTo(cause);
       testContext.completeNow();
+
     }));
 
   }

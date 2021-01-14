@@ -26,13 +26,16 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
+import eu.internetofus.common.TimeManager;
 import eu.internetofus.common.vertx.Repository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.FindOptions;
 import io.vertx.ext.mongo.MongoClient;
+import java.util.UUID;
 
 /**
  * Implementation of the {@link TasksRepository}.
@@ -149,12 +152,86 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
    */
   protected Future<Void> migrateTaskTo_0_6_0() {
 
-    final var query = createQueryToReturnDocumentsWithAVersionLessThan("0.6.0");
+    final var query = this.createQueryToReturnDocumentsWithAVersionLessThan("0.6.0");
     final var update = new JsonObject().put("$set", new JsonObject().put(SCHEMA_VERSION, "0.6.0")).put("$rename",
         new JsonObject().put("startTs", "attributes.startTs").put("endTs", "attributes.endTs").put("deadlineTs",
             "attributes.deadlineTs"));
 
     return this.updateCollection(TASKS_COLLECTION, query, update);
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addTransactionIntoTask(String taskId, JsonObject transaction, Handler<AsyncResult<JsonObject>> handler) {
+
+    var tmpId = UUID.randomUUID().toString();
+    var now = TimeManager.now();
+    transaction.put("id", tmpId).put("_creationTs", now).put("_lastUpdateTs", now);
+    var query = new JsonObject().put("_id", taskId);
+    var update = new JsonObject().put("$set", new JsonObject().put("_lastUpdateTs", now)).put("$push",
+        new JsonObject().put("transactions", transaction));
+
+    this.pool.findOneAndUpdate(TASKS_COLLECTION, query, update).compose(task -> {
+
+      if (task == null) {
+
+        return Future.failedFuture("Not found task");
+
+      } else {
+
+        var transactions = task.getJsonArray("transactions", new JsonArray());
+        var transactionId = String.valueOf(transactions.size());
+        transaction.put("id", transactionId);
+        query.put("transactions", new JsonObject().put("$elemMatch", new JsonObject().put("id", tmpId)));
+        var update2 = new JsonObject().put("$set", new JsonObject().put("transactions.$.id", transactionId));
+        return this.pool.findOneAndUpdate(TASKS_COLLECTION, query, update2).compose(task2 -> {
+
+          if (task2 == null) {
+
+            return Future.failedFuture("Not update task");
+
+          } else {
+
+            return Future.succeededFuture(transaction);
+
+          }
+
+        });
+
+      }
+
+    }).onComplete(handler);
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addMessageIntoTransaction(String taskId, String taskTransactionId, JsonObject message,
+      Handler<AsyncResult<JsonObject>> handler) {
+
+    var query = new JsonObject().put("_id", taskId).put("transactions",
+        new JsonObject().put("$elemMatch", new JsonObject().put("id", taskTransactionId)));
+    var now = TimeManager.now();
+    var update = new JsonObject().put("$push", new JsonObject().put("transactions.$.messages", message)).put("$set",
+        new JsonObject().put("_lastUpdateTs", now).put("transactions.$._lastUpdateTs", now));
+    this.pool.findOneAndUpdate(TASKS_COLLECTION, query, update).compose(task -> {
+
+      if (task == null) {
+
+        return Future.failedFuture("Not found task or transaction");
+
+      } else {
+
+        return Future.succeededFuture(message);
+
+      }
+
+    }).onComplete(handler);
 
   }
 

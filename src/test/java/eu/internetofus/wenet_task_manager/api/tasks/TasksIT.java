@@ -30,17 +30,19 @@ import static eu.internetofus.common.vertx.HttpResponses.assertThatBodyIs;
 import static eu.internetofus.common.vertx.ext.TestRequest.queryParam;
 import static eu.internetofus.common.vertx.ext.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThat;
 
 import eu.internetofus.common.components.ErrorMessage;
 import eu.internetofus.common.components.StoreServices;
 import eu.internetofus.common.components.profile_manager.WeNetUserProfile;
 import eu.internetofus.common.components.service.App;
+import eu.internetofus.common.components.service.Message;
+import eu.internetofus.common.components.service.MessageTest;
 import eu.internetofus.common.components.service.WeNetServiceSimulator;
 import eu.internetofus.common.components.task_manager.Task;
 import eu.internetofus.common.components.task_manager.TaskTest;
 import eu.internetofus.common.components.task_manager.TaskTransaction;
 import eu.internetofus.common.components.task_manager.TaskTransactionTest;
+import eu.internetofus.common.components.task_manager.WeNetTaskManager;
 import eu.internetofus.common.vertx.AbstractModelResourcesIT;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import io.vertx.core.Future;
@@ -50,6 +52,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.VertxTestContext;
+import java.util.ArrayList;
 import java.util.UUID;
 import javax.ws.rs.core.Response.Status;
 import org.junit.jupiter.api.Test;
@@ -1105,6 +1108,205 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
             }));
       });
 
+    });
+  }
+
+  /**
+   * Should not add a transaction into an undefined task.
+   *
+   * @param vertx       event bus to use.
+   * @param client      to connect to the server.
+   * @param testContext context to test.
+   */
+  @Test
+  public void shouldNoAddTransactionIntoUndefinedTask(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
+
+    var transaction = new TaskTransaction();
+    transaction.label = "action";
+    testRequest(client, HttpMethod.POST, Tasks.PATH + "/undefined/transactions").expect(res -> {
+
+      assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+      final var error = assertThatBodyIs(ErrorMessage.class, res);
+      assertThat(error.code).isNotEmpty();
+      assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
+
+    }).sendJson(transaction.toJsonObject(), testContext);
+
+  }
+
+  /**
+   * Should not add a bad transaction into a task.
+   *
+   * @param vertx       event bus to use.
+   * @param client      to connect to the server.
+   * @param testContext context to test.
+   */
+  @Test
+  public void shouldNoAddBadTransactionIntoTask(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
+
+    StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
+
+      testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + task.id + "/transactions").expect(res -> {
+
+        assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+        final var error = assertThatBodyIs(ErrorMessage.class, res);
+        assertThat(error.code).isNotEmpty();
+        assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
+
+      }).sendJson(new JsonObject().put("bad", "field"), testContext);
+
+    });
+  }
+
+  /**
+   * Should not add a transaction into a task that not match.
+   *
+   * @param vertx       event bus to use.
+   * @param client      to connect to the server.
+   * @param testContext context to test.
+   */
+  @Test
+  public void shouldNotAddTransactionIntoTaskThatNotMatch(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
+
+    StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
+
+      var transaction = new TaskTransaction();
+      transaction.taskId = "undefined";
+      transaction.label = "action";
+      testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + task.id + "/transactions").expect(res -> {
+
+        assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+        final var error = assertThatBodyIs(ErrorMessage.class, res);
+        assertThat(error.code).isNotEmpty();
+        assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
+
+      }).sendJson(transaction.toJsonObject(), testContext);
+
+    });
+  }
+
+  /**
+   * Should add a transaction into a task.
+   *
+   * @param vertx       event bus to use.
+   * @param client      to connect to the server.
+   * @param testContext context to test.
+   */
+  @Test
+  public void shouldAddTransactionIntoTask(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
+
+    StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
+
+      var transaction = new TaskTransaction();
+      transaction.label = "action";
+      testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + task.id + "/transactions").expect(res -> {
+
+        assertThat(res.statusCode()).isEqualTo(Status.CREATED.getStatusCode());
+        final var transaction2 = assertThatBodyIs(TaskTransaction.class, res);
+        assertThat(transaction2.taskId).isEqualTo(task.id);
+        assertThat(transaction2.id).isEqualTo(String.valueOf(0));
+
+      }).sendJson(transaction.toJsonObject(), testContext);
+
+    });
+  }
+
+  /**
+   * Should not add a message into a transaction of an undefined task.
+   *
+   * @param vertx       event bus to use.
+   * @param client      to connect to the server.
+   * @param testContext context to test.
+   */
+  @Test
+  public void shouldNoAddMessageIntoTransactionForAnUndefinedTask(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
+
+    new MessageTest().createModelExample(2, vertx, testContext).onSuccess(message -> {
+
+      testRequest(client, HttpMethod.POST, Tasks.PATH + "/undefined/transactions/undefined/messages").expect(res -> {
+
+        assertThat(res.statusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
+        final var error = assertThatBodyIs(ErrorMessage.class, res);
+        assertThat(error.code).isNotEmpty();
+        assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
+
+      }).sendJson(message.toJsonObject(), testContext);
+
+    });
+
+  }
+
+  /**
+   * Should not add a message into an undefined transaction.
+   *
+   * @param vertx       event bus to use.
+   * @param client      to connect to the server.
+   * @param testContext context to test.
+   */
+  @Test
+  public void shouldNotAddMessageIntoUndefinedTransaction(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
+
+    StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
+
+      var message = new MessageTest().createModelExample(3);
+      message.appId = task.appId;
+      message.receiverId = task.requesterId;
+
+      testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + task.id + "/transactions/undefined/messages")
+          .expect(res -> {
+
+            assertThat(res.statusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
+            final var error = assertThatBodyIs(ErrorMessage.class, res);
+            assertThat(error.code).isNotEmpty();
+            assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
+
+          }).sendJson(message.toJsonObject(), testContext);
+
+    });
+  }
+
+  /**
+   * Should add a message into a transaction.
+   *
+   * @param vertx       event bus to use.
+   * @param client      to connect to the server.
+   * @param testContext context to test.
+   */
+  @Test
+  public void shouldAddMessageIntoTransaction(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
+
+    StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
+
+      var transaction = new TaskTransaction();
+      transaction.id = UUID.randomUUID().toString();
+      transaction.label = "action";
+      transaction.actioneerId = task.requesterId;
+      transaction.taskId = task.id;
+      task.transactions = new ArrayList<>();
+      task.transactions.add(transaction);
+      testContext.assertComplete(WeNetTaskManager.createProxy(vertx).updateTask(task.id, task))
+          .onSuccess(updatedTask -> {
+
+            var message = new MessageTest().createModelExample(3);
+            message.appId = task.appId;
+            message.receiverId = task.requesterId;
+
+            testRequest(client, HttpMethod.POST,
+                Tasks.PATH + "/" + task.id + "/transactions/" + transaction.id + "/messages").expect(res -> {
+
+                  assertThat(res.statusCode()).isEqualTo(Status.CREATED.getStatusCode());
+                  final var message2 = assertThatBodyIs(Message.class, res);
+                  assertThat(message2).isEqualTo(message);
+
+                }).sendJson(message.toJsonObject(), testContext);
+          });
     });
   }
 

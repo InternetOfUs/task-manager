@@ -77,20 +77,20 @@ public interface Tasks {
   String ADDRESS = "wenet_task_manager.api.tasks";
 
   /**
-   * The sub path to retrieve a task.
-   */
-  String TASK_ID_PATH = "/{taskId}";
-
-  /**
    * The path to the task transactions resource.
    */
   String TRANSACTIONS_PATH = "/transactions";
 
   /**
+   * The path to the task messages resource.
+   */
+  String MESSAGES_PATH = "/messages";
+
+  /**
    * Called when want to create a task.
    *
    * @param body          the new task to create.
-   * @param context       of the request.
+   * @param request       of the query.
    * @param resultHandler to inform of the response.
    */
   @POST
@@ -101,25 +101,25 @@ public interface Tasks {
   @ApiResponse(responseCode = "200", description = "The created task", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/5c28427ce0c05596ef9001ffa8a08f8eb125611f/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
   @ApiResponse(responseCode = "400", description = "Bad task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   void createTask(@Parameter(hidden = true, required = false) JsonObject body,
-      @Parameter(hidden = true, required = false) ServiceRequest context,
+      @Parameter(hidden = true, required = false) ServiceRequest request,
       @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
 
   /**
    * Called when want to get a task.
    *
    * @param taskId        identifier of the task to get.
-   * @param context       of the request.
+   * @param request       of the query.
    * @param resultHandler to inform of the response.
    */
   @GET
-  @Path(TASK_ID_PATH)
+  @Path("/{taskId}")
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(summary = "Return a task", description = "Allow to get a task with an specific identifier")
   @ApiResponse(responseCode = "200", description = "The task associated to the identifier", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/5c28427ce0c05596ef9001ffa8a08f8eb125611f/sources/wenet-models-openapi.yaml#/components/schemas/Task")))
   @ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   void retrieveTask(
       @PathParam("taskId") @Parameter(description = "The identifier of the task to get", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskId,
-      @Parameter(hidden = true, required = false) ServiceRequest context,
+      @Parameter(hidden = true, required = false) ServiceRequest request,
       @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
 
   /**
@@ -144,7 +144,7 @@ public interface Tasks {
    * @param order           of the tasks to return.
    * @param offset          index of the first task to return.
    * @param limit           number maximum of tasks to return.
-   * @param context         of the request.
+   * @param request         of the query.
    * @param resultHandler   to inform of the response.
    */
   @GET
@@ -168,7 +168,7 @@ public interface Tasks {
       @QueryParam(value = "order") @Parameter(description = "The order in witch the task has to be returned. For each field it has be separated by a ',' and each field can start with '+' (or without it) to order on ascending order, or with the prefix '-' to do on descendant order.", example = "goal.name,-goal.description,+appId", required = false, style = ParameterStyle.FORM, explode = Explode.FALSE) String order,
       @DefaultValue("0") @QueryParam(value = "offset") @Parameter(description = "The index of the first task to return.", example = "4", required = false) int offset,
       @DefaultValue("10") @QueryParam(value = "limit") @Parameter(description = "The number maximum of tasks to return", example = "100", required = false) int limit,
-      @Parameter(hidden = true, required = false) ServiceRequest context,
+      @Parameter(hidden = true, required = false) ServiceRequest request,
       @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
 
   /**
@@ -176,11 +176,11 @@ public interface Tasks {
    *
    * @param taskId        identifier of the task to modify.
    * @param body          the new task attributes.
-   * @param context       of the request.
+   * @param request       of the query.
    * @param resultHandler to inform of the response.
    */
   @PUT
-  @Path(TASK_ID_PATH)
+  @Path("/{taskId}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(summary = "Modify a task", description = "Change a task")
@@ -191,7 +191,7 @@ public interface Tasks {
   void updateTask(
       @PathParam("taskId") @Parameter(description = "The identifier of the task to update", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskId,
       @Parameter(hidden = true, required = false) JsonObject body,
-      @Parameter(hidden = true, required = false) ServiceRequest context,
+      @Parameter(hidden = true, required = false) ServiceRequest request,
       @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
 
   /**
@@ -199,11 +199,11 @@ public interface Tasks {
    *
    * @param taskId        identifier of the task to modify.
    * @param body          the new task attributes.
-   * @param context       of the request.
+   * @param request       of the query.
    * @param resultHandler to inform of the response.
    */
   @PATCH
-  @Path(TASK_ID_PATH)
+  @Path("/{taskId}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(summary = "Modify partially a task", description = "Change some attributes of a task")
@@ -214,31 +214,31 @@ public interface Tasks {
   void mergeTask(
       @PathParam("taskId") @Parameter(description = "The identifier of the task to merge", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskId,
       @Parameter(hidden = true, required = false) JsonObject body,
-      @Parameter(hidden = true, required = false) ServiceRequest context,
+      @Parameter(hidden = true, required = false) ServiceRequest request,
       @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
 
   /**
    * Called when want to delete a task.
    *
    * @param taskId        identifier of the task to delete.
-   * @param context       of the request.
+   * @param request       of the query.
    * @param resultHandler to inform of the response.
    */
   @DELETE
-  @Path(TASK_ID_PATH)
+  @Path("/{taskId}")
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(summary = "Delete the task associated to the identifier", description = "Allow to delete a task associated to an identifier")
   @ApiResponse(responseCode = "204", description = "The task was deleted successfully")
   @ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   void deleteTask(@PathParam("taskId") @Parameter(description = "The identifier of the task to delete") String taskId,
-      @Parameter(hidden = true, required = false) ServiceRequest context,
+      @Parameter(hidden = true, required = false) ServiceRequest request,
       @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
 
   /**
    * Called when want to do a transaction over a task.
    *
    * @param body          the new task transaction to do.
-   * @param context       of the request.
+   * @param request       of the query.
    * @param resultHandler to inform of the response.
    */
   @Tag(name = "Task Transactions")
@@ -251,7 +251,58 @@ public interface Tasks {
   @ApiResponse(responseCode = "200", description = "The started task transaction", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/5c28427ce0c05596ef9001ffa8a08f8eb125611f/sources/wenet-models-openapi.yaml#/components/schemas/TaskTransaction")))
   @ApiResponse(responseCode = "400", description = "Bad task transaction", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   void doTaskTransaction(@Parameter(hidden = true, required = false) JsonObject body,
-      @Parameter(hidden = true, required = false) ServiceRequest context,
+      @Parameter(hidden = true, required = false) ServiceRequest request,
+      @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
+
+  /**
+   * Add a task transaction into a task.
+   *
+   * @param taskId        identifier of the task to add the transaction.
+   * @param body          the task transaction to add.
+   * @param request       of the query.
+   * @param resultHandler to inform of the response.
+   */
+  @Tag(name = "Task Transactions")
+  @POST
+  @Path("/{taskId}" + TRANSACTIONS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(summary = "Add a transaction into a task", description = "Called to add a transaction into a task")
+  @RequestBody(description = "The task transaction to add", required = true, content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/5c28427ce0c05596ef9001ffa8a08f8eb125611f/sources/wenet-models-openapi.yaml#/components/schemas/TaskTransaction")))
+  @ApiResponse(responseCode = "201", description = "The added task transaction", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/5c28427ce0c05596ef9001ffa8a08f8eb125611f/sources/wenet-models-openapi.yaml#/components/schemas/TaskTransaction")))
+  @ApiResponse(responseCode = "400", description = "Bad task transaction", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @ApiResponse(responseCode = "404", description = "Not found task to add the transaction", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  void addTransactionIntoTask(
+      @PathParam("taskId") @Parameter(description = "The identifier of the task to add the transaction") String taskId,
+      @Parameter(hidden = true, required = false) JsonObject body,
+      @Parameter(hidden = true, required = false) ServiceRequest request,
+      @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
+
+  /**
+   * Add a message into task transaction.
+   *
+   * @param taskId            identifier of the task where is the transaction.
+   * @param taskTransactionId identifier of the task transaction to add the
+   *                          message.
+   * @param body              the message to add.
+   * @param request           of the query.
+   * @param resultHandler     to inform of the response.
+   */
+  @Tag(name = "Task Transactions")
+  @POST
+  @Path("/{taskId}" + TRANSACTIONS_PATH + "/{taskTransactionId}" + MESSAGES_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(summary = "Add a message into a transaction", description = "Called to add a message into a transaction")
+  @RequestBody(description = "The message to add", required = true, content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/5c28427ce0c05596ef9001ffa8a08f8eb125611f/sources/wenet-models-openapi.yaml#/components/schemas/Message")))
+  @ApiResponse(responseCode = "201", description = "The added message", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/5c28427ce0c05596ef9001ffa8a08f8eb125611f/sources/wenet-models-openapi.yaml#/components/schemas/Message")))
+  @ApiResponse(responseCode = "400", description = "Bad message", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @ApiResponse(responseCode = "404", description = "Not found task or transaction", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  void addMessageIntoTransaction(
+      @PathParam("taskId") @Parameter(description = "The identifier of the task where is the transaction") String taskId,
+      @PathParam("taskTransactionId") @Parameter(description = "The identifier of the transaction to add the message") String taskTransactionId,
+      @Parameter(hidden = true, required = false) JsonObject body,
+      @Parameter(hidden = true, required = false) ServiceRequest request,
       @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
 
 }

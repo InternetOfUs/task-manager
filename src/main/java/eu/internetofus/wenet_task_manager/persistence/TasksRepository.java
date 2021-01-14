@@ -27,7 +27,9 @@
 package eu.internetofus.wenet_task_manager.persistence;
 
 import eu.internetofus.common.components.Model;
+import eu.internetofus.common.components.service.Message;
 import eu.internetofus.common.components.task_manager.Task;
+import eu.internetofus.common.components.task_manager.TaskTransaction;
 import eu.internetofus.common.vertx.QueryBuilder;
 import eu.internetofus.wenet_task_manager.api.tasks.TasksPage;
 import io.vertx.codegen.annotations.GenIgnore;
@@ -110,40 +112,24 @@ public interface TasksRepository {
   /**
    * Store a task.
    *
-   * @param task         to store.
-   * @param storeHandler handler to manage the store.
+   * @param task to store.
+   *
+   * @return the future stored task.
    */
   @GenIgnore
-  default void storeTask(final Task task, final Handler<AsyncResult<Task>> storeHandler) {
+  default Future<Task> storeTask(final Task task) {
 
-    final var object = task.toJsonObject();
-    if (object == null) {
+    if (task == null) {
 
-      storeHandler.handle(Future.failedFuture("The task can not converted to JSON."));
+      return Future.failedFuture("The task can not converted to JSON.");
 
     } else {
 
-      this.storeTask(object, stored -> {
-        if (stored.failed()) {
-
-          storeHandler.handle(Future.failedFuture(stored.cause()));
-
-        } else {
-
-          final var value = stored.result();
-          final var storedTask = Model.fromJsonObject(value, Task.class);
-          if (storedTask == null) {
-
-            storeHandler.handle(Future.failedFuture("The stored task is not valid."));
-
-          } else {
-
-            storeHandler.handle(Future.succeededFuture(storedTask));
-          }
-
-        }
-      });
+      Promise<JsonObject> promise = Promise.promise();
+      this.storeTask(task.toJsonObject(), promise);
+      return Model.fromFutureJsonObject(promise.future(), Task.class);
     }
+
   }
 
   /**
@@ -276,5 +262,60 @@ public interface TasksRepository {
    */
   void retrieveTasksPageObject(JsonObject query, JsonObject order, int offset, int limit,
       Handler<AsyncResult<JsonObject>> searchHandler);
+
+  /**
+   * Called to add a transaction into a task.
+   *
+   * @param taskId      identifier of the task to add the transaction.
+   * @param transaction to add.
+   *
+   * @return the added task transaction.
+   */
+  @GenIgnore
+  default Future<TaskTransaction> addTransactionIntoTask(String taskId, TaskTransaction transaction) {
+
+    Promise<JsonObject> promise = Promise.promise();
+    this.addTransactionIntoTask(taskId, transaction.toJsonObject(), promise);
+    return Model.fromFutureJsonObject(promise.future(), TaskTransaction.class);
+
+  }
+
+  /**
+   * Called to add a transaction into a task.
+   *
+   * @param taskId      identifier of the task to add the transaction.
+   * @param transaction to add.
+   * @param handler     to manage the add result.
+   */
+  void addTransactionIntoTask(String taskId, JsonObject transaction, Handler<AsyncResult<JsonObject>> handler);
+
+  /**
+   * Called to add a message into a transaction.
+   *
+   * @param taskId            identifier of the task where is the transaction.
+   * @param taskTransactionId identifier of the transaction to add the message.
+   * @param message           to add.
+   *
+   * @return the added task transaction.
+   */
+  @GenIgnore
+  default Future<Message> addMessageIntoTransaction(String taskId, String taskTransactionId, Message message) {
+
+    Promise<JsonObject> promise = Promise.promise();
+    this.addMessageIntoTransaction(taskId, taskTransactionId, message.toJsonObject(), promise);
+    return Model.fromFutureJsonObject(promise.future(), Message.class);
+
+  }
+
+  /**
+   * Called to add a message into a transaction.
+   *
+   * @param taskId            identifier of the task where is the transaction.
+   * @param taskTransactionId identifier of the transaction to add the message.
+   * @param message           to add.
+   * @param handler           to manage the add result.
+   */
+  void addMessageIntoTransaction(String taskId, String taskTransactionId, JsonObject message,
+      Handler<AsyncResult<JsonObject>> handler);
 
 }
