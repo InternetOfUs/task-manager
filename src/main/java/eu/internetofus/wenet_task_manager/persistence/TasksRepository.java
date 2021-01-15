@@ -143,20 +143,23 @@ public interface TasksRepository {
   /**
    * Update a task.
    *
-   * @param task          to update.
-   * @param updateHandler handler to manage the update.
+   * @param task to update.
+   *
+   * @return the future update result.
    */
   @GenIgnore
-  default void updateTask(final Task task, final Handler<AsyncResult<Void>> updateHandler) {
+  default Future<Void> updateTask(final Task task) {
 
     final var object = task.toJsonObjectWithEmptyValues();
     if (object == null) {
 
-      updateHandler.handle(Future.failedFuture("The task can not converted to JSON."));
+      return Future.failedFuture("The task can not converted to JSON.");
 
     } else {
 
-      this.updateTask(object, updateHandler);
+      Promise<Void> promise = Promise.promise();
+      this.updateTask(object, promise);
+      return promise.future();
     }
 
   }
@@ -168,6 +171,22 @@ public interface TasksRepository {
    * @param updateHandler handler to manage the update result.
    */
   void updateTask(JsonObject task, Handler<AsyncResult<Void>> updateHandler);
+
+  /**
+   * Delete a task.
+   *
+   * @param id identifier of the task to delete.
+   *
+   * @return the future delete result.
+   */
+  @GenIgnore
+  default Future<Void> deleteTask(String id) {
+
+    Promise<Void> promise = Promise.promise();
+    this.deleteTask(id, promise);
+    return promise.future();
+
+  }
 
   /**
    * Delete a task.

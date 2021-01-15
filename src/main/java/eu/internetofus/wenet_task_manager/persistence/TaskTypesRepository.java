@@ -80,7 +80,7 @@ public interface TaskTypesRepository {
    */
   static Future<Void> register(final Vertx vertx, final MongoClient pool, final String version) {
 
-    final var repository = new TaskTypesRepositoryImpl(pool, version);
+    final var repository = new TaskTypesRepositoryImpl(vertx, pool, version);
     new ServiceBinder(vertx).setAddress(TaskTypesRepository.ADDRESS).register(TaskTypesRepository.class, repository);
     return repository.migrateDocumentsToCurrentVersions();
 
@@ -113,39 +113,24 @@ public interface TaskTypesRepository {
   /**
    * Store a task type.
    *
-   * @param taskType     to store.
-   * @param storeHandler handler to manage the store.
+   * @param taskType to store.
+   *
+   * @return the future stored task type.
    */
   @GenIgnore
-  default void storeTaskType(final TaskType taskType, final Handler<AsyncResult<TaskType>> storeHandler) {
+  default Future<TaskType> storeTaskType(final TaskType taskType) {
 
     final var object = taskType.toJsonObject();
     if (object == null) {
 
-      storeHandler.handle(Future.failedFuture("The taskType can not converted to JSON."));
+      return Future.failedFuture("The task type can not converted to JSON.");
 
     } else {
 
-      this.storeTaskType(object, stored -> {
-        if (stored.failed()) {
+      Promise<JsonObject> promise = Promise.promise();
+      this.storeTaskType(object, promise);
+      return Model.fromFutureJsonObject(promise.future(), TaskType.class);
 
-          storeHandler.handle(Future.failedFuture(stored.cause()));
-
-        } else {
-
-          final var value = stored.result();
-          final var storedTaskType = Model.fromJsonObject(value, TaskType.class);
-          if (storedTaskType == null) {
-
-            storeHandler.handle(Future.failedFuture("The stored taskType is not valid."));
-
-          } else {
-
-            storeHandler.handle(Future.succeededFuture(storedTaskType));
-          }
-
-        }
-      });
     }
   }
 
@@ -160,20 +145,23 @@ public interface TaskTypesRepository {
   /**
    * Update a task type.
    *
-   * @param taskType      to update.
-   * @param updateHandler handler to manage the update.
+   * @param taskType to update.
+   *
+   * @return the future update result.
    */
   @GenIgnore
-  default void updateTaskType(final TaskType taskType, final Handler<AsyncResult<Void>> updateHandler) {
+  default Future<Void> updateTaskType(final TaskType taskType) {
 
     final var object = taskType.toJsonObjectWithEmptyValues();
     if (object == null) {
 
-      updateHandler.handle(Future.failedFuture("The taskType can not converted to JSON."));
+      return Future.failedFuture("The taskType can not converted to JSON.");
 
     } else {
 
-      this.updateTaskType(object, updateHandler);
+      Promise<Void> promise = Promise.promise();
+      this.updateTaskType(object, promise);
+      return promise.future();
     }
 
   }
@@ -185,6 +173,22 @@ public interface TaskTypesRepository {
    * @param updateHandler handler to manage the update result.
    */
   void updateTaskType(JsonObject taskType, Handler<AsyncResult<Void>> updateHandler);
+
+  /**
+   * Delete a task type.
+   *
+   * @param id identifier of the task type to delete.
+   *
+   * @return the future delete result.
+   */
+  @GenIgnore
+  default Future<Void> deleteTaskType(String id) {
+
+    Promise<Void> promise = Promise.promise();
+    this.deleteTaskType(id, promise);
+    return promise.future();
+
+  }
 
   /**
    * Delete a task type.

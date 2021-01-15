@@ -149,7 +149,7 @@ public class TasksRepositoryTest {
       }
     };
 
-    repository.updateTask(new Task(), testContext.failing(fail -> {
+    testContext.assertFailure(repository.updateTask(new Task())).onFailure(fail -> testContext.verify(() -> {
 
       assertThat(fail).isEqualTo(cause);
       testContext.completeNow();

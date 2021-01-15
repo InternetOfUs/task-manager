@@ -30,9 +30,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import eu.internetofus.common.components.task_manager.TaskType;
 import eu.internetofus.common.components.task_manager.TaskTypeTest;
+import eu.internetofus.common.components.task_manager.WeNetTaskManager;
 import eu.internetofus.common.vertx.ModelsPageContext;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -42,7 +42,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -102,7 +102,7 @@ public class TaskTypesRepositoryIT {
   public void shouldFoundTaskType(final Vertx vertx, final VertxTestContext testContext) {
 
     final var repository = TaskTypesRepository.createProxy(vertx);
-    repository.storeTaskType(new TaskType(), testContext.succeeding(storedTaskType -> {
+    testContext.assertComplete(repository.storeTaskType(new TaskType()).onSuccess(storedTaskType -> {
 
       testContext.assertComplete(repository.searchTaskType(storedTaskType.id))
           .onSuccess(foundTaskType -> testContext.verify(() -> {
@@ -144,7 +144,7 @@ public class TaskTypesRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TaskTypesRepository#storeTaskType(TaskType, Handler)
+   * @see TaskTypesRepository#storeTaskType(TaskType)
    */
   @Test
   public void shouldNotStoreATaskTypeThatCanNotBeAnObject(final Vertx vertx, final VertxTestContext testContext) {
@@ -161,9 +161,8 @@ public class TaskTypesRepositoryIT {
       }
     };
     taskType.id = "undefined taskType identifier";
-    TaskTypesRepository.createProxy(vertx).storeTaskType(taskType, testContext.failing(failed -> {
-      testContext.completeNow();
-    }));
+    testContext.assertFailure(TaskTypesRepository.createProxy(vertx).storeTaskType(taskType))
+        .onFailure(failed -> testContext.completeNow());
 
   }
 
@@ -173,7 +172,7 @@ public class TaskTypesRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TaskTypesRepository#storeTaskType(TaskType, Handler)
+   * @see TaskTypesRepository#storeTaskType(TaskType)
    */
   @Test
   public void shouldStoreTaskType(final Vertx vertx, final VertxTestContext testContext) {
@@ -181,15 +180,15 @@ public class TaskTypesRepositoryIT {
     final var taskType = new TaskType();
     taskType._creationTs = 0;
     taskType._lastUpdateTs = 1;
-    TaskTypesRepository.createProxy(vertx).storeTaskType(taskType,
-        testContext.succeeding(storedTaskType -> testContext.verify(() -> {
+    testContext.assertComplete(TaskTypesRepository.createProxy(vertx).storeTaskType(taskType))
+        .onSuccess(storedTaskType -> testContext.verify(() -> {
 
           assertThat(storedTaskType).isNotNull();
           assertThat(storedTaskType.id).isNotEmpty();
           assertThat(storedTaskType._creationTs).isEqualTo(0);
           assertThat(storedTaskType._lastUpdateTs).isEqualTo(1);
           testContext.completeNow();
-        })));
+        }));
 
   }
 
@@ -199,7 +198,7 @@ public class TaskTypesRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TaskTypesRepository#storeTaskType(TaskType, Handler)
+   * @see TaskTypesRepository#storeTaskType(TaskType)
    */
   @Test
   public void shouldStoreTaskTypeWithAnId(final Vertx vertx, final VertxTestContext testContext) {
@@ -209,14 +208,14 @@ public class TaskTypesRepositoryIT {
     taskType.id = id;
     taskType._creationTs = 1;
     taskType._lastUpdateTs = 2;
-    TaskTypesRepository.createProxy(vertx).storeTaskType(taskType,
-        testContext.succeeding(storedTaskType -> testContext.verify(() -> {
+    testContext.assertComplete(TaskTypesRepository.createProxy(vertx).storeTaskType(taskType))
+        .onSuccess(storedTaskType -> testContext.verify(() -> {
 
           assertThat(storedTaskType.id).isEqualTo(id);
           assertThat(storedTaskType._creationTs).isEqualTo(1);
           assertThat(storedTaskType._lastUpdateTs).isEqualTo(2);
           testContext.completeNow();
-        })));
+        }));
 
   }
 
@@ -226,7 +225,7 @@ public class TaskTypesRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TaskTypesRepository#storeTaskType(TaskType, Handler)
+   * @see TaskTypesRepository#storeTaskType(TaskType)
    */
   @Test
   public void shouldNotStoreTwoTaskTypeWithTheSameId(final Vertx vertx, final VertxTestContext testContext) {
@@ -235,11 +234,8 @@ public class TaskTypesRepositoryIT {
     final var taskType = new TaskType();
     taskType.id = id;
     final var repository = TaskTypesRepository.createProxy(vertx);
-    repository.storeTaskType(taskType, testContext.succeeding(storedTaskType -> testContext.verify(() -> {
-
-      repository.storeTaskType(taskType, testContext.failing(error -> testContext.completeNow()));
-
-    })));
+    testContext.assertComplete(repository.storeTaskType(taskType)).onSuccess(storedTaskType -> testContext
+        .assertFailure(repository.storeTaskType(taskType)).onFailure(error -> testContext.completeNow()));
 
   }
 
@@ -249,7 +245,7 @@ public class TaskTypesRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TaskTypesRepository#storeTaskType(TaskType, Handler)
+   * @see TaskTypesRepository#storeTaskType(JsonObject, Handler)
    */
   @Test
   public void shouldStoreTaskTypeObject(final Vertx vertx, final VertxTestContext testContext) {
@@ -273,16 +269,15 @@ public class TaskTypesRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TaskTypesRepository#updateTaskType(TaskType, io.vertx.core.Handler)
+   * @see TaskTypesRepository#updateTaskType(TaskType)
    */
   @Test
   public void shouldNotUpdateUndefinedTaskType(final Vertx vertx, final VertxTestContext testContext) {
 
     final var taskType = new TaskType();
     taskType.id = "undefined taskType identifier";
-    TaskTypesRepository.createProxy(vertx).updateTaskType(taskType, testContext.failing(failed -> {
-      testContext.completeNow();
-    }));
+    testContext.assertFailure(TaskTypesRepository.createProxy(vertx).updateTaskType(taskType))
+        .onFailure(failed -> testContext.completeNow());
 
   }
 
@@ -310,7 +305,7 @@ public class TaskTypesRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TaskTypesRepository#updateTaskType(TaskType, io.vertx.core.Handler)
+   * @see TaskTypesRepository#updateTaskType(TaskType)
    */
   @Test
   public void shouldNotUpdateATaskTypeThatCanNotBeAnObject(final Vertx vertx, final VertxTestContext testContext) {
@@ -327,9 +322,8 @@ public class TaskTypesRepositoryIT {
       }
     };
     taskType.id = "undefined taskType identifier";
-    TaskTypesRepository.createProxy(vertx).updateTaskType(taskType, testContext.failing(failed -> {
-      testContext.completeNow();
-    }));
+    testContext.assertFailure(TaskTypesRepository.createProxy(vertx).updateTaskType(taskType))
+        .onFailure(failed -> testContext.completeNow());
 
   }
 
@@ -339,7 +333,7 @@ public class TaskTypesRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TaskTypesRepository#updateTaskType(TaskType, io.vertx.core.Handler)
+   * @see TaskTypesRepository#updateTaskType(TaskType)
    */
   @Test
   public void shouldUpdateTaskType(final Vertx vertx, final VertxTestContext testContext) {
@@ -347,29 +341,28 @@ public class TaskTypesRepositoryIT {
     final var taskType = new TaskType();
     taskType.name = "NEW NAME";
     final var repository = TaskTypesRepository.createProxy(vertx);
-    repository.storeTaskType(taskType, testContext.succeeding(stored -> testContext.verify(() -> {
+    testContext.assertComplete(repository.storeTaskType(taskType)).onSuccess(stored -> {
 
       final var update = new TaskTypeTest().createModelExample(23);
       update.id = stored.id;
       update._creationTs = stored._creationTs;
       update._lastUpdateTs = 1;
-      repository.updateTaskType(update, testContext.succeeding(empty -> testContext.verify(() -> {
 
-        testContext.assertComplete(repository.searchTaskType(stored.id))
-            .onSuccess(foundTaskType -> testContext.verify(() -> {
+      testContext
+          .assertComplete(repository.updateTaskType(update).compose(empty -> repository.searchTaskType(stored.id)))
+          .onSuccess(foundTaskType -> testContext.verify(() -> {
 
-              assertThat(stored).isNotNull();
-              assertThat(foundTaskType.id).isNotEmpty().isEqualTo(stored.id);
-              assertThat(foundTaskType._creationTs).isEqualTo(stored._creationTs);
-              assertThat(foundTaskType._lastUpdateTs).isEqualTo(1);
-              update._lastUpdateTs = foundTaskType._lastUpdateTs;
-              assertThat(foundTaskType).isEqualTo(update);
-              testContext.completeNow();
-            }));
-      })));
+            assertThat(stored).isNotNull();
+            assertThat(foundTaskType.id).isNotEmpty().isEqualTo(stored.id);
+            assertThat(foundTaskType._creationTs).isEqualTo(stored._creationTs);
+            assertThat(foundTaskType._lastUpdateTs).isEqualTo(1);
+            update._lastUpdateTs = foundTaskType._lastUpdateTs;
+            assertThat(foundTaskType).isEqualTo(update);
+            testContext.completeNow();
 
-    })));
+          }));
 
+    });
   }
 
   /**
@@ -457,32 +450,34 @@ public class TaskTypesRepositoryIT {
   /**
    * Create some {@link TaskTypeTest#createModelExample(int)}.
    *
-   * @param vertx           event bus to use.
-   * @param testContext     context that executes the test.
-   * @param change          function to modify the pattern before to store it.
-   * @param max             number maximum of taskTypes to create.
-   * @param taskTypes       list to add the created taskTypes.
-   * @param creationHandler that manage the creation.
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   * @param change      function to modify the pattern before to store it.
+   * @param max         number maximum of taskTypes to create.
+   *
+   * @return the future created task typea.
    */
-  public static void storeSomeTaskTypes(final Vertx vertx, final VertxTestContext testContext,
-      final Consumer<TaskType> change, final int max, final List<TaskType> taskTypes,
-      final Handler<AsyncResult<Void>> creationHandler) {
+  public static Future<List<TaskType>> assertStoreSomeTaskTypes(final Vertx vertx, final VertxTestContext testContext,
+      final BiConsumer<Integer, TaskType> change, final int max) {
 
-    if (taskTypes.size() == max) {
+    Future<List<TaskType>> future = Future.succeededFuture(new ArrayList<TaskType>());
+    for (var i = 0; i < max; i++) {
 
-      creationHandler.handle(Future.succeededFuture());
-
-    } else {
-
-      final var taskType = new TaskTypeTest().createModelExample(taskTypes.size());
+      final var taskType = new TaskTypeTest().createModelExample(i);
+      change.accept(i, taskType);
       taskType.id = null;
-      change.accept(taskType);
-      TaskTypesRepository.createProxy(vertx).storeTaskType(taskType, testContext.succeeding(stored -> {
+      future = future.compose(taskTypes -> {
 
-        taskTypes.add(stored);
-        storeSomeTaskTypes(vertx, testContext, change, max, taskTypes, creationHandler);
-      }));
+        return TaskTypesRepository.createProxy(vertx).storeTaskType(taskType).compose(stored -> {
+
+          taskTypes.add(stored);
+          return Future.succeededFuture(taskTypes);
+        });
+      });
+
     }
+
+    return testContext.assertComplete(future);
 
   }
 
@@ -508,9 +503,9 @@ public class TaskTypesRepositoryIT {
           assertThat(search).isNotNull();
           assertThat(search.total).isEqualTo(0);
           assertThat(search.offset).isEqualTo(0);
-          final List<TaskType> taskTypes = new ArrayList<>();
-          storeSomeTaskTypes(vertx, testContext, taskType -> taskType.name = name + "_" + taskTypes.size(), 10,
-              taskTypes, testContext.succeeding(empty -> {
+
+          assertStoreSomeTaskTypes(vertx, testContext, (index, taskType) -> taskType.name = name + "_" + index, 10)
+              .onSuccess(taskTypes -> {
 
                 context.sort = new JsonObject().put("name", -1);
                 TaskTypesRepository.createProxy(vertx).retrieveTaskTypesPage(context,
@@ -537,7 +532,7 @@ public class TaskTypesRepositoryIT {
                           })));
 
                     })));
-              }));
+              });
         })));
 
   }
@@ -562,9 +557,9 @@ public class TaskTypesRepositoryIT {
           assertThat(search).isNotNull();
           assertThat(search.total).isEqualTo(0);
           assertThat(search.offset).isEqualTo(0);
-          final List<TaskType> taskTypes = new ArrayList<>();
-          storeSomeTaskTypes(vertx, testContext, taskType -> taskType.description = description, 10, taskTypes,
-              testContext.succeeding(empty -> {
+
+          assertStoreSomeTaskTypes(vertx, testContext, (index, taskType) -> taskType.description = description, 10)
+              .onSuccess(taskTypes -> {
 
                 TaskTypesRepository.createProxy(vertx).retrieveTaskTypesPage(query, new JsonObject(), 0, 10,
                     testContext.succeeding(search2 -> testContext.verify(() -> {
@@ -585,7 +580,7 @@ public class TaskTypesRepositoryIT {
                           })));
 
                     })));
-              }));
+              });
         })));
 
   }
@@ -612,9 +607,9 @@ public class TaskTypesRepositoryIT {
           assertThat(search).isNotNull();
           assertThat(search.total).isEqualTo(0);
           assertThat(search.offset).isEqualTo(0);
-          final List<TaskType> taskTypes = new ArrayList<>();
-          storeSomeTaskTypes(vertx, testContext, taskType -> taskType.keywords.add(keyword), 10, taskTypes,
-              testContext.succeeding(empty -> {
+
+          assertStoreSomeTaskTypes(vertx, testContext, (index, taskType) -> taskType.keywords.add(keyword), 10)
+              .onSuccess(taskTypes -> {
 
                 TaskTypesRepository.createProxy(vertx).retrieveTaskTypesPage(query, new JsonObject(), 0, 10,
                     testContext.succeeding(search2 -> testContext.verify(() -> {
@@ -635,9 +630,67 @@ public class TaskTypesRepositoryIT {
                           })));
 
                     })));
-              }));
+              });
         })));
 
+  }
+
+  /**
+   * Check that the hardcoded eat task type is stored.
+   *
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   */
+  @Test
+  public void shouldFoundHardcodedEatTaskType(final Vertx vertx, final VertxTestContext testContext) {
+
+    testContext
+        .assertComplete(
+            WeNetTaskManager.createProxy(vertx).retrieveTaskType(WeNetTaskManager.HARDCODED_DINNER_TASK_TYPE_ID))
+        .onSuccess(found -> testContext.verify(() -> {
+
+          assertThat(found.norms).isNullOrEmpty();
+          testContext.completeNow();
+
+        }));
+  }
+
+  /**
+   * Check that the question and answer task type is stored.
+   *
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   */
+  @Test
+  public void shouldFoundQuestionAndAnswerTaskType(final Vertx vertx, final VertxTestContext testContext) {
+
+    testContext
+        .assertComplete(
+            WeNetTaskManager.createProxy(vertx).retrieveTaskType(WeNetTaskManager.QUESTION_AND_ANSWER_TASK_TYPE_ID))
+        .onSuccess(found -> testContext.verify(() -> {
+
+          assertThat(found.norms).isNullOrEmpty();
+          testContext.completeNow();
+
+        }));
+  }
+
+  /**
+   * Check that the echo task type is stored.
+   *
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   */
+  @Test
+  public void shouldFoundEchoTaskType(final Vertx vertx, final VertxTestContext testContext) {
+
+    testContext.assertComplete(WeNetTaskManager.createProxy(vertx).retrieveTaskType(WeNetTaskManager.ECHO_TASK_TYPE_ID))
+        .onSuccess(found -> testContext.verify(() -> {
+
+          assertThat(found.norms).isNotEmpty();
+          testContext.completeNow();
+
+        }));
   }
 
 }

@@ -122,13 +122,13 @@ public class TaskTypesRepositoryTest {
    *
    * @param testContext context that executes the test.
    *
-   * @see TaskTypesRepository#storeTaskType(TaskType, Handler)
+   * @see TaskTypesRepository#storeTaskType(TaskType)
    */
   @Test
   public void shouldFailStoreTaskTypeWhenStoredObjectNotMatch(final VertxTestContext testContext) {
 
     final DummyTaskTypesRepository repository = spy(new DummyTaskTypesRepository());
-    repository.storeTaskType(new TaskType(), testContext.failing(error -> testContext.completeNow()));
+    testContext.assertFailure(repository.storeTaskType(new TaskType()).onFailure(error -> testContext.completeNow()));
 
     @SuppressWarnings("unchecked")
     final ArgumentCaptor<Handler<AsyncResult<JsonObject>>> storeHandler = ArgumentCaptor.forClass(Handler.class);
@@ -142,7 +142,7 @@ public class TaskTypesRepositoryTest {
    *
    * @param testContext context that executes the test.
    *
-   * @see TaskTypesRepository#updateTaskType(TaskType, Handler)
+   * @see TaskTypesRepository#updateTaskType(TaskType)
    */
   @Test
   public void shouldFailUpdateTaskTypeBecauseNoObject(final VertxTestContext testContext) {
@@ -158,9 +158,8 @@ public class TaskTypesRepositoryTest {
 
       }
     };
-    final Handler<AsyncResult<Void>> handler = testContext.failing(error -> testContext.completeNow());
     final DummyTaskTypesRepository repository = spy(new DummyTaskTypesRepository());
-    repository.updateTaskType(taskType, handler);
+    testContext.assertFailure(repository.updateTaskType(taskType)).onFailure(error -> testContext.completeNow());
 
   }
 

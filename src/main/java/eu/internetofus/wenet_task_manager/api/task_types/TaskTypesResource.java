@@ -111,7 +111,8 @@ public class TaskTypesResource implements TaskTypes {
 
     final var model = this.createTaskTypeContext();
     final var context = new ServiceContext(request, resultHandler);
-    ModelResources.createModel(this.vertx, body, model, this.typesRepository::storeTaskType, context);
+    ModelResources.createModel(this.vertx, body, model,
+        (taskType, handler) -> this.typesRepository.storeTaskType(taskType).onComplete(handler), context);
 
   }
 
@@ -127,7 +128,7 @@ public class TaskTypesResource implements TaskTypes {
     final var context = new ServiceContext(request, resultHandler);
     ModelResources.updateModel(this.vertx, body, model,
         (id, handler) -> this.typesRepository.searchTaskType(id).onComplete(handler),
-        this.typesRepository::updateTaskType, context);
+        (taskType, handler) -> this.typesRepository.updateTaskType(taskType).onComplete(handler), context);
 
   }
 
@@ -198,7 +199,7 @@ public class TaskTypesResource implements TaskTypes {
     final var context = new ServiceContext(request, resultHandler);
     ModelResources.mergeModel(this.vertx, body, model,
         (id, handler) -> this.typesRepository.searchTaskType(id).onComplete(handler),
-        this.typesRepository::updateTaskType, context);
+        (taskType, handler) -> this.typesRepository.updateTaskType(taskType).onComplete(handler), context);
 
   }
 

@@ -2,6 +2,11 @@
 
 All notable changes to `wenet-task-manager` will be documented in this file
 
+## Version 0.8.0 (2021-01-15)
+
+ * Add default task types.
+
+
 ## Version 0.7.0 (2021-01-14)
 
  * Add services to manage the new data models.

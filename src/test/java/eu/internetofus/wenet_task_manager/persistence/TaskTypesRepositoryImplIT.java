@@ -83,7 +83,7 @@ public class TaskTypesRepositoryImplIT {
     var task_0_5_0 = (JsonObject) Json.decodeValue(TASK_TYPE_0_5_0);
     task_0_5_0.remove("id");
     testContext.assertComplete(pool.insert(TaskTypesRepositoryImpl.TASK_TYPES_COLLECTION, task_0_5_0)).onSuccess(id -> {
-      var repository = new TaskTypesRepositoryImpl(pool, "0.6.0");
+      var repository = new TaskTypesRepositoryImpl(vertx, pool, "0.6.0");
       testContext.assertComplete(repository.migrateTaskTo_0_6_0().compose(
           empty -> pool.findOne(TaskTypesRepositoryImpl.TASK_TYPES_COLLECTION, new JsonObject().put("_id", id), null))
           .onSuccess(migratedTask -> {
@@ -117,7 +117,7 @@ public class TaskTypesRepositoryImplIT {
     var task_0_5_0 = (JsonObject) Json.decodeValue(TASK_TYPE_0_5_0);
     task_0_5_0.remove("id");
     testContext.assertComplete(pool.insert(TaskTypesRepositoryImpl.TASK_TYPES_COLLECTION, task_0_5_0)).onSuccess(id -> {
-      var repository = new TaskTypesRepositoryImpl(pool, "latest");
+      var repository = new TaskTypesRepositoryImpl(vertx, pool, "latest");
       testContext.assertComplete(repository.migrateDocumentsToCurrentVersions()).onSuccess(migrated -> {
 
         testContext.assertComplete(repository.searchTaskType(id)).onSuccess(task -> testContext.completeNow());

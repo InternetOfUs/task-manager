@@ -27,16 +27,24 @@
 package eu.internetofus.wenet_task_manager.persistence;
 
 import eu.internetofus.common.TimeManager;
+import eu.internetofus.common.components.Model;
+import eu.internetofus.common.components.task_manager.TaskType;
 import eu.internetofus.common.vertx.Repository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.FindOptions;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.mongo.UpdateOptions;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.commons.io.IOUtils;
 
 /**
  * Implementation of the {@link TaskTypesRepository}.
@@ -51,14 +59,27 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
   public static final String TASK_TYPES_COLLECTION = "taskTypes";
 
   /**
+   * The path to the file that contains an array of the default task types to
+   */
+  public static final String DEFAULT_TASK_TYPES_RESOURCE = "eu/internetofus/wenet_task_manager/persistence/default-task-types.json";
+
+  /**
+   * The event bus where this is registered.
+   */
+  protected Vertx vertx;
+
+  /**
    * Create a new service.
    *
+   * @param vertx   that contains the event bus to use.
    * @param pool    to create the connections.
    * @param version of the schemas.
    */
-  public TaskTypesRepositoryImpl(final MongoClient pool, final String version) {
+  public TaskTypesRepositoryImpl(Vertx vertx, final MongoClient pool, final String version) {
 
     super(pool, version);
+
+    this.vertx = vertx;
 
   }
 
@@ -142,7 +163,8 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
    */
   public Future<Void> migrateDocumentsToCurrentVersions() {
 
-    return this.migrateTaskTo_0_6_0().compose(empty -> this.updateSchemaVersionOnCollection(TASK_TYPES_COLLECTION));
+    return this.migrateTaskTo_0_6_0().compose(empty -> this.updateSchemaVersionOnCollection(TASK_TYPES_COLLECTION))
+        .compose(settedSchema -> this.updateDefaultTaskTypes());
 
   }
 
@@ -212,6 +234,113 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
     }).exceptionHandler(error -> promise.tryFail(error)).endHandler(end -> promise.tryComplete());
 
     return promise.future();
+
+  }
+
+  /**
+   * Fix the default task types.
+   *
+   * @return the future when are fixed the default task types.
+   */
+  protected Future<Void> updateDefaultTaskTypes() {
+
+    return this.loadDefaultTaskTypes().compose(taskTypes -> {
+
+      Future<Void> future = Future.succeededFuture();
+      for (var taskType : taskTypes) {
+
+        future = future.compose(empty -> this.updateDefaultTaskType(taskType));
+
+      }
+
+      return future;
+    });
+
+  }
+
+  /**
+   * Update a task type into the repository.
+   *
+   * @param taskType to update on the repository.
+   *
+   * @return the future when the task type is updated.
+   */
+  protected Future<Void> updateDefaultTaskType(TaskType taskType) {
+
+    Promise<Void> promise = Promise.promise();
+    this.searchTaskType(taskType.id).onComplete(search -> {
+
+      if (search.failed()) {
+
+        this.storeTaskType(taskType).onComplete(stored -> {
+
+          if (stored.failed()) {
+
+            promise.fail(stored.cause());
+
+          } else {
+
+            promise.complete();
+          }
+
+        });
+
+      } else {
+
+        this.updateTaskType(taskType).onComplete(promise);
+      }
+
+    });
+
+    return promise.future();
+
+  }
+
+  /**
+   * Load the default task types.
+   *
+   * @return the future with the default task types.
+   */
+  protected Future<List<TaskType>> loadDefaultTaskTypes() {
+
+    return this.vertx.executeBlocking(promise -> {
+
+      try {
+
+        String value = IOUtils.resourceToString(DEFAULT_TASK_TYPES_RESOURCE, Charset.defaultCharset(),
+            this.getClass().getClassLoader());
+        var data = Json.decodeValue(value);
+        if (data instanceof JsonArray) {
+
+          var taskTypes = new ArrayList<TaskType>();
+          var array = (JsonArray) data;
+          var max = array.size();
+          for (var i = 0; i < max; i++) {
+
+            var element = array.getJsonObject(i);
+            var taskType = Model.fromJsonObject(element, TaskType.class);
+            if (taskType == null) {
+
+              promise.fail("The value at '" + i + "' is not a task type.");
+              return;
+            }
+            taskTypes.add(taskType);
+
+          }
+
+          promise.complete(taskTypes);
+
+        } else {
+
+          promise.fail("The default types file does not contains a JSON array");
+        }
+
+      } catch (Throwable cause) {
+
+        promise.fail(cause);
+      }
+
+    });
 
   }
 

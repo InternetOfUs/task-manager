@@ -247,16 +247,15 @@ public class TasksRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TasksRepository#updateTask(Task, io.vertx.core.Handler)
+   * @see TasksRepository#updateTask(Task)
    */
   @Test
   public void shouldNotUpdateUndefinedTask(final Vertx vertx, final VertxTestContext testContext) {
 
     final var task = new Task();
     task.id = "undefined user identifier";
-    TasksRepository.createProxy(vertx).updateTask(task, testContext.failing(failed -> {
-      testContext.completeNow();
-    }));
+    testContext.assertFailure(TasksRepository.createProxy(vertx).updateTask(task))
+        .onFailure(error -> testContext.completeNow());
 
   }
 
@@ -284,7 +283,7 @@ public class TasksRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TasksRepository#updateTask(Task, io.vertx.core.Handler)
+   * @see TasksRepository#updateTask(Task)
    */
   @Test
   public void shouldNotUpdateATaskThatCanNotBeAnObject(final Vertx vertx, final VertxTestContext testContext) {
@@ -301,9 +300,8 @@ public class TasksRepositoryIT {
       }
     };
     task.id = "undefined user identifier";
-    TasksRepository.createProxy(vertx).updateTask(task, testContext.failing(failed -> {
-      testContext.completeNow();
-    }));
+    testContext.assertFailure(TasksRepository.createProxy(vertx).updateTask(task))
+        .onFailure(error -> testContext.completeNow());
 
   }
 
@@ -313,7 +311,7 @@ public class TasksRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TasksRepository#updateTask(Task, io.vertx.core.Handler)
+   * @see TasksRepository#updateTask(Task)
    */
   @Test
   public void shouldUpdateTask(final Vertx vertx, final VertxTestContext testContext) {
@@ -326,21 +324,20 @@ public class TasksRepositoryIT {
       update.id = stored.id;
       update._creationTs = 0;
       update._lastUpdateTs = 1;
-      TasksRepository.createProxy(vertx).updateTask(update, testContext.succeeding(empty -> {
+      testContext
+          .assertComplete(TasksRepository.createProxy(vertx).updateTask(update)
+              .compose(empty -> TasksRepository.createProxy(vertx).searchTask(stored.id)))
+          .onSuccess(foundTask -> testContext.verify(() -> {
 
-        testContext.assertComplete(TasksRepository.createProxy(vertx).searchTask(stored.id))
-            .onSuccess(foundTask -> testContext.verify(() -> {
-
-              assertThat(stored).isNotNull();
-              assertThat(foundTask.id).isNotEmpty().isEqualTo(stored.id);
-              assertThat(foundTask._creationTs).isEqualTo(stored._creationTs);
-              assertThat(foundTask._lastUpdateTs).isEqualTo(1);
-              update._creationTs = stored._creationTs;
-              update._lastUpdateTs = foundTask._lastUpdateTs;
-              assertThat(foundTask).isEqualTo(update);
-              testContext.completeNow();
-            }));
-      }));
+            assertThat(stored).isNotNull();
+            assertThat(foundTask.id).isNotEmpty().isEqualTo(stored.id);
+            assertThat(foundTask._creationTs).isEqualTo(stored._creationTs);
+            assertThat(foundTask._lastUpdateTs).isEqualTo(1);
+            update._creationTs = stored._creationTs;
+            update._lastUpdateTs = foundTask._lastUpdateTs;
+            assertThat(foundTask).isEqualTo(update);
+            testContext.completeNow();
+          }));
 
     });
 
@@ -916,4 +913,5 @@ public class TasksRepositoryIT {
 
     }));
   }
+
 }
