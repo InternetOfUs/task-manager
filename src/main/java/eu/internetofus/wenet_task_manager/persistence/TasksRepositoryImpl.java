@@ -27,10 +27,12 @@
 package eu.internetofus.wenet_task_manager.persistence;
 
 import eu.internetofus.common.TimeManager;
+import eu.internetofus.common.components.task_manager.Task;
 import eu.internetofus.common.vertx.Repository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.Promise;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.FindOptions;
@@ -157,8 +159,30 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
         new JsonObject().put("startTs", "attributes.startTs").put("endTs", "attributes.endTs").put("deadlineTs",
             "attributes.deadlineTs"));
 
-    return this.updateCollection(TASKS_COLLECTION, query, update);
+    return this.updateCollection(TASKS_COLLECTION, query, update).compose(empty -> this.migrateFixingCommunityId());
 
+  }
+
+  /**
+   * Fix that all the tasks have a {@link Task#communityId} value.
+   *
+   * @return the future with the update result.
+   */
+  protected Future<Void> migrateFixingCommunityId() {
+
+    Promise<Void> promise = Promise.promise();
+    final var notExists = new JsonObject().put("communityId", new JsonObject().put("$exists", false));
+    final var notString = new JsonObject().put("communityId",
+        new JsonObject().put("$not", new JsonObject().put("$type", "string")));
+    final var query = new JsonObject().put("$or",
+        new JsonArray().add(notExists).add(notString).add(new JsonObject().putNull("communityId")));
+    var batch = this.pool.findBatch(TASKS_COLLECTION, query);
+    batch.handler(task -> {
+
+    });
+    batch.endHandler(end -> promise.complete());
+    batch.exceptionHandler(cause -> promise.fail(cause));
+    return promise.future();
   }
 
   /**

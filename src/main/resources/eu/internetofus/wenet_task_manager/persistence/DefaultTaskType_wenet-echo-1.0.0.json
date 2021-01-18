@@ -1,0 +1,46 @@
+{
+   "id":"wenet-echo-1.0.0",
+   "name":"Echo",
+   "description":"This tasks echo the transaction messages",
+   "keywords":[
+      "example",
+      "test"
+   ],
+   "transactions":{
+      "echo":{
+         "type":"object",
+         "description":"Send the echo message",
+         "properties":{
+            "message":{
+               "type":"string",
+               "description":"The message to echo"
+            }
+         }
+      }
+   },
+   "callbacks":{
+      "echo":{
+         "type":"object",
+         "properties":{
+            "taskId":{
+               "type":"string",
+               "description":"The identifier of the task"
+            },
+            "communityId":{
+               "type":"string",
+               "description":"The identifier of the community"
+            },
+            "message":{
+               "type":"string",
+               "description":"The echo message"
+            }
+         }
+      }
+   },
+   "norms":[
+      {
+         "whenever":"get_transaction(Transaction) & Transaction.label = \"echo\"",
+         "thenceforth":"pull_callback({\"label\":\"echo\",\"attributes\":{\"message\":Transaction.message}},_)"
+      }
+   ]
+}

@@ -29,6 +29,7 @@ package eu.internetofus.wenet_task_manager.persistence;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import eu.internetofus.common.components.HumanDescriptionTest;
+import eu.internetofus.common.components.StoreServices;
 import eu.internetofus.common.components.service.Message;
 import eu.internetofus.common.components.service.MessageTest;
 import eu.internetofus.common.components.task_manager.Task;
@@ -37,7 +38,6 @@ import eu.internetofus.common.components.task_manager.TaskTransaction;
 import eu.internetofus.common.components.task_manager.TaskTransactionTest;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
@@ -387,10 +387,8 @@ public class TasksRepositoryIT {
   @Test
   public void shouldNotDeleteUndefinedTask(final Vertx vertx, final VertxTestContext testContext) {
 
-    TasksRepository.createProxy(vertx).deleteTask("undefined user identifier", testContext.failing(failed -> {
-      testContext.completeNow();
-    }));
-
+    testContext.assertFailure(TasksRepository.createProxy(vertx).deleteTask("undefined"))
+        .onFailure(error -> testContext.completeNow());
   }
 
   /**
@@ -404,20 +402,16 @@ public class TasksRepositoryIT {
   @Test
   public void shouldDeleteTask(final Vertx vertx, final VertxTestContext testContext) {
 
-    TasksRepository.createProxy(vertx).storeTask(new JsonObject(), testContext.succeeding(stored -> {
+    testContext.assertComplete(StoreServices.storeTaskExample(1, vertx, testContext)).onSuccess(stored -> {
 
-      final var id = stored.getString("id");
-      TasksRepository.createProxy(vertx).deleteTask(id, testContext.succeeding(success -> {
+      testContext.assertComplete(TasksRepository.createProxy(vertx).deleteTask(stored.id)).onSuccess(deleted -> {
 
-        TasksRepository.createProxy(vertx).searchTask(id, testContext.failing(search -> {
+        testContext.assertFailure(TasksRepository.createProxy(vertx).searchTask(stored.id))
+            .onFailure(error -> testContext.completeNow());
 
-          testContext.completeNow();
+      });
 
-        }));
-
-      }));
-
-    }));
+    });
 
   }
 
@@ -427,8 +421,7 @@ public class TasksRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TasksRepository#retrieveTasksPage(JsonObject, JsonObject, int, int,
-   *      Handler)
+   * @see TasksRepository#retrieveTasksPage(JsonObject, JsonObject, int, int)
    */
   @Test
   public void shouldRetrieveTaksByGoalName(final Vertx vertx, final VertxTestContext testContext) {
@@ -437,37 +430,36 @@ public class TasksRepositoryIT {
     final var query = TasksRepository.creteTasksPageQuery(null, null, null, name, null, null, null, null, null, null,
         null, null);
 
-    TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10,
-        testContext.succeeding(search -> testContext.verify(() -> {
+    testContext.assertComplete(TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10))
+        .onSuccess(foundPage -> testContext.verify(() -> {
 
-          assertThat(search).isNotNull();
-          assertThat(search.total).isEqualTo(0);
-          assertThat(search.offset).isEqualTo(0);
-          assertThat(search.tasks).isNull();
+          assertThat(foundPage).isNotNull();
+          assertThat(foundPage.total).isEqualTo(0);
+          assertThat(foundPage.offset).isEqualTo(0);
+          assertThat(foundPage.tasks).isNull();
           final List<Task> tasks = new ArrayList<>();
-          this.storeSomeTasks(vertx, testContext, task -> task.goal.name = name, 10, tasks).onSuccess(empty -> {
+          testContext
+              .assertComplete(this.storeSomeTasks(vertx, testContext, task -> task.goal.name = name, 10, tasks)
+                  .compose(stored -> TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10)))
+              .onSuccess(foundPage2 -> testContext.verify(() -> {
 
-            TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10,
-                testContext.succeeding(search2 -> testContext.verify(() -> {
+                assertThat(foundPage2).isNotNull();
+                assertThat(foundPage2.total).isEqualTo(10);
+                assertThat(foundPage2.offset).isEqualTo(0);
+                assertThat(foundPage2.tasks).isEqualTo(tasks);
+                testContext.assertComplete(TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 2, 5))
+                    .onSuccess(foundPage3 -> testContext.verify(() -> {
 
-                  assertThat(search2).isNotNull();
-                  assertThat(search2.total).isEqualTo(10);
-                  assertThat(search2.offset).isEqualTo(0);
-                  assertThat(search2.tasks).isEqualTo(tasks);
-                  TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 2, 5,
-                      testContext.succeeding(search3 -> testContext.verify(() -> {
+                      assertThat(foundPage3).isNotNull();
+                      assertThat(foundPage3.total).isEqualTo(10);
+                      assertThat(foundPage3.offset).isEqualTo(2);
+                      assertThat(foundPage3.tasks).isEqualTo(tasks.subList(2, 7));
+                      testContext.completeNow();
 
-                        assertThat(search3).isNotNull();
-                        assertThat(search3.total).isEqualTo(10);
-                        assertThat(search3.offset).isEqualTo(2);
-                        assertThat(search3.tasks).isEqualTo(tasks.subList(2, 7));
-                        testContext.completeNow();
+                    }));
 
-                      })));
-
-                })));
-          });
-        })));
+              }));
+        }));
 
   }
 
@@ -507,8 +499,7 @@ public class TasksRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TasksRepository#retrieveTasksPage(JsonObject, JsonObject, int, int,
-   *      Handler)
+   * @see TasksRepository#retrieveTasksPage(JsonObject, JsonObject, int, int)
    */
   @Test
   public void shouldRetrieveTaksByGoalDescription(final Vertx vertx, final VertxTestContext testContext) {
@@ -517,37 +508,37 @@ public class TasksRepositoryIT {
     final var query = TasksRepository.creteTasksPageQuery(null, null, null, null, description, null, null, null, null,
         null, null, null);
 
-    TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10,
-        testContext.succeeding(search -> testContext.verify(() -> {
+    testContext.assertComplete(TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10))
+        .onSuccess(foundPage -> testContext.verify(() -> {
 
-          assertThat(search).isNotNull();
-          assertThat(search.total).isEqualTo(0);
-          assertThat(search.offset).isEqualTo(0);
+          assertThat(foundPage).isNotNull();
+          assertThat(foundPage.total).isEqualTo(0);
+          assertThat(foundPage.offset).isEqualTo(0);
+          assertThat(foundPage.tasks).isNull();
           final List<Task> tasks = new ArrayList<>();
-          this.storeSomeTasks(vertx, testContext, task -> task.goal.description = description, 10, tasks)
-              .onSuccess(empty -> {
+          testContext
+              .assertComplete(
+                  this.storeSomeTasks(vertx, testContext, task -> task.goal.description = description, 10, tasks)
+                      .compose(stored -> TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10)))
+              .onSuccess(foundPage2 -> testContext.verify(() -> {
 
-                TasksRepository.createProxy(vertx).retrieveTasksPage(query, new JsonObject(), 0, 10,
-                    testContext.succeeding(search2 -> testContext.verify(() -> {
+                assertThat(foundPage2).isNotNull();
+                assertThat(foundPage2.total).isEqualTo(10);
+                assertThat(foundPage2.offset).isEqualTo(0);
+                assertThat(foundPage2.tasks).isEqualTo(tasks);
+                testContext.assertComplete(TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 2, 5))
+                    .onSuccess(foundPage3 -> testContext.verify(() -> {
 
-                      assertThat(search2).isNotNull();
-                      assertThat(search2.total).isEqualTo(10);
-                      assertThat(search2.offset).isEqualTo(0);
-                      assertThat(search2.tasks).isEqualTo(tasks);
-                      TasksRepository.createProxy(vertx).retrieveTasksPage(query, new JsonObject(), 2, 5,
-                          testContext.succeeding(search3 -> testContext.verify(() -> {
+                      assertThat(foundPage3).isNotNull();
+                      assertThat(foundPage3.total).isEqualTo(10);
+                      assertThat(foundPage3.offset).isEqualTo(2);
+                      assertThat(foundPage3.tasks).isEqualTo(tasks.subList(2, 7));
+                      testContext.completeNow();
 
-                            assertThat(search3).isNotNull();
-                            assertThat(search3.total).isEqualTo(10);
-                            assertThat(search3.offset).isEqualTo(2);
-                            assertThat(search3.tasks).isEqualTo(tasks.subList(2, 7));
-                            testContext.completeNow();
+                    }));
 
-                          })));
-
-                    })));
-              });
-        })));
+              }));
+        }));
 
   }
 
@@ -557,8 +548,7 @@ public class TasksRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TasksRepository#retrieveTasksPage(JsonObject, JsonObject, int, int,
-   *      Handler)
+   * @see TasksRepository#retrieveTasksPage(JsonObject, JsonObject, int, int)
    */
   @Test
   public void shouldRetrieveTaksByRequesterId(final Vertx vertx, final VertxTestContext testContext) {
@@ -567,37 +557,36 @@ public class TasksRepositoryIT {
     final var query = TasksRepository.creteTasksPageQuery(null, requesterId, null, null, null, null, null, null, null,
         null, null, null);
 
-    TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10,
-        testContext.succeeding(search -> testContext.verify(() -> {
+    testContext.assertComplete(TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10))
+        .onSuccess(foundPage -> testContext.verify(() -> {
 
-          assertThat(search).isNotNull();
-          assertThat(search.total).isEqualTo(0);
-          assertThat(search.offset).isEqualTo(0);
+          assertThat(foundPage).isNotNull();
+          assertThat(foundPage.total).isEqualTo(0);
+          assertThat(foundPage.offset).isEqualTo(0);
+          assertThat(foundPage.tasks).isNull();
           final List<Task> tasks = new ArrayList<>();
-          this.storeSomeTasks(vertx, testContext, task -> task.requesterId = requesterId, 10, tasks)
-              .onSuccess(empty -> {
+          testContext
+              .assertComplete(this.storeSomeTasks(vertx, testContext, task -> task.requesterId = requesterId, 10, tasks)
+                  .compose(stored -> TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10)))
+              .onSuccess(foundPage2 -> testContext.verify(() -> {
 
-                TasksRepository.createProxy(vertx).retrieveTasksPage(query, new JsonObject(), 0, 10,
-                    testContext.succeeding(search2 -> testContext.verify(() -> {
+                assertThat(foundPage2).isNotNull();
+                assertThat(foundPage2.total).isEqualTo(10);
+                assertThat(foundPage2.offset).isEqualTo(0);
+                assertThat(foundPage2.tasks).isEqualTo(tasks);
+                testContext.assertComplete(TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 2, 5))
+                    .onSuccess(foundPage3 -> testContext.verify(() -> {
 
-                      assertThat(search2).isNotNull();
-                      assertThat(search2.total).isEqualTo(10);
-                      assertThat(search2.offset).isEqualTo(0);
-                      assertThat(search2.tasks).isEqualTo(tasks);
-                      TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 2, 5,
-                          testContext.succeeding(search3 -> testContext.verify(() -> {
+                      assertThat(foundPage3).isNotNull();
+                      assertThat(foundPage3.total).isEqualTo(10);
+                      assertThat(foundPage3.offset).isEqualTo(2);
+                      assertThat(foundPage3.tasks).isEqualTo(tasks.subList(2, 7));
+                      testContext.completeNow();
 
-                            assertThat(search3).isNotNull();
-                            assertThat(search3.total).isEqualTo(10);
-                            assertThat(search3.offset).isEqualTo(2);
-                            assertThat(search3.tasks).isEqualTo(tasks.subList(2, 7));
-                            testContext.completeNow();
+                    }));
 
-                          })));
-
-                    })));
-              });
-        })));
+              }));
+        }));
 
   }
 
@@ -607,8 +596,7 @@ public class TasksRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TasksRepository#retrieveTasksPage(JsonObject, JsonObject, int, int,
-   *      Handler)
+   * @see TasksRepository#retrieveTasksPage(JsonObject, JsonObject, int, int)
    */
   @Test
   public void shouldRetrieveTaksByAppId(final Vertx vertx, final VertxTestContext testContext) {
@@ -617,38 +605,36 @@ public class TasksRepositoryIT {
     final var query = TasksRepository.creteTasksPageQuery(appId, null, null, null, null, null, null, null, null, null,
         null, null);
 
-    TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10,
-        testContext.succeeding(search -> testContext.verify(() -> {
+    testContext.assertComplete(TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10))
+        .onSuccess(foundPage -> testContext.verify(() -> {
 
-          assertThat(search).isNotNull();
-          assertThat(search.total).isEqualTo(0);
-          assertThat(search.offset).isEqualTo(0);
+          assertThat(foundPage).isNotNull();
+          assertThat(foundPage.total).isEqualTo(0);
+          assertThat(foundPage.offset).isEqualTo(0);
+          assertThat(foundPage.tasks).isNull();
           final List<Task> tasks = new ArrayList<>();
-          this.storeSomeTasks(vertx, testContext, task -> task.appId = appId, 10, tasks).onSuccess(empty -> {
+          testContext
+              .assertComplete(this.storeSomeTasks(vertx, testContext, task -> task.appId = appId, 10, tasks)
+                  .compose(stored -> TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10)))
+              .onSuccess(foundPage2 -> testContext.verify(() -> {
 
-            TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10,
-                testContext.succeeding(search2 -> testContext.verify(() -> {
+                assertThat(foundPage2).isNotNull();
+                assertThat(foundPage2.total).isEqualTo(10);
+                assertThat(foundPage2.offset).isEqualTo(0);
+                assertThat(foundPage2.tasks).isEqualTo(tasks);
+                testContext.assertComplete(TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 2, 5))
+                    .onSuccess(foundPage3 -> testContext.verify(() -> {
 
-                  assertThat(search2).isNotNull();
-                  assertThat(search2.total).isEqualTo(10);
-                  assertThat(search2.offset).isEqualTo(0);
-                  assertThat(search2.tasks).isEqualTo(tasks);
-                  this.storeSomeTasks(vertx, testContext, task -> {
-                  }, 10, tasks).onSuccess(empty2 -> {
-                    TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 2, 5,
-                        testContext.succeeding(search3 -> testContext.verify(() -> {
+                      assertThat(foundPage3).isNotNull();
+                      assertThat(foundPage3.total).isEqualTo(10);
+                      assertThat(foundPage3.offset).isEqualTo(2);
+                      assertThat(foundPage3.tasks).isEqualTo(tasks.subList(2, 7));
+                      testContext.completeNow();
 
-                          assertThat(search3).isNotNull();
-                          assertThat(search3.total).isEqualTo(10);
-                          assertThat(search3.offset).isEqualTo(2);
-                          assertThat(search3.tasks).isEqualTo(tasks.subList(2, 7));
-                          testContext.completeNow();
+                    }));
 
-                        })));
-                  });
-                })));
-          });
-        })));
+              }));
+        }));
 
   }
 
@@ -658,8 +644,7 @@ public class TasksRepositoryIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TasksRepository#retrieveTasksPage(JsonObject, JsonObject, int, int,
-   *      Handler)
+   * @see TasksRepository#retrieveTasksPage(JsonObject, JsonObject, int, int)
    */
   @Test
   public void shouldRetrieveTaksByTaskTypeId(final Vertx vertx, final VertxTestContext testContext) {
@@ -668,38 +653,36 @@ public class TasksRepositoryIT {
     final var query = TasksRepository.creteTasksPageQuery(null, null, taskTypeId, null, null, null, null, null, null,
         null, null, null);
 
-    TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10,
-        testContext.succeeding(search -> testContext.verify(() -> {
+    testContext.assertComplete(TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10))
+        .onSuccess(foundPage -> testContext.verify(() -> {
 
-          assertThat(search).isNotNull();
-          assertThat(search.total).isEqualTo(0);
-          assertThat(search.offset).isEqualTo(0);
+          assertThat(foundPage).isNotNull();
+          assertThat(foundPage.total).isEqualTo(0);
+          assertThat(foundPage.offset).isEqualTo(0);
+          assertThat(foundPage.tasks).isNull();
           final List<Task> tasks = new ArrayList<>();
-          this.storeSomeTasks(vertx, testContext, task -> task.taskTypeId = taskTypeId, 10, tasks).onSuccess(empty -> {
+          testContext
+              .assertComplete(this.storeSomeTasks(vertx, testContext, task -> task.taskTypeId = taskTypeId, 10, tasks)
+                  .compose(stored -> TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10)))
+              .onSuccess(foundPage2 -> testContext.verify(() -> {
 
-            TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10,
-                testContext.succeeding(search2 -> testContext.verify(() -> {
+                assertThat(foundPage2).isNotNull();
+                assertThat(foundPage2.total).isEqualTo(10);
+                assertThat(foundPage2.offset).isEqualTo(0);
+                assertThat(foundPage2.tasks).isEqualTo(tasks);
+                testContext.assertComplete(TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 2, 5))
+                    .onSuccess(foundPage3 -> testContext.verify(() -> {
 
-                  assertThat(search2).isNotNull();
-                  assertThat(search2.total).isEqualTo(10);
-                  assertThat(search2.offset).isEqualTo(0);
-                  assertThat(search2.tasks).isEqualTo(tasks);
-                  this.storeSomeTasks(vertx, testContext, task -> {
-                  }, 10, tasks).onSuccess(empty2 -> {
-                    TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 2, 5,
-                        testContext.succeeding(search3 -> testContext.verify(() -> {
+                      assertThat(foundPage3).isNotNull();
+                      assertThat(foundPage3.total).isEqualTo(10);
+                      assertThat(foundPage3.offset).isEqualTo(2);
+                      assertThat(foundPage3.tasks).isEqualTo(tasks.subList(2, 7));
+                      testContext.completeNow();
 
-                          assertThat(search3).isNotNull();
-                          assertThat(search3.total).isEqualTo(10);
-                          assertThat(search3.offset).isEqualTo(2);
-                          assertThat(search3.tasks).isEqualTo(tasks.subList(2, 7));
-                          testContext.completeNow();
+                    }));
 
-                        })));
-                  });
-                })));
-          });
-        })));
+              }));
+        }));
 
   }
 
@@ -912,6 +895,35 @@ public class TasksRepositoryIT {
       testContext.completeNow();
 
     }));
+  }
+
+  /**
+   * Check that not update task that can not convert to JSON.
+   *
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   *
+   * @see TasksRepository#updateTask(Task)
+   */
+  @Test
+  public void shouldNotStoreNullTask(final Vertx vertx, final VertxTestContext testContext) {
+
+    var task = new Task() {
+
+      /**
+       * {@inheritDoc}
+       *
+       * @return {@code null} in any circumstance.
+       */
+      @Override
+      public JsonObject toJsonObjectWithEmptyValues() {
+
+        return null;
+      }
+
+    };
+    testContext.assertFailure(TasksRepository.createProxy(vertx).updateTask(task))
+        .onFailure(error -> testContext.completeNow());
   }
 
 }

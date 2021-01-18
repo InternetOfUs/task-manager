@@ -32,6 +32,7 @@ import static eu.internetofus.common.vertx.ext.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import eu.internetofus.common.components.ErrorMessage;
+import eu.internetofus.common.components.Model;
 import eu.internetofus.common.components.StoreServices;
 import eu.internetofus.common.components.profile_manager.WeNetUserProfile;
 import eu.internetofus.common.components.service.App;
@@ -1055,21 +1056,24 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
    * @param testContext context to test.
    */
   @Test
-  public void shouldNotCreateTaskBecauseNoUserOnTheApp(final Vertx vertx, final WebClient client,
+  public void shouldAssigDefaultCommunityToTask(final Vertx vertx, final WebClient client,
       final VertxTestContext testContext) {
 
     StoreServices.storeApp(new App(), vertx, testContext).onSuccess(app -> {
 
-      StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
+      StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(storedTask -> {
 
-        task.id = null;
-        task.appId = app.appId;
-        task.communityId = null;
+        var newTask = Model.fromJsonObject(storedTask.toJsonObject(), Task.class);
+        newTask.id = null;
+        newTask.appId = app.appId;
+        newTask.communityId = null;
         testRequest(client, HttpMethod.POST, Tasks.PATH).expect(res -> {
 
-          assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
+          assertThat(res.statusCode()).isEqualTo(Status.CREATED.getStatusCode());
+          final var createdTask2 = assertThatBodyIs(Task.class, res);
+          assertThat(createdTask2.communityId).isNotEqualTo(storedTask.communityId);
 
-        }).sendJson(task.toJsonObject(), testContext);
+        }).sendJson(newTask.toJsonObject(), testContext);
 
       });
     });

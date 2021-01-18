@@ -42,6 +42,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.serviceproxy.ServiceBinder;
+import javax.validation.constraints.NotNull;
 
 /**
  * The service to manage the {@link Task} on the database.
@@ -117,18 +118,11 @@ public interface TasksRepository {
    * @return the future stored task.
    */
   @GenIgnore
-  default Future<Task> storeTask(final Task task) {
+  default Future<Task> storeTask(@NotNull final Task task) {
 
-    if (task == null) {
-
-      return Future.failedFuture("The task can not converted to JSON.");
-
-    } else {
-
-      Promise<JsonObject> promise = Promise.promise();
-      this.storeTask(task.toJsonObject(), promise);
-      return Model.fromFutureJsonObject(promise.future(), Task.class);
-    }
+    Promise<JsonObject> promise = Promise.promise();
+    this.storeTask(task.toJsonObject(), promise);
+    return Model.fromFutureJsonObject(promise.future(), Task.class);
 
   }
 
@@ -148,7 +142,7 @@ public interface TasksRepository {
    * @return the future update result.
    */
   @GenIgnore
-  default Future<Void> updateTask(final Task task) {
+  default Future<Void> updateTask(@NotNull final Task task) {
 
     final var object = task.toJsonObjectWithEmptyValues();
     if (object == null) {
@@ -238,36 +232,21 @@ public interface TasksRepository {
   /**
    * Obtain the tasks that satisfies a query.
    *
-   * @param query         that define the tasks to add into the page.
-   * @param order         in witch has to return the tasks.
-   * @param offset        index of the first task to return.
-   * @param limit         number maximum of tasks to return.
-   * @param searchHandler handler to manage the search.
+   * @param query  that define the tasks to add into the page.
+   * @param order  in witch has to return the tasks.
+   * @param offset index of the first task to return.
+   * @param limit  number maximum of tasks to return.
+   *
+   * @return the future found page.
    */
   @GenIgnore
-  default void retrieveTasksPage(final JsonObject query, final JsonObject order, final int offset, final int limit,
-      final Handler<AsyncResult<TasksPage>> searchHandler) {
+  default Future<TasksPage> retrieveTasksPage(final JsonObject query, final JsonObject order, final int offset,
+      final int limit) {
 
-    this.retrieveTasksPageObject(query, order, offset, limit, search -> {
+    Promise<JsonObject> promise = Promise.promise();
+    this.retrieveTasksPageObject(query, order, offset, limit, promise);
+    return Model.fromFutureJsonObject(promise.future(), TasksPage.class);
 
-      if (search.failed()) {
-
-        searchHandler.handle(Future.failedFuture(search.cause()));
-
-      } else {
-
-        final var value = search.result();
-        final var page = Model.fromJsonObject(value, TasksPage.class);
-        if (page == null) {
-
-          searchHandler.handle(Future.failedFuture("The stored task page is not valid."));
-
-        } else {
-
-          searchHandler.handle(Future.succeededFuture(page));
-        }
-      }
-    });
   }
 
   /**

@@ -128,4 +128,39 @@ public class TaskTypesRepositoryImplIT {
 
   }
 
+  /**
+   * Should not load a default type that is not defined.
+   *
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   *
+   * @see TaskTypesRepositoryImpl#loadResourceTaskType(String)
+   */
+  @Test
+  public void shouldNotLoadUndefinedDefualtTaskType(final Vertx vertx, final VertxTestContext testContext) {
+
+    var pool = MongoClient.createShared(vertx, Containers.status().getMongoDBConfig(), "TEST");
+    var repository = new TaskTypesRepositoryImpl(vertx, pool, "latest");
+    testContext.assertFailure(repository.loadResourceTaskType("undefined"))
+        .onFailure(task -> testContext.completeNow());
+
+  }
+
+  /**
+   * Should not load a default type that has a bad default file.
+   *
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   *
+   * @see TaskTypesRepositoryImpl#loadResourceTaskType(String)
+   */
+  @Test
+  public void shouldNotLoadDefualtTaskTypeWithBadJsonFile(final Vertx vertx, final VertxTestContext testContext) {
+
+    var pool = MongoClient.createShared(vertx, Containers.status().getMongoDBConfig(), "TEST");
+    var repository = new TaskTypesRepositoryImpl(vertx, pool, "latest");
+    testContext.assertFailure(repository.loadResourceTaskType("bad")).onFailure(task -> testContext.completeNow());
+
+  }
+
 }

@@ -29,11 +29,9 @@ package eu.internetofus.wenet_task_manager.api.tasks;
 import eu.internetofus.common.components.Model;
 import eu.internetofus.common.components.ValidationErrorException;
 import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngine;
-import eu.internetofus.common.components.profile_manager.CommunityMember;
-import eu.internetofus.common.components.profile_manager.CommunityProfile;
 import eu.internetofus.common.components.profile_manager.WeNetProfileManager;
+import eu.internetofus.common.components.service.App;
 import eu.internetofus.common.components.service.Message;
-import eu.internetofus.common.components.service.WeNetService;
 import eu.internetofus.common.components.task_manager.Task;
 import eu.internetofus.common.components.task_manager.TaskTransaction;
 import eu.internetofus.common.vertx.ModelContext;
@@ -49,8 +47,6 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.api.service.ServiceRequest;
 import io.vertx.ext.web.api.service.ServiceResponse;
-import java.util.ArrayList;
-import java.util.function.Consumer;
 import javax.ws.rs.core.Response.Status;
 import org.tinylog.Logger;
 
@@ -151,69 +147,6 @@ public class TasksResource implements Tasks {
   }
 
   /**
-   * Return the community associated to an application.
-   *
-   * @param appId            identifier of the application to obtain the
-   *                         associated community.
-   * @param consumeCommunity function to consume the found community. If no
-   *                         community found it pass a {@code null}.
-   */
-  protected void retrieveAppCommunity(final String appId, final Consumer<CommunityProfile> consumeCommunity) {
-
-    final var service = WeNetProfileManager.createProxy(this.vertx);
-    service.retrieveCommunityProfilesPage(appId, null, null, null, null, "-_creationTs", 0, 1).onComplete(retrieve -> {
-
-      final var page = retrieve.result();
-      if (retrieve.failed() || page.communities == null || page.communities.isEmpty()) {
-
-        WeNetService.createProxy(this.vertx).retrieveAppUserIds(appId).onComplete(retrieveUsers -> {
-
-          final var value = retrieveUsers.result();
-          if (value == null || value.isEmpty()) {
-
-            consumeCommunity.accept(null);
-
-          } else {
-
-            final var newCommunity = new CommunityProfile();
-            newCommunity.appId = appId;
-            newCommunity.name = "Community of " + appId;
-            newCommunity.members = new ArrayList<>();
-            for (var i = 0; i < value.size(); i++) {
-
-              final var member = new CommunityMember();
-              member.userId = value.getString(i);
-              newCommunity.members.add(member);
-
-            }
-            service.createCommunity(newCommunity).onComplete(createHandler -> {
-
-              final var community = createHandler.result();
-              if (community == null) {
-
-                consumeCommunity.accept(null);
-              } else {
-
-                consumeCommunity.accept(community);
-              }
-
-            });
-
-          }
-
-        });
-
-      } else {
-
-        consumeCommunity.accept(page.communities.get(0));
-
-      }
-
-    });
-
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override
@@ -222,8 +155,9 @@ public class TasksResource implements Tasks {
 
     if (body.getString("communityId", null) == null) {
 
-      this.retrieveAppCommunity(body.getString("appId"), community -> {
+      App.getOrCreateDefaultCommunityFor(body.getString("appId"), this.vertx).onComplete(search -> {
 
+        var community = search.result();
         if (community == null) {
 
           ServiceResponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task.communityId",
@@ -521,6 +455,37 @@ public class TasksResource implements Tasks {
       });
 
     });
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void retrieveTaskTransactionsPage(String appId, String requesterId, String taskTypeId, String goalName,
+      String goalDescription, Long taskCreationFrom, Long taskCreationTo, Long taskUpdateFrom, Long taskUpdateTo,
+      Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId, String label, String actioneerId,
+      Long creationFrom, Long creationTo, Long updateFrom, Long updateTo, String order, int offset, int limit,
+      ServiceRequest request, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void retrieveTaskTransaction(String taskId, String transactionId, ServiceRequest request,
+      Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void retrieveMessagesPage(String appId, String requesterId, String taskTypeId, String goalName,
+      String goalDescription, Long taskCreationFrom, Long taskCreationTo, Long taskUpdateFrom, Long taskUpdateTo,
+      Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId, String transactionLabel, String actioneerId,
+      Long transactionCreationFrom, Long transactionCreationTo, Long transactionUpdateFrom, Long transactionUpdateTo,
+      String receiverId, String label, String order, int offset, int limit, ServiceRequest request,
+      Handler<AsyncResult<ServiceResponse>> resultHandler) {
   }
 
 }
