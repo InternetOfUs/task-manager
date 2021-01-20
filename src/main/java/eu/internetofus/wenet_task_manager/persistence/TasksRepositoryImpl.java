@@ -124,7 +124,7 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTasksPageObject(final JsonObject query, final JsonObject order, final int offset, final int limit,
+  public void retrieveTasksPage(final JsonObject query, final JsonObject order, final int offset, final int limit,
       final Handler<AsyncResult<JsonObject>> searchHandler) {
 
     final var options = new FindOptions();
@@ -256,6 +256,38 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
       }
 
     }).onComplete(handler);
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void retrieveTaskTransactionsPage(JsonObject query, JsonObject order, int offset, int limit,
+      Handler<AsyncResult<JsonObject>> searchHandler) {
+
+    final var options = new FindOptions();
+    options.setSort(order);
+    options.setSkip(offset);
+    options.setLimit(limit);
+    options.setFields(new JsonObject().put("transactions.$", true));
+    this.searchPageObject(TASKS_COLLECTION, query, options, "transactions", null).onComplete(searchHandler);
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void retrieveMessagesPage(JsonObject query, JsonObject order, int offset, int limit,
+      Handler<AsyncResult<JsonObject>> searchHandler) {
+
+    final var options = new FindOptions();
+    options.setSort(order);
+    options.setSkip(offset);
+    options.setLimit(limit);
+    options.setFields(new JsonObject().put("transactions.$.messages.$", true));
+    this.searchPageObject(TASKS_COLLECTION, query, options, "messages", null).onComplete(searchHandler);
 
   }
 

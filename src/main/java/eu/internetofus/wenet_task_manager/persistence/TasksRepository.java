@@ -27,10 +27,14 @@
 package eu.internetofus.wenet_task_manager.persistence;
 
 import eu.internetofus.common.components.Model;
+import eu.internetofus.common.components.ValidationErrorException;
 import eu.internetofus.common.components.service.Message;
 import eu.internetofus.common.components.task_manager.Task;
 import eu.internetofus.common.components.task_manager.TaskTransaction;
 import eu.internetofus.common.vertx.QueryBuilder;
+import eu.internetofus.common.vertx.Repository;
+import eu.internetofus.wenet_task_manager.api.messages.MessagesPage;
+import eu.internetofus.wenet_task_manager.api.task_transactions.TaskTransactionsPage;
 import eu.internetofus.wenet_task_manager.api.tasks.TasksPage;
 import io.vertx.codegen.annotations.GenIgnore;
 import io.vertx.codegen.annotations.ProxyGen;
@@ -42,6 +46,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.serviceproxy.ServiceBinder;
+import java.util.List;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -216,7 +221,7 @@ public interface TasksRepository {
    *
    * @return the query that you have to use to obtains some tasks.
    */
-  static JsonObject creteTasksPageQuery(final String appId, final String requesterId, final String taskTypeId,
+  static JsonObject createTasksPageQuery(final String appId, final String requesterId, final String taskTypeId,
       final String goalName, final String goalDescription, final Number creationFrom, final Number creationTo,
       final Number updateFrom, final Number updateTo, final Boolean hasCloseTs, final Number closeFrom,
       final Number closeTo) {
@@ -226,6 +231,50 @@ public interface TasksRepository {
         .withEqOrRegex("goal.description", goalDescription).withRange("_creationTs", creationFrom, creationTo)
         .withRange("_lastUpdateTs", updateFrom, updateTo).withExist("closeTs", hasCloseTs)
         .withRange("closeTs", closeFrom, closeTo).build();
+
+  }
+
+  /**
+   * Create the sort query of the task.
+   *
+   * @param order to sort the tasks.
+   *
+   * @return the sort query of the tasks page.
+   *
+   * @throws ValidationErrorException If the values are not right.
+   */
+  static JsonObject createTasksPageSort(final List<String> order) throws ValidationErrorException {
+
+    return Repository.queryParamToSort(order, "bad_order", (value) -> {
+
+      switch (value) {
+      case "goalName":
+      case "goal.name":
+        return "goal.name";
+      case "goalDescription":
+      case "goal.description":
+        return "goal.description";
+      case "updateTs":
+      case "update":
+      case "_updateTs":
+      case "lastUpdateTs":
+      case "lastUpdate":
+      case "_lastUpdateTs":
+        return "_lastUpdateTs";
+      case "creationTs":
+      case "creation":
+      case "_creationTs":
+        return "_creationTs";
+      case "id":
+      case "taskTypeId":
+      case "requesterId":
+      case "appId":
+        return value;
+      default:
+        return null;
+      }
+
+    });
 
   }
 
@@ -244,7 +293,7 @@ public interface TasksRepository {
       final int limit) {
 
     Promise<JsonObject> promise = Promise.promise();
-    this.retrieveTasksPageObject(query, order, offset, limit, promise);
+    this.retrieveTasksPage(query, order, offset, limit, promise);
     return Model.fromFutureJsonObject(promise.future(), TasksPage.class);
 
   }
@@ -258,7 +307,7 @@ public interface TasksRepository {
    * @param limit         number maximum of tasks to return.
    * @param searchHandler handler to manage the search.
    */
-  void retrieveTasksPageObject(JsonObject query, JsonObject order, int offset, int limit,
+  void retrieveTasksPage(JsonObject query, JsonObject order, int offset, int limit,
       Handler<AsyncResult<JsonObject>> searchHandler);
 
   /**
@@ -316,4 +365,325 @@ public interface TasksRepository {
   void addMessageIntoTransaction(String taskId, String taskTransactionId, JsonObject message,
       Handler<AsyncResult<JsonObject>> handler);
 
+  /**
+   * Obtain the task transactions that satisfies a query.
+   *
+   * @param query  that define the task transactions to add into the page.
+   * @param order  in witch has to return the task transactions.
+   * @param offset index of the first task transaction to return.
+   * @param limit  number maximum of task transactions to return.
+   *
+   * @return the future found page.
+   */
+  @GenIgnore
+  default Future<TaskTransactionsPage> retrieveTaskTransactionsPage(final JsonObject query, final JsonObject order,
+      final int offset, final int limit) {
+
+    Promise<JsonObject> promise = Promise.promise();
+    this.retrieveTaskTransactionsPage(query, order, offset, limit, promise);
+    return Model.fromFutureJsonObject(promise.future(), TaskTransactionsPage.class);
+
+  }
+
+  /**
+   * Search for the task transaction with the specified identifier.
+   *
+   * @param query         that define the task transactions to add into the page.
+   * @param order         in witch has to return the task transactions.
+   * @param offset        index of the first task transaction to return.
+   * @param limit         number maximum of task transactions to return.
+   * @param searchHandler handler to manage the search.
+   */
+  void retrieveTaskTransactionsPage(JsonObject query, JsonObject order, int offset, int limit,
+      Handler<AsyncResult<JsonObject>> searchHandler);
+
+  /**
+   * Create the query to ask about some task transactions.
+   *
+   * @param appId            application identifier to match for the tasks where
+   *                         are the transactions to return.
+   * @param requesterId      requester identifier to match for the tasks where are
+   *                         the transactions to return.
+   * @param taskTypeId       task type identifier to match for the tasks where are
+   *                         the transactions to return.
+   * @param goalName         pattern to match with the goal name of the tasks
+   *                         where are the transactions to return.
+   * @param goalDescription  pattern to match with the goal description of the
+   *                         tasks where are the transactions to return.
+   * @param taskCreationFrom minimal creation time stamp of the tasks where are
+   *                         the transactions to return.
+   * @param taskCreationTo   maximal creation time stamp of the tasks where are
+   *                         the transactions to return.
+   * @param taskUpdateFrom   minimal update time stamp of the tasks where are the
+   *                         transactions to return.
+   * @param taskUpdateTo     maximal update time stamp of the tasks where are the
+   *                         transactions to return.
+   * @param hasCloseTs       this is {@code true} if the tasks to return need to
+   *                         have a {@link Task#closeTs}
+   * @param closeFrom        minimal close time stamp of the tasks where are the
+   *                         transactions to return.
+   * @param closeTo          maximal close time stamp of the tasks where are the
+   *                         transactions to return.
+   * @param taskId           identifier of the task where are the transactions to
+   *                         return.
+   * @param label            of the transactions to return.
+   * @param actioneerId      identifier of the user that done the transactions to
+   *                         return.
+   * @param creationFrom     minimal creation time stamp of the transactions to
+   *                         return.
+   * @param creationTo       maximal creation time stamp of the transactions to
+   *                         return.
+   * @param updateFrom       minimal update time stamp of the transactions to
+   *                         return.
+   * @param updateTo         maximal update time stamp of the transactions to
+   *                         return.
+   *
+   * @return the query that you have to use to obtains some task transactions.
+   */
+  static JsonObject createTaskTransactionsPageQuery(String appId, String requesterId, String taskTypeId,
+      String goalName, String goalDescription, Long taskCreationFrom, Long taskCreationTo, Long taskUpdateFrom,
+      Long taskUpdateTo, Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId, String label,
+      String actioneerId, Long creationFrom, Long creationTo, Long updateFrom, Long updateTo) {
+
+    var query = new QueryBuilder().withEqOrRegex("appId", appId).withEqOrRegex("requesterId", requesterId)
+        .withEqOrRegex("taskTypeId", taskTypeId).withEqOrRegex("goal.name", goalName)
+        .withEqOrRegex("goal.description", goalDescription).withRange("_creationTs", taskCreationFrom, taskCreationTo)
+        .withRange("_lastUpdateTs", taskUpdateFrom, taskUpdateTo).withExist("closeTs", hasCloseTs)
+        .withRange("closeTs", closeFrom, closeTo).build();
+    var transactionQuery = new QueryBuilder().withEqOrRegex("taskId", taskId).withEqOrRegex("label", label)
+        .withEqOrRegex("actioneerId", actioneerId).withRange("_creationTs", creationFrom, creationTo)
+        .withRange("_lastUpdateTs", updateFrom, updateTo).build();
+    query.put("transactions", new JsonObject().put("$elemMatch", transactionQuery));
+
+    return query;
+  }
+
+  /**
+   * Create the sort query of the task transactions.
+   *
+   * @param order to sort the task transactions.
+   *
+   * @return the sort query of the task transactions page.
+   *
+   * @throws ValidationErrorException If the values are not right.
+   */
+  static JsonObject createTaskTransactionsPageSort(final List<String> order) throws ValidationErrorException {
+
+    return Repository.queryParamToSort(order, "bad_order", (value) -> {
+
+      switch (value) {
+      case "goalName":
+      case "goal.name":
+        return "goal.name";
+      case "goalDescription":
+      case "goal.description":
+        return "goal.description";
+      case "taskTypeId":
+      case "requesterId":
+      case "appId":
+        return value;
+      case "taskUpdateTs":
+      case "taskUpdate":
+      case "task_updateTs":
+      case "taskLastUpdateTs":
+      case "taskLastUpdate":
+      case "task_lastUpdateTs":
+        return "_lastUpdateTs";
+      case "taskCreationTs":
+      case "taskCreation":
+      case "task_creationTs":
+        return "_creationTs";
+      case "close":
+      case "closeTs":
+        return "closeTs";
+      case "taskId":
+      case "label":
+      case "actioneerId":
+        return "transactions.$." + value;
+      case "updateTs":
+      case "update":
+      case "_updateTs":
+      case "lastUpdateTs":
+      case "lastUpdate":
+      case "_lastUpdateTs":
+        return "transactions.$._lastUpdateTs";
+      case "creationTs":
+      case "creation":
+      case "_creationTs":
+        return "transactions.$._creationTs";
+      default:
+        return null;
+      }
+
+    });
+
+  }
+
+  /**
+   * Obtain the messages that satisfies a query.
+   *
+   * @param query  that define the messages to add into the page.
+   * @param order  in witch has to return the messages.
+   * @param offset index of the first message to return.
+   * @param limit  number maximum of messages to return.
+   *
+   * @return the future found page.
+   */
+  @GenIgnore
+  default Future<MessagesPage> retrieveMessagesPage(final JsonObject query, final JsonObject order, final int offset,
+      final int limit) {
+
+    Promise<JsonObject> promise = Promise.promise();
+    this.retrieveMessagesPage(query, order, offset, limit, promise);
+    return Model.fromFutureJsonObject(promise.future(), MessagesPage.class);
+
+  }
+
+  /**
+   * Search for the message with the specified identifier.
+   *
+   * @param query         that define the messages to add into the page.
+   * @param order         in witch has to return the messages.
+   * @param offset        index of the first message to return.
+   * @param limit         number maximum of messages to return.
+   * @param searchHandler handler to manage the search.
+   */
+  void retrieveMessagesPage(JsonObject query, JsonObject order, int offset, int limit,
+      Handler<AsyncResult<JsonObject>> searchHandler);
+
+  /**
+   * Create the query to ask about some messages.
+   *
+   * @param appId                   application identifier to match for the tasks
+   *                                where are the messages to return.
+   * @param requesterId             requester identifier to match for the tasks
+   *                                where are the messages to return.
+   * @param taskTypeId              task type identifier to match for the tasks
+   *                                where are the messages to return.
+   * @param goalName                pattern to match with the goal name of the
+   *                                tasks where are the messages to return.
+   * @param goalDescription         pattern to match with the goal description of
+   *                                the tasks where are the messages to return.
+   * @param taskCreationFrom        minimal creation time stamp of the tasks where
+   *                                are the messages to return.
+   * @param taskCreationTo          maximal creation time stamp of the tasks where
+   *                                are the messages to return.
+   * @param taskUpdateFrom          minimal update time stamp of the tasks where
+   *                                are the messages to return.
+   * @param taskUpdateTo            maximal update time stamp of the tasks where
+   *                                are the messages to return.
+   * @param hasCloseTs              this is {@code true} if the tasks to return
+   *                                need to have a {@link Task#closeTs}
+   * @param closeFrom               minimal close time stamp of the tasks where
+   *                                are the messages to return.
+   * @param closeTo                 maximal close time stamp of the tasks where
+   *                                are the messages to return.
+   * @param taskId                  identifier of the task where are the messages
+   *                                to return.
+   * @param transactionLabel        label of the transaction where are the
+   *                                messages to return.
+   * @param actioneerId             identifier of the user that done the
+   *                                transaction where are messages to return.
+   * @param transactionCreationFrom minimal creation time stamp of the transaction
+   *                                where are the messages to return.
+   * @param transactionCreationTo   maximal creation time stamp of the transaction
+   *                                where are the messages to return.
+   * @param transactionUpdateFrom   minimal update time stamp of the transaction
+   *                                where are the messages to return.
+   * @param transactionUpdateTo     maximal update time stamp of the transaction
+   *                                where are the messages to return.
+   * @param receiverId              of the messages to return.
+   * @param label                   of the messages to return.
+   *
+   * @return the query that you have to use to obtains some messages.
+   */
+  static JsonObject createMessagesPageQuery(String appId, String requesterId, String taskTypeId, String goalName,
+      String goalDescription, Long taskCreationFrom, Long taskCreationTo, Long taskUpdateFrom, Long taskUpdateTo,
+      Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId, String transactionLabel, String actioneerId,
+      Long transactionCreationFrom, Long transactionCreationTo, Long transactionUpdateFrom, Long transactionUpdateTo,
+      String receiverId, String label) {
+
+    var transactionQuery = new QueryBuilder().withEqOrRegex("taskId", taskId).withEqOrRegex("label", transactionLabel)
+        .withEqOrRegex("actioneerId", actioneerId)
+        .withRange("_creationTs", transactionCreationFrom, transactionCreationTo)
+        .withRange("_lastUpdateTs", transactionUpdateFrom, transactionUpdateTo).build();
+    var messagesQuery = new QueryBuilder().withEqOrRegex("receiverId", receiverId).withEqOrRegex("label", label)
+        .build();
+    transactionQuery.put("messages", new JsonObject().put("$elemMatch", messagesQuery));
+
+    var query = new QueryBuilder().withEqOrRegex("appId", appId).withEqOrRegex("requesterId", requesterId)
+        .withEqOrRegex("taskTypeId", taskTypeId).withEqOrRegex("goal.name", goalName)
+        .withEqOrRegex("goal.description", goalDescription).withRange("_creationTs", taskCreationFrom, taskCreationTo)
+        .withRange("_lastUpdateTs", taskUpdateFrom, taskUpdateTo).withExist("closeTs", hasCloseTs)
+        .withRange("closeTs", closeFrom, closeTo).build();
+    query.put("transactions", new JsonObject().put("$elemMatch", transactionQuery));
+
+    return query;
+
+  }
+
+  /**
+   * Create the sort query of the messages.
+   *
+   * @param order to sort the messages.
+   *
+   * @return the sort query of the messages page.
+   *
+   * @throws ValidationErrorException If the values are not right.
+   */
+  static JsonObject createMessagesPageSort(final List<String> order) throws ValidationErrorException {
+
+    return Repository.queryParamToSort(order, "bad_order", (value) -> {
+
+      switch (value) {
+      case "taskTypeId":
+      case "requesterId":
+      case "appId":
+        return value;
+      case "goalName":
+      case "goal.name":
+        return "goal.name";
+      case "goalDescription":
+      case "goal.description":
+        return "goal.description";
+      case "taskUpdateTs":
+      case "taskUpdate":
+      case "task_updateTs":
+      case "taskLastUpdateTs":
+      case "taskLastUpdate":
+      case "task_lastUpdateTs":
+        return "_lastUpdateTs";
+      case "close":
+      case "closeTs":
+        return "closeTs";
+      case "taskCreationTs":
+      case "taskCreation":
+      case "task_creationTs":
+        return "_creationTs";
+      case "taskId":
+      case "actioneerId":
+        return "transactions.$." + value;
+      case "transactionLabel":
+        return "transactions.$.label";
+      case "transactionUpdateTs":
+      case "transactionUpdate":
+      case "transaction_updateTs":
+      case "transactionLastUpdateTs":
+      case "transactionLastUpdate":
+      case "transaction_lastUpdateTs":
+        return "transactions.$._lastUpdateTs";
+      case "transactionCreationTs":
+      case "transactionCreation":
+      case "transaction_creationTs":
+        return "transactions.$._creationTs";
+      case "receiverId":
+      case "label":
+        return "transactions.$.messages.$." + value;
+      default:
+        return null;
+      }
+
+    });
+
+  }
 }

@@ -27,6 +27,7 @@
 package eu.internetofus.wenet_task_manager.persistence;
 
 import eu.internetofus.common.components.Model;
+import eu.internetofus.common.components.ValidationErrorException;
 import eu.internetofus.common.components.task_manager.TaskType;
 import eu.internetofus.common.vertx.ModelsPageContext;
 import eu.internetofus.common.vertx.QueryBuilder;
@@ -220,8 +221,10 @@ public interface TaskTypesRepository {
    * @param order to sort the task types.
    *
    * @return the sort query of the task types page.
+   *
+   * @throws ValidationErrorException If the values are not right.
    */
-  static JsonObject createTaskTypesPageSort(final List<String> order) {
+  static JsonObject createTaskTypesPageSort(final List<String> order) throws ValidationErrorException {
 
     return Repository.queryParamToSort(order, "bad_order", (value) -> {
 

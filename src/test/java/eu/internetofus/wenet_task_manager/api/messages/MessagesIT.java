@@ -1,7 +1,7 @@
 /*
  * -----------------------------------------------------------------------------
  *
- * Copyright (c) 2019 - 2022 UDT-IA, IIIA-CSIC
+ * Copyright (c) 1994 - 2021 UDT-IA, IIIA-CSIC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -9,10 +9,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,67 +23,54 @@
  *
  * -----------------------------------------------------------------------------
  */
-
-package eu.internetofus.wenet_task_manager.api.help;
+package eu.internetofus.wenet_task_manager.api.messages;
 
 import static eu.internetofus.common.vertx.HttpResponses.assertThatBodyIs;
+import static io.reactiverse.junit5.web.TestRequest.queryParam;
 import static io.reactiverse.junit5.web.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
+import eu.internetofus.common.components.StoreServices;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.VertxTestContext;
+import javax.ws.rs.core.Response.Status;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
- * The integration test over the {@link Help}.
- *
- * @see Help
+ * Test the {@link Messages} integration.
  *
  * @author UDT-IA, IIIA-CSIC
  */
 @ExtendWith(WeNetTaskManagerIntegrationExtension.class)
-public class HelpIT {
+public class MessagesIT {
 
   /**
-   * Verify that return the api information.
+   * Should retrieve empty task transactions page.
    *
+   * @param vertx       event bus to use.
    * @param client      to connect to the server.
    * @param testContext context to test.
    */
   @Test
-  public void shouldReturnApiInfo(final WebClient client, final VertxTestContext testContext) {
+  public void shouldRetrieveEmptyMessagesPage(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
 
-    testRequest(client, HttpMethod.GET, Help.PATH + Help.INFO_PATH).expect(res -> {
-      assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final var info = assertThatBodyIs(APIInfo.class, res);
-      assertThat(info.name).isNotEmpty();
-      assertThat(info.apiVersion).isNotEmpty();
-      assertThat(info.softwareVersion).isNotEmpty();
-      assertThat(info.vendor).isNotEmpty();
-      assertThat(info.license).isNotEmpty();
-    }).send(testContext);
-  }
+    StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
 
-  /**
-   * Verify that return the OpenAPI description.
-   *
-   * @param client      to connect to the server.
-   * @param testContext context to test.
-   */
-  @Test
-  public void shouldReturnOpenAPiVersion(final WebClient client, final VertxTestContext testContext) {
+      testRequest(client, HttpMethod.GET, Messages.PATH).with(queryParam("taskId", task.id)).expect(res -> {
 
-    testRequest(client, HttpMethod.GET, Help.PATH + Help.OPENAPI_YAML_PATH).expect(res -> {
-      assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-      final String body = res.bodyAsString();
-      assertThat(body).isNotEmpty();
-    }).send(testContext);
+        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+        final var page = assertThatBodyIs(MessagesPage.class, res);
+        assertThat(page.total).isEqualTo(0l);
+        assertThat(page.messages).isNull();
+
+      }).send(testContext);
+
+    });
   }
 
 }

@@ -29,14 +29,12 @@ package eu.internetofus.wenet_task_manager.api.tasks;
 import eu.internetofus.common.components.Model;
 import eu.internetofus.common.components.ValidationErrorException;
 import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngine;
-import eu.internetofus.common.components.profile_manager.WeNetProfileManager;
 import eu.internetofus.common.components.service.App;
 import eu.internetofus.common.components.service.Message;
 import eu.internetofus.common.components.task_manager.Task;
 import eu.internetofus.common.components.task_manager.TaskTransaction;
 import eu.internetofus.common.vertx.ModelContext;
 import eu.internetofus.common.vertx.ModelResources;
-import eu.internetofus.common.vertx.Repository;
 import eu.internetofus.common.vertx.ServiceContext;
 import eu.internetofus.common.vertx.ServiceRequests;
 import eu.internetofus.common.vertx.ServiceResponseHandlers;
@@ -63,21 +61,6 @@ public class TasksResource implements Tasks {
   protected Vertx vertx;
 
   /**
-   * The repository to manage the tasks.
-   */
-  protected TasksRepository repository;
-
-  /**
-   * The component that manage the profiles.
-   */
-  protected WeNetProfileManager profileManager;
-
-  /**
-   * The component that manage the interaction protocols.
-   */
-  protected WeNetInteractionProtocolEngine interactionProtocolEngine;
-
-  /**
    * Create a new instance to provide the services of the {@link Tasks}.
    *
    * @param vertx where resource is defined.
@@ -85,9 +68,6 @@ public class TasksResource implements Tasks {
   public TasksResource(final Vertx vertx) {
 
     this.vertx = vertx;
-    this.repository = TasksRepository.createProxy(vertx);
-    this.profileManager = WeNetProfileManager.createProxy(vertx);
-    this.interactionProtocolEngine = WeNetInteractionProtocolEngine.createProxy(this.vertx);
   }
 
   /**
@@ -142,7 +122,8 @@ public class TasksResource implements Tasks {
     final var model = this.createTaskContext();
     model.id = taskId;
     final var context = new ServiceContext(request, resultHandler);
-    ModelResources.retrieveModel(model, (id, hanlder) -> this.repository.searchTask(id).onComplete(hanlder), context);
+    ModelResources.retrieveModel(model,
+        (id, hanlder) -> TasksRepository.createProxy(this.vertx).searchTask(id).onComplete(hanlder), context);
 
   }
 
@@ -176,12 +157,13 @@ public class TasksResource implements Tasks {
       final var model = this.createTaskContext();
       final var context = new ServiceContext(request, resultHandler);
       ModelResources.createModelChain(this.vertx, body, model,
-          (task, handler) -> this.repository.storeTask(task).onComplete(handler), context, () -> {
+          (task, handler) -> TasksRepository.createProxy(this.vertx).storeTask(task).onComplete(handler), context,
+          () -> {
 
             ServiceResponseHandlers.responseWith(resultHandler, Status.CREATED, model.value);
 
             Logger.debug("Created task {}", model.value);
-            this.interactionProtocolEngine.createdTask(model.value).onComplete(sent -> {
+            WeNetInteractionProtocolEngine.createProxy(this.vertx).createdTask(model.value).onComplete(sent -> {
 
               if (sent.failed()) {
 
@@ -212,8 +194,8 @@ public class TasksResource implements Tasks {
     model.id = taskId;
     final var context = new ServiceContext(request, resultHandler);
     ModelResources.updateModel(this.vertx, body, model,
-        (id, hanlder) -> this.repository.searchTask(id).onComplete(hanlder),
-        (task, handler) -> this.repository.updateTask(task).onComplete(handler), context);
+        (id, hanlder) -> TasksRepository.createProxy(this.vertx).searchTask(id).onComplete(hanlder),
+        (task, handler) -> TasksRepository.createProxy(this.vertx).updateTask(task).onComplete(handler), context);
 
   }
 
@@ -228,8 +210,8 @@ public class TasksResource implements Tasks {
     model.id = taskId;
     final var context = new ServiceContext(request, resultHandler);
     ModelResources.mergeModel(this.vertx, body, model,
-        (id, hanlder) -> this.repository.searchTask(id).onComplete(hanlder),
-        (task, handler) -> this.repository.updateTask(task).onComplete(handler), context);
+        (id, hanlder) -> TasksRepository.createProxy(this.vertx).searchTask(id).onComplete(hanlder),
+        (task, handler) -> TasksRepository.createProxy(this.vertx).updateTask(task).onComplete(handler), context);
 
   }
 
@@ -243,7 +225,7 @@ public class TasksResource implements Tasks {
     final var model = this.createTaskContext();
     model.id = taskId;
     final var context = new ServiceContext(request, resultHandler);
-    ModelResources.deleteModel(model, this.repository::deleteTask, context);
+    ModelResources.deleteModel(model, TasksRepository.createProxy(this.vertx)::deleteTask, context);
 
   }
 
@@ -274,7 +256,7 @@ public class TasksResource implements Tasks {
         } else {
 
           ServiceResponseHandlers.responseWith(resultHandler, Status.ACCEPTED, taskTransaction);
-          this.interactionProtocolEngine.doTransaction(taskTransaction).onComplete(send -> {
+          WeNetInteractionProtocolEngine.createProxy(this.vertx).doTransaction(taskTransaction).onComplete(send -> {
 
             if (send.failed()) {
 
@@ -306,43 +288,13 @@ public class TasksResource implements Tasks {
       Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     var order = ServiceRequests.extractQueryArray(orderValue);
-    final var query = TasksRepository.creteTasksPageQuery(appId, requesterId, taskTypeId, goalName, goalDescription,
+    final var query = TasksRepository.createTasksPageQuery(appId, requesterId, taskTypeId, goalName, goalDescription,
         creationFrom, creationTo, updateFrom, updateTo, hasCloseTs, closeFrom, closeTo);
 
     try {
 
-      final var sort = Repository.queryParamToSort(order, "bad_order", (value) -> {
-
-        switch (value) {
-        case "goalName":
-        case "goal.name":
-          return "goal.name";
-        case "goalDescription":
-        case "goal.description":
-          return "goal.description";
-        case "updateTs":
-        case "update":
-        case "_updateTs":
-        case "lastUpdateTs":
-        case "lastUpdate":
-        case "_lastUpdateTs":
-          return "_lastUpdateTs";
-        case "creationTs":
-        case "creation":
-        case "_creationTs":
-          return "_creationTs";
-        case "id":
-        case "taskTypeId":
-        case "requesterId":
-        case "appId":
-          return value;
-        default:
-          return null;
-        }
-
-      });
-
-      this.repository.retrieveTasksPageObject(query, sort, offset, limit, retrieve -> {
+      final var sort = TasksRepository.createTasksPageSort(order);
+      TasksRepository.createProxy(this.vertx).retrieveTasksPage(query, sort, offset, limit, retrieve -> {
 
         if (retrieve.failed()) {
 
@@ -391,25 +343,27 @@ public class TasksResource implements Tasks {
         transactionModel.source.taskId = taskId;
         ModelResources.validate(this.vertx, transactionModel, context, () -> {
 
-          this.repository.addTransactionIntoTask(taskId, transactionModel.source).onComplete(added -> {
+          TasksRepository.createProxy(this.vertx).addTransactionIntoTask(taskId, transactionModel.source)
+              .onComplete(added -> {
 
-            if (added.failed()) {
+                if (added.failed()) {
 
-              final var cause = added.cause();
-              Logger.debug(cause, "POST /tasks/{}/transactions with {} => NOT FOUND", taskId, transactionModel.source);
-              ServiceResponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND, "not_found_task",
-                  "Not found task to add the transaction");
+                  final var cause = added.cause();
+                  Logger.debug(cause, "POST /tasks/{}/transactions with {} => NOT FOUND", taskId,
+                      transactionModel.source);
+                  ServiceResponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND, "not_found_task",
+                      "Not found task to add the transaction");
 
-            } else {
+                } else {
 
-              var result = added.result();
-              Logger.debug(" \"POST /tasks/{}/transactions with {} => CREATED {}.", taskId, transactionModel.source,
-                  result);
-              ServiceResponseHandlers.responseWith(resultHandler, Status.CREATED, result);
+                  var result = added.result();
+                  Logger.debug(" \"POST /tasks/{}/transactions with {} => CREATED {}.", taskId, transactionModel.source,
+                      result);
+                  ServiceResponseHandlers.responseWith(resultHandler, Status.CREATED, result);
 
-            }
+                }
 
-          });
+              });
 
         });
       }
@@ -430,27 +384,28 @@ public class TasksResource implements Tasks {
 
       ModelResources.validate(this.vertx, messageModel, context, () -> {
 
-        this.repository.addMessageIntoTransaction(taskId, taskTransactionId, messageModel.source).onComplete(added -> {
+        TasksRepository.createProxy(this.vertx)
+            .addMessageIntoTransaction(taskId, taskTransactionId, messageModel.source).onComplete(added -> {
 
-          if (added.failed()) {
+              if (added.failed()) {
 
-            final var cause = added.cause();
-            Logger.debug(cause, "POST /tasks/{}/transactions/{}/messages with {} => NOT FOUND", taskId,
-                taskTransactionId, messageModel.source);
-            ServiceResponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND,
-                "undefined_task_or_transaction",
-                "Not found task where is the transaction or not found the transaction in it to add the message");
+                final var cause = added.cause();
+                Logger.debug(cause, "POST /tasks/{}/transactions/{}/messages with {} => NOT FOUND", taskId,
+                    taskTransactionId, messageModel.source);
+                ServiceResponseHandlers.responseWithErrorMessage(resultHandler, Status.NOT_FOUND,
+                    "undefined_task_or_transaction",
+                    "Not found task where is the transaction or not found the transaction in it to add the message");
 
-          } else {
+              } else {
 
-            var result = added.result();
-            Logger.debug(" \"POST /tasks/{}/transactions/{}/messages with {} => CREATED {}.", taskId, taskTransactionId,
-                messageModel.source, result);
-            ServiceResponseHandlers.responseWith(resultHandler, Status.CREATED, result);
+                var result = added.result();
+                Logger.debug(" \"POST /tasks/{}/transactions/{}/messages with {} => CREATED {}.", taskId,
+                    taskTransactionId, messageModel.source, result);
+                ServiceResponseHandlers.responseWith(resultHandler, Status.CREATED, result);
 
-          }
+              }
 
-        });
+            });
 
       });
 
@@ -461,31 +416,38 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTaskTransactionsPage(String appId, String requesterId, String taskTypeId, String goalName,
-      String goalDescription, Long taskCreationFrom, Long taskCreationTo, Long taskUpdateFrom, Long taskUpdateTo,
-      Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId, String label, String actioneerId,
-      Long creationFrom, Long creationTo, Long updateFrom, Long updateTo, String order, int offset, int limit,
-      ServiceRequest request, Handler<AsyncResult<ServiceResponse>> resultHandler) {
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public void retrieveTaskTransaction(String taskId, String transactionId, ServiceRequest request,
       Handler<AsyncResult<ServiceResponse>> resultHandler) {
-  }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void retrieveMessagesPage(String appId, String requesterId, String taskTypeId, String goalName,
-      String goalDescription, Long taskCreationFrom, Long taskCreationTo, Long taskUpdateFrom, Long taskUpdateTo,
-      Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId, String transactionLabel, String actioneerId,
-      Long transactionCreationFrom, Long transactionCreationTo, Long transactionUpdateFrom, Long transactionUpdateTo,
-      String receiverId, String label, String order, int offset, int limit, ServiceRequest request,
-      Handler<AsyncResult<ServiceResponse>> resultHandler) {
+    final var model = this.createTaskContext();
+    model.id = taskId;
+    final var context = new ServiceContext(request, resultHandler);
+    ModelResources.retrieveModelChain(model,
+        (id, hanlder) -> TasksRepository.createProxy(this.vertx).searchTask(id).onComplete(hanlder), context, () -> {
+
+          if (model.target.transactions != null) {
+
+            for (var transaction : model.target.transactions) {
+
+              if (transaction.id.equals(transactionId)) {
+
+                Logger.trace("Retrieve transaction {}.\n{}", transaction, context);
+                ServiceResponseHandlers.responseOk(context.resultHandler, transaction);
+                return;
+              }
+
+            }
+
+          }
+
+          // Not found
+          Logger.trace("Not found transaction {} on {}.\n{}", transactionId, taskId, context);
+          ServiceResponseHandlers.responseWithErrorMessage(context.resultHandler, Status.NOT_FOUND,
+              "not_found_task_transaction",
+              "On the task '" + taskId + "' not found a transaction with the identifier '" + transactionId + "'.");
+
+        });
+
   }
 
 }

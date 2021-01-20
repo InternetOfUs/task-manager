@@ -31,6 +31,10 @@ import eu.internetofus.common.components.task_manager.WeNetTaskManagerClient;
 import eu.internetofus.common.vertx.AbstractAPIVerticle;
 import eu.internetofus.wenet_task_manager.api.help.Help;
 import eu.internetofus.wenet_task_manager.api.help.HelpResource;
+import eu.internetofus.wenet_task_manager.api.messages.Messages;
+import eu.internetofus.wenet_task_manager.api.messages.MessagesResource;
+import eu.internetofus.wenet_task_manager.api.task_transactions.TaskTransactions;
+import eu.internetofus.wenet_task_manager.api.task_transactions.TaskTransactionsResource;
 import eu.internetofus.wenet_task_manager.api.task_types.TaskTypes;
 import eu.internetofus.wenet_task_manager.api.task_types.TaskTypesResource;
 import eu.internetofus.wenet_task_manager.api.tasks.Tasks;
@@ -71,6 +75,14 @@ public class APIVerticle extends AbstractAPIVerticle {
     routerFactory.mountServiceInterface(TaskTypes.class, TaskTypes.ADDRESS);
     new ServiceBinder(this.vertx).setAddress(TaskTypes.ADDRESS).register(TaskTypes.class,
         new TaskTypesResource(this.vertx));
+
+    routerFactory.mountServiceInterface(TaskTransactions.class, TaskTransactions.ADDRESS);
+    new ServiceBinder(this.vertx).setAddress(TaskTransactions.ADDRESS).register(TaskTransactions.class,
+        new TaskTransactionsResource(this.vertx));
+
+    routerFactory.mountServiceInterface(Messages.class, Messages.ADDRESS);
+    new ServiceBinder(this.vertx).setAddress(Messages.ADDRESS).register(Messages.class,
+        new MessagesResource(this.vertx));
 
   }
 

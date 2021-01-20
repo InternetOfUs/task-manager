@@ -27,8 +27,8 @@
 package eu.internetofus.wenet_task_manager.api.tasks;
 
 import static eu.internetofus.common.vertx.HttpResponses.assertThatBodyIs;
-import static eu.internetofus.common.vertx.ext.TestRequest.queryParam;
-import static eu.internetofus.common.vertx.ext.TestRequest.testRequest;
+import static io.reactiverse.junit5.web.TestRequest.queryParam;
+import static io.reactiverse.junit5.web.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import eu.internetofus.common.components.ErrorMessage;
@@ -1128,7 +1128,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
 
     var transaction = new TaskTransaction();
     transaction.label = "action";
-    testRequest(client, HttpMethod.POST, Tasks.PATH + "/undefined/transactions").expect(res -> {
+    testRequest(client, HttpMethod.POST, Tasks.PATH + "/undefined" + Tasks.TRANSACTIONS_PATH).expect(res -> {
 
       assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
       final var error = assertThatBodyIs(ErrorMessage.class, res);
@@ -1152,7 +1152,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
 
     StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
 
-      testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + task.id + "/transactions").expect(res -> {
+      testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + task.id + Tasks.TRANSACTIONS_PATH).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
         final var error = assertThatBodyIs(ErrorMessage.class, res);
@@ -1180,7 +1180,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
       var transaction = new TaskTransaction();
       transaction.taskId = "undefined";
       transaction.label = "action";
-      testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + task.id + "/transactions").expect(res -> {
+      testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + task.id + Tasks.TRANSACTIONS_PATH).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
         final var error = assertThatBodyIs(ErrorMessage.class, res);
@@ -1207,7 +1207,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
 
       var transaction = new TaskTransaction();
       transaction.label = "action";
-      testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + task.id + "/transactions").expect(res -> {
+      testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + task.id + Tasks.TRANSACTIONS_PATH).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.CREATED.getStatusCode());
         final var transaction2 = assertThatBodyIs(TaskTransaction.class, res);
@@ -1232,14 +1232,15 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
 
     new MessageTest().createModelExample(2, vertx, testContext).onSuccess(message -> {
 
-      testRequest(client, HttpMethod.POST, Tasks.PATH + "/undefined/transactions/undefined/messages").expect(res -> {
+      testRequest(client, HttpMethod.POST,
+          Tasks.PATH + "/undefined" + Tasks.TRANSACTIONS_PATH + "/undefined" + Tasks.MESSAGES_PATH).expect(res -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
-        final var error = assertThatBodyIs(ErrorMessage.class, res);
-        assertThat(error.code).isNotEmpty();
-        assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
+            assertThat(res.statusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
+            final var error = assertThatBodyIs(ErrorMessage.class, res);
+            assertThat(error.code).isNotEmpty();
+            assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
-      }).sendJson(message.toJsonObject(), testContext);
+          }).sendJson(message.toJsonObject(), testContext);
 
     });
 
@@ -1262,8 +1263,8 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
       message.appId = task.appId;
       message.receiverId = task.requesterId;
 
-      testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + task.id + "/transactions/undefined/messages")
-          .expect(res -> {
+      testRequest(client, HttpMethod.POST,
+          Tasks.PATH + "/" + task.id + Tasks.TRANSACTIONS_PATH + "/undefined" + Tasks.MESSAGES_PATH).expect(res -> {
 
             assertThat(res.statusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
             final var error = assertThatBodyIs(ErrorMessage.class, res);
@@ -1303,14 +1304,96 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
             message.receiverId = task.requesterId;
 
             testRequest(client, HttpMethod.POST,
-                Tasks.PATH + "/" + task.id + "/transactions/" + transaction.id + "/messages").expect(res -> {
+                Tasks.PATH + "/" + task.id + Tasks.TRANSACTIONS_PATH + "/" + transaction.id + Tasks.MESSAGES_PATH)
+                    .expect(res -> {
 
-                  assertThat(res.statusCode()).isEqualTo(Status.CREATED.getStatusCode());
-                  final var message2 = assertThatBodyIs(Message.class, res);
-                  assertThat(message2).isEqualTo(message);
+                      assertThat(res.statusCode()).isEqualTo(Status.CREATED.getStatusCode());
+                      final var message2 = assertThatBodyIs(Message.class, res);
+                      assertThat(message2).isEqualTo(message);
 
-                }).sendJson(message.toJsonObject(), testContext);
+                    }).sendJson(message.toJsonObject(), testContext);
           });
+    });
+  }
+
+  /**
+   * Should get a task transaction.
+   *
+   * @param vertx       event bus to use.
+   * @param client      to connect to the server.
+   * @param testContext context to test.
+   */
+  @Test
+  public void shouldRetrieveTaskTransaction(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
+
+    new TaskTransactionTest().createModelExample(1, vertx, testContext).onSuccess(transaction -> {
+
+      testContext
+          .assertComplete(WeNetTaskManager.createProxy(vertx).addTransactionIntoTask(transaction.taskId, transaction))
+          .onSuccess(stored -> {
+
+            testRequest(client, HttpMethod.GET,
+                Tasks.PATH + "/" + transaction.taskId + Tasks.TRANSACTIONS_PATH + "/" + stored.id).expect(res -> {
+
+                  assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+                  final var retrievedTransaction = assertThatBodyIs(TaskTransaction.class, res);
+                  assertThat(retrievedTransaction).isEqualTo(stored);
+
+                }).send(testContext);
+
+          });
+    });
+  }
+
+  /**
+   * Should not retrieve a task transaction.
+   *
+   * @param vertx       event bus to use.
+   * @param client      to connect to the server.
+   * @param testContext context to test.
+   */
+  @Test
+  public void shouldNotRetrieveUndefinedTaskTransaction(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
+
+    StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
+
+      testRequest(client, HttpMethod.GET, Tasks.PATH + "/" + task.id + Tasks.TRANSACTIONS_PATH + "/undefined")
+          .expect(res -> {
+
+            assertThat(res.statusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
+            final var error = assertThatBodyIs(ErrorMessage.class, res);
+            assertThat(error.code).isNotEmpty();
+            assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
+
+          }).send(testContext);
+
+    });
+  }
+
+  /**
+   * Should not retrieve a task transaction when the task is not defined.
+   *
+   * @param vertx       event bus to use.
+   * @param client      to connect to the server.
+   * @param testContext context to test.
+   */
+  @Test
+  public void shouldNotRetrieveTaskTransactionBecauseUdefinedTask(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
+
+    StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
+
+      testRequest(client, HttpMethod.GET, Tasks.PATH + "/undefined" + Tasks.TRANSACTIONS_PATH + "/0").expect(res -> {
+
+        assertThat(res.statusCode()).isEqualTo(Status.NOT_FOUND.getStatusCode());
+        final var error = assertThatBodyIs(ErrorMessage.class, res);
+        assertThat(error.code).isNotEmpty();
+        assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
+
+      }).send(testContext);
+
     });
   }
 

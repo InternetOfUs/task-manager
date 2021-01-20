@@ -24,7 +24,7 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.wenet_task_manager.api.tasks;
+package eu.internetofus.wenet_task_manager.api.task_transactions;
 
 import eu.internetofus.common.components.Model;
 import eu.internetofus.common.components.ReflectionModel;

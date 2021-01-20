@@ -427,7 +427,7 @@ public class TasksRepositoryIT {
   public void shouldRetrieveTaksByGoalName(final Vertx vertx, final VertxTestContext testContext) {
 
     final var name = UUID.randomUUID().toString();
-    final var query = TasksRepository.creteTasksPageQuery(null, null, null, name, null, null, null, null, null, null,
+    final var query = TasksRepository.createTasksPageQuery(null, null, null, name, null, null, null, null, null, null,
         null, null);
 
     testContext.assertComplete(TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10))
@@ -505,7 +505,7 @@ public class TasksRepositoryIT {
   public void shouldRetrieveTaksByGoalDescription(final Vertx vertx, final VertxTestContext testContext) {
 
     final var description = UUID.randomUUID().toString();
-    final var query = TasksRepository.creteTasksPageQuery(null, null, null, null, description, null, null, null, null,
+    final var query = TasksRepository.createTasksPageQuery(null, null, null, null, description, null, null, null, null,
         null, null, null);
 
     testContext.assertComplete(TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10))
@@ -554,7 +554,7 @@ public class TasksRepositoryIT {
   public void shouldRetrieveTaksByRequesterId(final Vertx vertx, final VertxTestContext testContext) {
 
     final var requesterId = UUID.randomUUID().toString();
-    final var query = TasksRepository.creteTasksPageQuery(null, requesterId, null, null, null, null, null, null, null,
+    final var query = TasksRepository.createTasksPageQuery(null, requesterId, null, null, null, null, null, null, null,
         null, null, null);
 
     testContext.assertComplete(TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10))
@@ -602,7 +602,7 @@ public class TasksRepositoryIT {
   public void shouldRetrieveTaksByAppId(final Vertx vertx, final VertxTestContext testContext) {
 
     final var appId = UUID.randomUUID().toString();
-    final var query = TasksRepository.creteTasksPageQuery(appId, null, null, null, null, null, null, null, null, null,
+    final var query = TasksRepository.createTasksPageQuery(appId, null, null, null, null, null, null, null, null, null,
         null, null);
 
     testContext.assertComplete(TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10))
@@ -650,7 +650,7 @@ public class TasksRepositoryIT {
   public void shouldRetrieveTaksByTaskTypeId(final Vertx vertx, final VertxTestContext testContext) {
 
     final var taskTypeId = UUID.randomUUID().toString();
-    final var query = TasksRepository.creteTasksPageQuery(null, null, taskTypeId, null, null, null, null, null, null,
+    final var query = TasksRepository.createTasksPageQuery(null, null, taskTypeId, null, null, null, null, null, null,
         null, null, null);
 
     testContext.assertComplete(TasksRepository.createProxy(vertx).retrieveTasksPage(query, null, 0, 10))

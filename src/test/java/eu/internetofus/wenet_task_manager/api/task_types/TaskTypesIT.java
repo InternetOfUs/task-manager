@@ -27,8 +27,8 @@
 package eu.internetofus.wenet_task_manager.api.task_types;
 
 import static eu.internetofus.common.vertx.HttpResponses.assertThatBodyIs;
-import static eu.internetofus.common.vertx.ext.TestRequest.queryParam;
-import static eu.internetofus.common.vertx.ext.TestRequest.testRequest;
+import static io.reactiverse.junit5.web.TestRequest.queryParam;
+import static io.reactiverse.junit5.web.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import eu.internetofus.common.components.ErrorMessage;
