@@ -28,7 +28,6 @@ package eu.internetofus.wenet_task_manager.api.messages;
 
 import eu.internetofus.common.components.ModelTestCase;
 import eu.internetofus.common.components.service.MessageTest;
-import eu.internetofus.wenet_task_manager.api.messages.MessagesPage;
 import eu.internetofus.wenet_task_manager.api.tasks.TasksPage;
 import java.util.ArrayList;
 

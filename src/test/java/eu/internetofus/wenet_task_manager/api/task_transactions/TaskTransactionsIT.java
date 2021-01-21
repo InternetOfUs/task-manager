@@ -30,16 +30,19 @@ import static io.reactiverse.junit5.web.TestRequest.queryParam;
 import static io.reactiverse.junit5.web.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import eu.internetofus.common.components.HumanDescription;
-import eu.internetofus.common.components.StoreServices;
+import eu.internetofus.common.components.HumanDescriptionTest;
 import eu.internetofus.common.components.task_manager.Task;
+import eu.internetofus.common.components.task_manager.TaskTransaction;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
+import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.VertxTestContext;
+import java.util.ArrayList;
+import java.util.UUID;
 import javax.ws.rs.core.Response.Status;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,27 +58,36 @@ public class TaskTransactionsIT {
   /**
    * Create the task for testing.
    *
+   * @param index       of the task to create.
    * @param vertx       event bus to use.
    * @param testContext context to test.
    *
    * @return the future task to use in a test.
    */
-  public Future<Task> assertTaskForTest(final Vertx vertx, VertxTestContext testContext) {
+  public Future<Task> assertTaskForTest(int index, final Vertx vertx, VertxTestContext testContext) {
 
-    var future = StoreServices.storeCommunityExample(1, vertx, testContext).compose(community -> {
+    Task task = new Task();
+    task.id = UUID.randomUUID().toString();
+    task.appId = "App_" + index;
+    task.attributes = new JsonObject().put("index", index);
+    task.communityId = "Community_" + index;
+    task.goal = new HumanDescriptionTest().createModelExample(index);
+    task.requesterId = "Requester_" + index;
+    task.taskTypeId = "TaskType_" + index;
+    task.transactions = new ArrayList<>();
+    for (var i = 0; i < 20; i++) {
 
-      var task = new Task();
-      task.appId = community.appId;
-      task.communityId = community.id;
-      task.goal = new HumanDescription();
-      task.goal.name = "Where can I eat the best pizza?";
-      task.requesterId = community.members.get(0).userId;
-      task.attributes = new JsonObject().put("kindOfAnswerer", "anyone");
-      return StoreServices.storeTask(task, vertx, testContext);
+      var transaction = new TaskTransaction();
+      transaction.id = String.valueOf(i);
+      transaction.actioneerId = "Actioneer_" + i;
+      transaction.taskId = task.id;
+      transaction.label = "label_" + i;
+      transaction.attributes = new JsonObject().put("i", i).put("index", index);
+      task.transactions.add(transaction);
 
-    });
+    }
 
-    return testContext.assertComplete(future);
+    return testContext.assertComplete(TasksRepository.createProxy(vertx).storeTask(task));
   }
 
   /**
@@ -108,20 +120,61 @@ public class TaskTransactionsIT {
    * @param testContext context to test.
    */
   @Test
-  public void shouldRetrieveTaskTransactionPageFromATask(final Vertx vertx, final WebClient client,
+  public void shouldRetrieveTaskTransactionPageFromApp(final Vertx vertx, final WebClient client,
       final VertxTestContext testContext) {
 
-    StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
+    this.assertTaskForTest(1, vertx, testContext).onSuccess(task -> {
 
-      testRequest(client, HttpMethod.GET, TaskTransactions.PATH).with(queryParam("taskId", task.id)).expect(res -> {
+      this.assertTaskForTest(2, vertx, testContext).onSuccess(task2 -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
-        final var page = assertThatBodyIs(TaskTransactionsPage.class, res);
-        assertThat(page.total).isEqualTo(0l);
-        assertThat(page.transactions).isNull();
+        this.assertTaskForTest(1, vertx, testContext).onSuccess(task3 -> {
 
-      }).send(testContext);
+          testRequest(client, HttpMethod.GET, TaskTransactions.PATH).with(queryParam("appId", task.appId))
+              .expect(res -> {
 
+                assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+                final var page = assertThatBodyIs(TaskTransactionsPage.class, res);
+                assertThat(page.total).isEqualTo(40l);
+                if (task.id.compareTo(task3.id) > 0) {
+
+                  assertThat(page.transactions).isEqualTo(task3.transactions.subList(0, 10));
+
+                } else {
+
+                  assertThat(page.transactions).isEqualTo(task.transactions.subList(0, 10));
+                }
+
+              }).send(testContext);
+        });
+      });
+    });
+  }
+
+  /**
+   * Should retrieve empty task transactions page.
+   *
+   * @param vertx       event bus to use.
+   * @param client      to connect to the server.
+   * @param testContext context to test.
+   */
+  @Test
+  public void shouldRetrieveTaskTransactionPageFromTask(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
+
+    this.assertTaskForTest(1, vertx, testContext).onSuccess(task -> {
+
+      this.assertTaskForTest(2, vertx, testContext).onSuccess(task2 -> {
+
+        testRequest(client, HttpMethod.GET, TaskTransactions.PATH).with(queryParam("taskId", task.id),
+            queryParam("offset", String.valueOf(5)), queryParam("limit", String.valueOf(7))).expect(res -> {
+
+              assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+              final var page = assertThatBodyIs(TaskTransactionsPage.class, res);
+              assertThat(page.total).isEqualTo(20l);
+              assertThat(page.transactions).isEqualTo(task.transactions.subList(5, 12));
+
+            }).send(testContext);
+      });
     });
   }
 

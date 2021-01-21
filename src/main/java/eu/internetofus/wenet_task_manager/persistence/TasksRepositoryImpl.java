@@ -266,12 +266,7 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
   public void retrieveTaskTransactionsPage(JsonObject query, JsonObject order, int offset, int limit,
       Handler<AsyncResult<JsonObject>> searchHandler) {
 
-    final var options = new FindOptions();
-    options.setSort(order);
-    options.setSkip(offset);
-    options.setLimit(limit);
-    options.setFields(new JsonObject().put("transactions.$", true));
-    this.searchPageObject(TASKS_COLLECTION, query, options, "transactions", null).onComplete(searchHandler);
+    this.aggregatePageObject(TASKS_COLLECTION, query, order, offset, limit, "transactions").onComplete(searchHandler);
 
   }
 
@@ -282,12 +277,8 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
   public void retrieveMessagesPage(JsonObject query, JsonObject order, int offset, int limit,
       Handler<AsyncResult<JsonObject>> searchHandler) {
 
-    final var options = new FindOptions();
-    options.setSort(order);
-    options.setSkip(offset);
-    options.setLimit(limit);
-    options.setFields(new JsonObject().put("transactions.$.messages.$", true));
-    this.searchPageObject(TASKS_COLLECTION, query, options, "messages", null).onComplete(searchHandler);
+    this.aggregatePageObject(TASKS_COLLECTION, query, order, offset, limit, "transactions.messages")
+        .onComplete(searchHandler);
 
   }
 

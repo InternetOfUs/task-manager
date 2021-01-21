@@ -445,17 +445,16 @@ public interface TasksRepository {
       Long taskUpdateTo, Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId, String label,
       String actioneerId, Long creationFrom, Long creationTo, Long updateFrom, Long updateTo) {
 
-    var query = new QueryBuilder().withEqOrRegex("appId", appId).withEqOrRegex("requesterId", requesterId)
-        .withEqOrRegex("taskTypeId", taskTypeId).withEqOrRegex("goal.name", goalName)
-        .withEqOrRegex("goal.description", goalDescription).withRange("_creationTs", taskCreationFrom, taskCreationTo)
+    return new QueryBuilder().withEqOrRegex("_id", taskId).withEqOrRegex("appId", appId)
+        .withEqOrRegex("requesterId", requesterId).withEqOrRegex("taskTypeId", taskTypeId)
+        .withEqOrRegex("goal.name", goalName).withEqOrRegex("goal.description", goalDescription)
+        .withRange("_creationTs", taskCreationFrom, taskCreationTo)
         .withRange("_lastUpdateTs", taskUpdateFrom, taskUpdateTo).withExist("closeTs", hasCloseTs)
-        .withRange("closeTs", closeFrom, closeTo).build();
-    var transactionQuery = new QueryBuilder().withEqOrRegex("taskId", taskId).withEqOrRegex("label", label)
-        .withEqOrRegex("actioneerId", actioneerId).withRange("_creationTs", creationFrom, creationTo)
-        .withRange("_lastUpdateTs", updateFrom, updateTo).build();
-    query.put("transactions", new JsonObject().put("$elemMatch", transactionQuery));
+        .withRange("closeTs", closeFrom, closeTo).withEqOrRegex("transactions.label", label)
+        .withEqOrRegex("transactions.actioneerId", actioneerId)
+        .withRange("transactions._creationTs", creationFrom, creationTo)
+        .withRange("transactions._lastUpdateTs", updateFrom, updateTo).build();
 
-    return query;
   }
 
   /**
@@ -469,9 +468,11 @@ public interface TasksRepository {
    */
   static JsonObject createTaskTransactionsPageSort(final List<String> order) throws ValidationErrorException {
 
-    return Repository.queryParamToSort(order, "bad_order", (value) -> {
+    var sort = Repository.queryParamToSort(order, "bad_order", (value) -> {
 
       switch (value) {
+      case "id":
+        return "transactions.id";
       case "goalName":
       case "goal.name":
         return "goal.name";
@@ -497,25 +498,35 @@ public interface TasksRepository {
       case "closeTs":
         return "closeTs";
       case "taskId":
+        return "_id";
       case "label":
       case "actioneerId":
-        return "transactions.$." + value;
+        return "transactions." + value;
       case "updateTs":
       case "update":
       case "_updateTs":
       case "lastUpdateTs":
       case "lastUpdate":
       case "_lastUpdateTs":
-        return "transactions.$._lastUpdateTs";
+        return "transactions._lastUpdateTs";
       case "creationTs":
       case "creation":
       case "_creationTs":
-        return "transactions.$._creationTs";
+        return "transactions._creationTs";
       default:
         return null;
       }
 
     });
+
+    if (sort == null || sort.isEmpty()) {
+
+      return new JsonObject().put("_creationTs", 1).put("_id", 1).put("transactionIndex", 1);
+
+    } else {
+
+      return sort;
+    }
 
   }
 
@@ -603,22 +614,16 @@ public interface TasksRepository {
       Long transactionCreationFrom, Long transactionCreationTo, Long transactionUpdateFrom, Long transactionUpdateTo,
       String receiverId, String label) {
 
-    var transactionQuery = new QueryBuilder().withEqOrRegex("taskId", taskId).withEqOrRegex("label", transactionLabel)
-        .withEqOrRegex("actioneerId", actioneerId)
-        .withRange("_creationTs", transactionCreationFrom, transactionCreationTo)
-        .withRange("_lastUpdateTs", transactionUpdateFrom, transactionUpdateTo).build();
-    var messagesQuery = new QueryBuilder().withEqOrRegex("receiverId", receiverId).withEqOrRegex("label", label)
-        .build();
-    transactionQuery.put("messages", new JsonObject().put("$elemMatch", messagesQuery));
-
-    var query = new QueryBuilder().withEqOrRegex("appId", appId).withEqOrRegex("requesterId", requesterId)
-        .withEqOrRegex("taskTypeId", taskTypeId).withEqOrRegex("goal.name", goalName)
-        .withEqOrRegex("goal.description", goalDescription).withRange("_creationTs", taskCreationFrom, taskCreationTo)
+    return new QueryBuilder().withEqOrRegex("_id", taskId).withEqOrRegex("transaction.label", transactionLabel)
+        .withEqOrRegex("transaction.actioneerId", actioneerId)
+        .withRange("transaction._creationTs", transactionCreationFrom, transactionCreationTo)
+        .withRange("transaction._lastUpdateTs", transactionUpdateFrom, transactionUpdateTo)
+        .withEqOrRegex("transaction.messages.receiverId", receiverId).withEqOrRegex("transaction.messages.label", label)
+        .withEqOrRegex("appId", appId).withEqOrRegex("requesterId", requesterId).withEqOrRegex("taskTypeId", taskTypeId)
+        .withEqOrRegex("goal.name", goalName).withEqOrRegex("goal.description", goalDescription)
+        .withRange("_creationTs", taskCreationFrom, taskCreationTo)
         .withRange("_lastUpdateTs", taskUpdateFrom, taskUpdateTo).withExist("closeTs", hasCloseTs)
         .withRange("closeTs", closeFrom, closeTo).build();
-    query.put("transactions", new JsonObject().put("$elemMatch", transactionQuery));
-
-    return query;
 
   }
 
@@ -633,7 +638,7 @@ public interface TasksRepository {
    */
   static JsonObject createMessagesPageSort(final List<String> order) throws ValidationErrorException {
 
-    return Repository.queryParamToSort(order, "bad_order", (value) -> {
+    var sort = Repository.queryParamToSort(order, "bad_order", (value) -> {
 
       switch (value) {
       case "taskTypeId":
@@ -662,28 +667,37 @@ public interface TasksRepository {
         return "_creationTs";
       case "taskId":
       case "actioneerId":
-        return "transactions.$." + value;
+        return "transactions." + value;
       case "transactionLabel":
-        return "transactions.$.label";
+        return "transactions.label";
       case "transactionUpdateTs":
       case "transactionUpdate":
       case "transaction_updateTs":
       case "transactionLastUpdateTs":
       case "transactionLastUpdate":
       case "transaction_lastUpdateTs":
-        return "transactions.$._lastUpdateTs";
+        return "transactions._lastUpdateTs";
       case "transactionCreationTs":
       case "transactionCreation":
       case "transaction_creationTs":
-        return "transactions.$._creationTs";
+        return "transactions._creationTs";
       case "receiverId":
       case "label":
-        return "transactions.$.messages.$." + value;
+        return "transactions.messages." + value;
       default:
         return null;
       }
 
     });
+
+    if (sort == null || sort.isEmpty()) {
+
+      return new JsonObject().put("_creationTs", 1).put("_id", 1).put("transactionIndex", 1).put("messageIndex", 1);
+
+    } else {
+
+      return sort;
+    }
 
   }
 }
