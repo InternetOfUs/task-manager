@@ -66,35 +66,37 @@ public class TaskTransactionsResource implements TaskTransactions {
    */
   @Override
   public void retrieveTaskTransactionsPage(String appId, String requesterId, String taskTypeId, String goalName,
-      String goalDescription, Long taskCreationFrom, Long taskCreationTo, Long taskUpdateFrom, Long taskUpdateTo,
-      Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId, String label, String actioneerId,
-      Long creationFrom, Long creationTo, Long updateFrom, Long updateTo, String orderValue, int offset, int limit,
-      ServiceRequest request, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+      String goalDescription, String goalKeywordsValue, Long taskCreationFrom, Long taskCreationTo, Long taskUpdateFrom,
+      Long taskUpdateTo, Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId, String id, String label,
+      String actioneerId, Long creationFrom, Long creationTo, Long updateFrom, Long updateTo, String orderValue,
+      int offset, int limit, ServiceRequest request, Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
+    var goalKeywords = ServiceRequests.extractQueryArray(goalKeywordsValue);
     var order = ServiceRequests.extractQueryArray(orderValue);
     final var query = TasksRepository.createTaskTransactionsPageQuery(appId, requesterId, taskTypeId, goalName,
-        goalDescription, taskCreationFrom, taskCreationTo, taskUpdateFrom, taskUpdateTo, hasCloseTs, closeFrom, closeTo,
-        taskId, label, actioneerId, creationFrom, creationTo, updateFrom, updateTo);
+        goalDescription, goalKeywords, taskCreationFrom, taskCreationTo, taskUpdateFrom, taskUpdateTo, hasCloseTs,
+        closeFrom, closeTo, taskId, id, label, actioneerId, creationFrom, creationTo, updateFrom, updateTo);
 
     try {
 
       final var sort = TasksRepository.createTaskTransactionsPageSort(order);
-      TasksRepository.createProxy(this.vertx).retrieveTaskTransactionsPage(query, sort, offset, limit, retrieve -> {
+      TasksRepository.createProxy(this.vertx).retrieveTaskTransactionsPage(query, sort, offset, limit)
+          .onComplete(retrieve -> {
 
-        if (retrieve.failed()) {
+            if (retrieve.failed()) {
 
-          final var cause = retrieve.cause();
-          Logger.debug(cause, "GET /tasks/transactions with {} => Retrieve error", query);
-          ServiceResponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
+              final var cause = retrieve.cause();
+              Logger.debug(cause, "GET /tasks/transactions with {} => Retrieve error", query);
+              ServiceResponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
-        } else {
+            } else {
 
-          final var tasksPage = retrieve.result();
-          Logger.debug("GET /tasks/transactions with {} => {}.", query, tasksPage);
-          ServiceResponseHandlers.responseOk(resultHandler, tasksPage);
-        }
+              final var tasksPage = retrieve.result();
+              Logger.debug("GET /tasks/transactions with {} => {}.", query, tasksPage);
+              ServiceResponseHandlers.responseOk(resultHandler, tasksPage);
+            }
 
-      });
+          });
 
     } catch (final ValidationErrorException error) {
 

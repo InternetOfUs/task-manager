@@ -161,7 +161,7 @@ public class TaskTypesResource implements TaskTypes {
     try {
 
       final var sort = TaskTypesRepository.createTaskTypesPageSort(order);
-      this.typesRepository.retrieveTaskTypesPageObject(query, sort, offset, limit, retrieve -> {
+      this.typesRepository.retrieveTaskTypesPage(query, sort, offset, limit).onComplete(retrieve -> {
 
         if (retrieve.failed()) {
 

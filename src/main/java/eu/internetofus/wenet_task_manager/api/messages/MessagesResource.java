@@ -66,22 +66,23 @@ public class MessagesResource implements Messages {
    */
   @Override
   public void retrieveMessagesPage(String appId, String requesterId, String taskTypeId, String goalName,
-      String goalDescription, Long taskCreationFrom, Long taskCreationTo, Long taskUpdateFrom, Long taskUpdateTo,
-      Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId, String transactionLabel, String actioneerId,
-      Long transactionCreationFrom, Long transactionCreationTo, Long transactionUpdateFrom, Long transactionUpdateTo,
-      String receiverId, String label, String orderValue, int offset, int limit, ServiceRequest request,
-      Handler<AsyncResult<ServiceResponse>> resultHandler) {
+      String goalDescription, String goalKeywordsValue, Long taskCreationFrom, Long taskCreationTo, Long taskUpdateFrom,
+      Long taskUpdateTo, Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId, String transactionId,
+      String transactionLabel, String actioneerId, Long transactionCreationFrom, Long transactionCreationTo,
+      Long transactionUpdateFrom, Long transactionUpdateTo, String receiverId, String label, String orderValue,
+      int offset, int limit, ServiceRequest request, Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
+    var goalKeywords = ServiceRequests.extractQueryArray(goalKeywordsValue);
     var order = ServiceRequests.extractQueryArray(orderValue);
     final var query = TasksRepository.createMessagesPageQuery(appId, requesterId, taskTypeId, goalName, goalDescription,
-        taskCreationFrom, taskCreationTo, taskUpdateFrom, taskUpdateTo, hasCloseTs, closeFrom, closeTo, taskId,
-        transactionLabel, actioneerId, transactionCreationFrom, transactionCreationTo, transactionUpdateFrom,
-        transactionUpdateTo, receiverId, label);
+        goalKeywords, taskCreationFrom, taskCreationTo, taskUpdateFrom, taskUpdateTo, hasCloseTs, closeFrom, closeTo,
+        taskId, transactionId, transactionLabel, actioneerId, transactionCreationFrom, transactionCreationTo,
+        transactionUpdateFrom, transactionUpdateTo, receiverId, label);
 
     try {
 
       final var sort = TasksRepository.createMessagesPageSort(order);
-      TasksRepository.createProxy(this.vertx).retrieveMessagesPage(query, sort, offset, limit, retrieve -> {
+      TasksRepository.createProxy(this.vertx).retrieveMessagesPage(query, sort, offset, limit).onComplete(retrieve -> {
 
         if (retrieve.failed()) {
 

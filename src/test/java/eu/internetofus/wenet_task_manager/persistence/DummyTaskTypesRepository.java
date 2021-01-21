@@ -73,7 +73,7 @@ public class DummyTaskTypesRepository implements TaskTypesRepository {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTaskTypesPageObject(final JsonObject query, final JsonObject sort, final int offset, final int limit, final Handler<AsyncResult<JsonObject>> handler) {
+  public void retrieveTaskTypesPage(final JsonObject query, final JsonObject sort, final int offset, final int limit, final Handler<AsyncResult<JsonObject>> handler) {
 
   }
 

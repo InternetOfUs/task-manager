@@ -80,6 +80,8 @@ public interface TaskTransactions {
    *                         where are the transactions to return.
    * @param goalDescription  pattern to match with the goal description of the
    *                         tasks where are the transactions to return.
+   * @param goalKeywords     patterns to match with the goal keywords of the tasks
+   *                         where are the transactions to return.
    * @param taskCreationFrom minimal creation time stamp of the tasks where are
    *                         the transactions to return.
    * @param taskCreationTo   maximal creation time stamp of the tasks where are
@@ -96,6 +98,7 @@ public interface TaskTransactions {
    *                         transactions to return.
    * @param taskId           identifier of the task where are the transactions to
    *                         return.
+   * @param id               identifier of the transactions to return.
    * @param label            of the transactions to return.
    * @param actioneerId      identifier of the user that done the transactions to
    *                         return.
@@ -125,6 +128,7 @@ public interface TaskTransactions {
       @QueryParam(value = "taskTypeId") @Parameter(description = "A task type identifier to be equals on the task where are the transactions to return. You can use a Perl compatible regular expressions (PCRE) that has to match the task type identifier of the tasks if you write between '/'. For example to get the transactions on the tasks for the types '1' and '2' you must pass as 'taskTypeId' '/^[1|2]$/'.", example = "1e346fd440", required = false) String taskTypeId,
       @QueryParam(value = "goalName") @Parameter(description = "A goal name to be equals on the task where are the transactions to return. You can use a Perl compatible regular expressions (PCRE) that has to match the goal name of the tasks if you write between '/'. For example to get the transactions on the tasks with a goal name with the word 'eat' you must pass as 'goalName' '/.*eat.*/'", example = "/.*eat.*/", required = false) String goalName,
       @QueryParam(value = "goalDescription") @Parameter(description = "A goal description to be equals on the task where are the transactions to return. You can use a Perl compatible regular expressions (PCRE) that has to match the goal description of the tasks if you write between '/'. For example to get the transactions on the tasks with a goal description with the word 'eat' you must pass as 'goalDescription' '/.*eat.*/'", example = "/.*eat.*/", required = false) String goalDescription,
+      @QueryParam(value = "goalKeywords") @Parameter(description = "A set of keywords to be defined on the task where are the transactions to return. For each keyword is separated by a ',' and each field keyword can be between '/' to use a Perl compatible regular expressions (PCRE) instead the exact value.", example = "key1,/.*eat.*/,key3", required = false, style = ParameterStyle.FORM, explode = Explode.FALSE) String goalKeywords,
       @QueryParam(value = "taskCreationFrom") @Parameter(description = "The difference, measured in seconds, between the minimum creation time stamp of the task where are the transaction to return and midnight, January 1, 1970 UTC.", example = "1457166440", required = false) Long taskCreationFrom,
       @QueryParam(value = "taskCreationTo") @Parameter(description = "The difference, measured in seconds, between the maximum creation time stamp of the task where are the transaction to return and midnight, January 1, 1970 UTC.", example = "1571664406", required = false) Long taskCreationTo,
       @QueryParam(value = "taskUpdateFrom") @Parameter(description = "The difference, measured in seconds, between the minimum update time stamp of the task where are the transaction to return and midnight, January 1, 1970 UTC.", example = "1457166440", required = false) Long taskUpdateFrom,
@@ -133,6 +137,7 @@ public interface TaskTransactions {
       @QueryParam(value = "closeFrom") @Parameter(description = "The difference, measured in seconds, between the minimum close time stamp of the task where are the transaction to return and midnight, January 1, 1970 UTC.", example = "1457166440", required = false) Long closeFrom,
       @QueryParam(value = "closeTo") @Parameter(description = "The difference, measured in seconds, between the maximum close time stamp of the task where are the transaction to return and midnight, January 1, 1970 UTC.", example = "1571664406", required = false) Long closeTo,
       @QueryParam(value = "taskId") @Parameter(description = "A task identifier to be equals on the task where are the transactions to return. You can use a Perl compatible regular expressions (PCRE) that has to match the task identifier of the tasks if you write between '/'. For example to get the transactions for the tasks '1' and '2' you must pass as 'taskId' '/^[1|2]$/'.", example = "1e346fd440", required = false) String taskId,
+      @QueryParam(value = "id") @Parameter(description = "A identifier to be equals on the transactions to return. You can use a Perl compatible regular expressions (PCRE) that has to match the identifier on the transactions to return if you write between '/'. For example to get the transactions with the identifiers '1' and '2' you must pass as 'id' '/^[1|2]$/'.", example = "accept", required = false) String id,
       @QueryParam(value = "label") @Parameter(description = "A label to be equals on the transactions to return. You can use a Perl compatible regular expressions (PCRE) that has to match the label on the transactions to return if you write between '/'. For example to get the transactions with the labels 'accept' and 'decline' you must pass as 'label' '/^[accept|decline]$/'.", example = "accept", required = false) String label,
       @QueryParam(value = "actioneerId") @Parameter(description = "A user identifier that has done the transactions to return. You can use a Perl compatible regular expressions (PCRE) that has to match the actioneer if you write between '/'. For example to get the transactions that has done the users '1' and '2' you must pass as 'actioneerId' '/^[1|2]$/'.", example = "accept", required = false) String actioneerId,
       @QueryParam(value = "creationFrom") @Parameter(description = "The difference, measured in seconds, between the minimum creation time stamp of the transactions to return and midnight, January 1, 1970 UTC.", example = "1457166440", required = false) Long creationFrom,

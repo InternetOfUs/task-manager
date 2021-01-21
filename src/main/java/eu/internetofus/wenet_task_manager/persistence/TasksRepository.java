@@ -410,6 +410,8 @@ public interface TasksRepository {
    *                         where are the transactions to return.
    * @param goalDescription  pattern to match with the goal description of the
    *                         tasks where are the transactions to return.
+   * @param goalKeywords     patterns to match with the goal keywords of the tasks
+   *                         where are the transactions to return.
    * @param taskCreationFrom minimal creation time stamp of the tasks where are
    *                         the transactions to return.
    * @param taskCreationTo   maximal creation time stamp of the tasks where are
@@ -426,6 +428,7 @@ public interface TasksRepository {
    *                         transactions to return.
    * @param taskId           identifier of the task where are the transactions to
    *                         return.
+   * @param id               identifier of the transactions to return.
    * @param label            of the transactions to return.
    * @param actioneerId      identifier of the user that done the transactions to
    *                         return.
@@ -441,17 +444,17 @@ public interface TasksRepository {
    * @return the query that you have to use to obtains some task transactions.
    */
   static JsonObject createTaskTransactionsPageQuery(String appId, String requesterId, String taskTypeId,
-      String goalName, String goalDescription, Long taskCreationFrom, Long taskCreationTo, Long taskUpdateFrom,
-      Long taskUpdateTo, Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId, String label,
-      String actioneerId, Long creationFrom, Long creationTo, Long updateFrom, Long updateTo) {
+      String goalName, String goalDescription, List<String> goalKeywords, Long taskCreationFrom, Long taskCreationTo,
+      Long taskUpdateFrom, Long taskUpdateTo, Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId,
+      String id, String label, String actioneerId, Long creationFrom, Long creationTo, Long updateFrom, Long updateTo) {
 
     return new QueryBuilder().withEqOrRegex("_id", taskId).withEqOrRegex("appId", appId)
         .withEqOrRegex("requesterId", requesterId).withEqOrRegex("taskTypeId", taskTypeId)
         .withEqOrRegex("goal.name", goalName).withEqOrRegex("goal.description", goalDescription)
-        .withRange("_creationTs", taskCreationFrom, taskCreationTo)
+        .withEqOrRegex("goal.keywords", goalKeywords).withRange("_creationTs", taskCreationFrom, taskCreationTo)
         .withRange("_lastUpdateTs", taskUpdateFrom, taskUpdateTo).withExist("closeTs", hasCloseTs)
-        .withRange("closeTs", closeFrom, closeTo).withEqOrRegex("transactions.label", label)
-        .withEqOrRegex("transactions.actioneerId", actioneerId)
+        .withRange("closeTs", closeFrom, closeTo).withEqOrRegex("transactions.id", id)
+        .withEqOrRegex("transactions.label", label).withEqOrRegex("transactions.actioneerId", actioneerId)
         .withRange("transactions._creationTs", creationFrom, creationTo)
         .withRange("transactions._lastUpdateTs", updateFrom, updateTo).build();
 
@@ -479,9 +482,13 @@ public interface TasksRepository {
       case "goalDescription":
       case "goal.description":
         return "goal.description";
+      case "goalKeywords":
+      case "goal.keywords":
+        return "goal.keywords";
       case "taskTypeId":
       case "requesterId":
       case "appId":
+      case "transactionsIndex":
         return value;
       case "taskUpdateTs":
       case "taskUpdate":
@@ -494,8 +501,8 @@ public interface TasksRepository {
       case "taskCreation":
       case "task_creationTs":
         return "_creationTs";
-      case "close":
       case "closeTs":
+      case "close":
         return "closeTs";
       case "taskId":
         return "_id";
@@ -519,9 +526,9 @@ public interface TasksRepository {
 
     });
 
-    if (sort == null || sort.isEmpty()) {
+    if (sort == null) {
 
-      return new JsonObject().put("_creationTs", 1).put("_id", 1).put("transactionIndex", 1);
+      return new JsonObject().put("_creationTs", 1).put("_id", 1).put("transactionsIndex", 1);
 
     } else {
 
@@ -575,6 +582,8 @@ public interface TasksRepository {
    *                                tasks where are the messages to return.
    * @param goalDescription         pattern to match with the goal description of
    *                                the tasks where are the messages to return.
+   * @param goalKeywords            patterns to match with the goal keywords of
+   *                                the tasks where are the messages to return.
    * @param taskCreationFrom        minimal creation time stamp of the tasks where
    *                                are the messages to return.
    * @param taskCreationTo          maximal creation time stamp of the tasks where
@@ -593,7 +602,9 @@ public interface TasksRepository {
    *                                to return.
    * @param transactionLabel        label of the transaction where are the
    *                                messages to return.
-   * @param actioneerId             identifier of the user that done the
+   * @param transactionId           identifier of the transaction where are the
+   *                                messages to return.
+   * @param transactionActioneerId  identifier of the user that done the
    *                                transaction where are messages to return.
    * @param transactionCreationFrom minimal creation time stamp of the transaction
    *                                where are the messages to return.
@@ -609,19 +620,22 @@ public interface TasksRepository {
    * @return the query that you have to use to obtains some messages.
    */
   static JsonObject createMessagesPageQuery(String appId, String requesterId, String taskTypeId, String goalName,
-      String goalDescription, Long taskCreationFrom, Long taskCreationTo, Long taskUpdateFrom, Long taskUpdateTo,
-      Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId, String transactionLabel, String actioneerId,
-      Long transactionCreationFrom, Long transactionCreationTo, Long transactionUpdateFrom, Long transactionUpdateTo,
-      String receiverId, String label) {
+      String goalDescription, List<String> goalKeywords, Long taskCreationFrom, Long taskCreationTo,
+      Long taskUpdateFrom, Long taskUpdateTo, Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId,
+      String transactionId, String transactionLabel, String transactionActioneerId, Long transactionCreationFrom,
+      Long transactionCreationTo, Long transactionUpdateFrom, Long transactionUpdateTo, String receiverId,
+      String label) {
 
-    return new QueryBuilder().withEqOrRegex("_id", taskId).withEqOrRegex("transaction.label", transactionLabel)
-        .withEqOrRegex("transaction.actioneerId", actioneerId)
-        .withRange("transaction._creationTs", transactionCreationFrom, transactionCreationTo)
-        .withRange("transaction._lastUpdateTs", transactionUpdateFrom, transactionUpdateTo)
-        .withEqOrRegex("transaction.messages.receiverId", receiverId).withEqOrRegex("transaction.messages.label", label)
-        .withEqOrRegex("appId", appId).withEqOrRegex("requesterId", requesterId).withEqOrRegex("taskTypeId", taskTypeId)
+    return new QueryBuilder().withEqOrRegex("_id", taskId).withEqOrRegex("transactions.id", transactionId)
+        .withEqOrRegex("transactions.label", transactionLabel)
+        .withEqOrRegex("transactions.actioneerId", transactionActioneerId)
+        .withRange("transactions._creationTs", transactionCreationFrom, transactionCreationTo)
+        .withRange("transactions._lastUpdateTs", transactionUpdateFrom, transactionUpdateTo)
+        .withEqOrRegex("transactions.messages.receiverId", receiverId)
+        .withEqOrRegex("transactions.messages.label", label).withEqOrRegex("appId", appId)
+        .withEqOrRegex("requesterId", requesterId).withEqOrRegex("taskTypeId", taskTypeId)
         .withEqOrRegex("goal.name", goalName).withEqOrRegex("goal.description", goalDescription)
-        .withRange("_creationTs", taskCreationFrom, taskCreationTo)
+        .withEqOrRegex("goal.keywords", goalKeywords).withRange("_creationTs", taskCreationFrom, taskCreationTo)
         .withRange("_lastUpdateTs", taskUpdateFrom, taskUpdateTo).withExist("closeTs", hasCloseTs)
         .withRange("closeTs", closeFrom, closeTo).build();
 
@@ -644,6 +658,8 @@ public interface TasksRepository {
       case "taskTypeId":
       case "requesterId":
       case "appId":
+      case "transactionsIndex":
+      case "messagesIndex":
         return value;
       case "goalName":
       case "goal.name":
@@ -651,6 +667,9 @@ public interface TasksRepository {
       case "goalDescription":
       case "goal.description":
         return "goal.description";
+      case "goalKeywords":
+      case "goal.keywords":
+        return "goal.keywords";
       case "taskUpdateTs":
       case "taskUpdate":
       case "task_updateTs":
@@ -666,8 +685,12 @@ public interface TasksRepository {
       case "task_creationTs":
         return "_creationTs";
       case "taskId":
-      case "actioneerId":
         return "transactions." + value;
+      case "transactionActioneerId":
+      case "actioneerId":
+        return "transactions.actioneerId";
+      case "transactionId":
+        return "transactions.id";
       case "transactionLabel":
         return "transactions.label";
       case "transactionUpdateTs":
@@ -690,9 +713,9 @@ public interface TasksRepository {
 
     });
 
-    if (sort == null || sort.isEmpty()) {
+    if (sort == null) {
 
-      return new JsonObject().put("_creationTs", 1).put("_id", 1).put("transactionIndex", 1).put("messageIndex", 1);
+      return new JsonObject().put("_creationTs", 1).put("_id", 1).put("transactionsIndex", 1).put("messagesIndex", 1);
 
     } else {
 

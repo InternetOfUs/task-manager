@@ -149,7 +149,7 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTaskTypesPageObject(final JsonObject query, final JsonObject order, final int offset,
+  public void retrieveTaskTypesPage(final JsonObject query, final JsonObject order, final int offset,
       final int limit, final Handler<AsyncResult<JsonObject>> searchHandler) {
 
     final var options = new FindOptions();

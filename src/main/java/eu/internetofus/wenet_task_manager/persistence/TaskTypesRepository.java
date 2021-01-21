@@ -245,62 +245,33 @@ public interface TaskTypesRepository {
    * Retrieve the task types defined on the context.
    *
    * @param context that describe witch page want to obtain.
-   * @param handler for the obtained page.
-   */
-  @GenIgnore
-  default void retrieveTaskTypesPageObject(final ModelsPageContext context,
-      final Handler<AsyncResult<JsonObject>> handler) {
-
-    this.retrieveTaskTypesPageObject(context.query, context.sort, context.offset, context.limit, handler);
-  }
-
-  /**
-   * Retrieve the task types defined on the context.
    *
-   * @param context       that describe witch page want to obtain.
-   * @param searchHandler for the obtained page.
+   * @return the future page.
    */
   @GenIgnore
-  default void retrieveTaskTypesPage(final ModelsPageContext context,
-      final Handler<AsyncResult<TaskTypesPage>> searchHandler) {
+  default Future<TaskTypesPage> retrieveTaskTypesPage(final ModelsPageContext context) {
 
-    this.retrieveTaskTypesPage(context.query, context.sort, context.offset, context.limit, searchHandler);
+    return this.retrieveTaskTypesPage(context.query, context.sort, context.offset, context.limit);
 
   }
 
   /**
    * Retrieve the task types defined on the context.
    *
-   * @param query         to obtain the required task types.
-   * @param sort          describe how has to be ordered the obtained task types.
-   * @param offset        the index of the first community to return.
-   * @param limit         the number maximum of task types to return.
-   * @param searchHandler for the obtained page.
+   * @param query  to obtain the required task types.
+   * @param sort   describe how has to be ordered the obtained task types.
+   * @param offset the index of the first community to return.
+   * @param limit  the number maximum of task types to return.
+   *
+   * @return the future page.
    */
   @GenIgnore
-  default void retrieveTaskTypesPage(final JsonObject query, final JsonObject sort, final int offset, final int limit,
-      final Handler<AsyncResult<TaskTypesPage>> searchHandler) {
+  default Future<TaskTypesPage> retrieveTaskTypesPage(final JsonObject query, final JsonObject sort, final int offset,
+      final int limit) {
 
-    this.retrieveTaskTypesPageObject(query, sort, offset, limit, search -> {
-
-      if (search.failed()) {
-
-        searchHandler.handle(Future.failedFuture(search.cause()));
-
-      } else {
-
-        final var value = search.result();
-        final var page = Model.fromJsonObject(value, TaskTypesPage.class);
-        if (page == null) {
-
-          searchHandler.handle(Future.failedFuture("The stored task types page is not valid."));
-
-        } else {
-
-          searchHandler.handle(Future.succeededFuture(page));
-        }
-      }
-    });
+    Promise<JsonObject> promise = Promise.promise();
+    this.retrieveTaskTypesPage(query, sort, offset, limit, promise);
+    return Model.fromFutureJsonObject(promise.future(), TaskTypesPage.class);
 
   }
 
@@ -313,7 +284,7 @@ public interface TaskTypesRepository {
    * @param limit   the number maximum of task types to return.
    * @param handler to inform of the found task types.
    */
-  void retrieveTaskTypesPageObject(JsonObject query, JsonObject sort, int offset, int limit,
+  void retrieveTaskTypesPage(JsonObject query, JsonObject sort, int offset, int limit,
       Handler<AsyncResult<JsonObject>> handler);
 
 }

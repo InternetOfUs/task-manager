@@ -168,8 +168,7 @@ public class TaskTypesRepositoryTest {
    *
    * @param testContext context that executes the test.
    *
-   * @see TaskTypesRepository#retrieveTaskTypesPageObject(eu.internetofus.common.vertx.ModelsPageContext,
-   *      Handler)
+   * @see TaskTypesRepository#retrieveTaskTypesPage(ModelsPageContext)
    */
   @Test
   public void shouldFailRetrieveTaskTypesPageObjectWhenSearchFail(final VertxTestContext testContext) {
@@ -180,11 +179,11 @@ public class TaskTypesRepositoryTest {
     context.sort = TaskTypesRepository.createTaskTypesPageSort(Arrays.asList("name", "-description"));
     context.offset = 3;
     context.limit = 11;
-    repository.retrieveTaskTypesPageObject(context, testContext.failing(error -> testContext.completeNow()));
+    testContext.assertFailure(repository.retrieveTaskTypesPage(context)).onFailure(error -> testContext.completeNow());
 
     @SuppressWarnings("unchecked")
     final ArgumentCaptor<Handler<AsyncResult<JsonObject>>> searchHandler = ArgumentCaptor.forClass(Handler.class);
-    verify(repository, timeout(30000).times(1)).retrieveTaskTypesPageObject(eq(context.query), eq(context.sort),
+    verify(repository, timeout(30000).times(1)).retrieveTaskTypesPage(eq(context.query), eq(context.sort),
         eq(context.offset), eq(context.limit), searchHandler.capture());
     searchHandler.getValue().handle(Future.failedFuture("Not found"));
 
@@ -195,7 +194,7 @@ public class TaskTypesRepositoryTest {
    *
    * @param testContext context that executes the test.
    *
-   * @see TaskTypesRepository#retrieveTaskTypesPage(ModelsPageContext, Handler)
+   * @see TaskTypesRepository#retrieveTaskTypesPage(ModelsPageContext)
    */
   @Test
   public void shouldFailRetrieveTaskTypesPageWhenObjectNotMatch(final VertxTestContext testContext) {
@@ -207,11 +206,11 @@ public class TaskTypesRepositoryTest {
     context.sort = TaskTypesRepository.createTaskTypesPageSort(Arrays.asList("-name", "description"));
     context.offset = 23;
     context.limit = 100;
-    repository.retrieveTaskTypesPage(context, testContext.failing(error -> testContext.completeNow()));
+    testContext.assertFailure(repository.retrieveTaskTypesPage(context)).onFailure(error -> testContext.completeNow());
 
     @SuppressWarnings("unchecked")
     final ArgumentCaptor<Handler<AsyncResult<JsonObject>>> searchHandler = ArgumentCaptor.forClass(Handler.class);
-    verify(repository, timeout(30000).times(1)).retrieveTaskTypesPageObject(eq(context.query), eq(context.sort),
+    verify(repository, timeout(30000).times(1)).retrieveTaskTypesPage(eq(context.query), eq(context.sort),
         eq(context.offset), eq(context.limit), searchHandler.capture());
     searchHandler.getValue().handle(Future.succeededFuture(new JsonObject().put("udefinedKey", "value")));
 
@@ -222,7 +221,7 @@ public class TaskTypesRepositoryTest {
    *
    * @param testContext context that executes the test.
    *
-   * @see TaskTypesRepository#retrieveTaskTypesPage(ModelsPageContext, Handler)
+   * @see TaskTypesRepository#retrieveTaskTypesPage(ModelsPageContext)
    */
   @Test
   public void shouldFailRetrieveTaskTypesPageWhenObjectNotFound(final VertxTestContext testContext) {
@@ -234,11 +233,12 @@ public class TaskTypesRepositoryTest {
     context.sort = TaskTypesRepository.createTaskTypesPageSort(Arrays.asList("-name", "description"));
     context.offset = 23;
     context.limit = 100;
-    repository.retrieveTaskTypesPage(context, testContext.failing(error -> testContext.completeNow()));
+
+    testContext.assertFailure(repository.retrieveTaskTypesPage(context)).onFailure(error -> testContext.completeNow());
 
     @SuppressWarnings("unchecked")
     final ArgumentCaptor<Handler<AsyncResult<JsonObject>>> searchHandler = ArgumentCaptor.forClass(Handler.class);
-    verify(repository, timeout(30000).times(1)).retrieveTaskTypesPageObject(eq(context.query), eq(context.sort),
+    verify(repository, timeout(30000).times(1)).retrieveTaskTypesPage(eq(context.query), eq(context.sort),
         eq(context.offset), eq(context.limit), searchHandler.capture());
     searchHandler.getValue().handle(Future.failedFuture("Not found"));
 
