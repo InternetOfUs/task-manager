@@ -1,7 +1,7 @@
 /*
  * -----------------------------------------------------------------------------
  *
- * Copyright (c) 2019 - 2022 UDT-IA, IIIA-CSIC
+ * Copyright (c) 1994 - 2021 UDT-IA, IIIA-CSIC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,40 +23,54 @@
  *
  * -----------------------------------------------------------------------------
  */
+package eu.internetofus.common.components.interaction_protocol_engine;
 
-package eu.internetofus.wenet_task_manager.api.messages;
-
-import eu.internetofus.common.components.Model;
-import eu.internetofus.common.components.ReflectionModel;
-import eu.internetofus.common.components.service.Message;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import eu.internetofus.common.components.CreateUpdateTsDetails;
+import eu.internetofus.common.components.JsonObjectDeserializer;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.List;
+import io.vertx.core.json.JsonObject;
 
 /**
- * Contains the found messages.
+ * Model with a state.
  *
  * @author UDT-IA, IIIA-CSIC
  */
-@Schema(name = "MessagesPage", description = "Contains a set of messages")
-public class MessagesPage extends ReflectionModel implements Model {
+@Schema(name = "State", description = "Model that describe a state.")
+public class State extends CreateUpdateTsDetails {
 
   /**
-   * The index of the first task returned.
+   * The identifier of the community.
    */
-  @Schema(description = "The index of the first message returned.", example = "0")
-  public int offset;
+  @Schema(description = "The identifier of the community associated to the state.", example = "1")
+  public String communityId;
 
   /**
-   * The number total of task that satisfies the search.
+   * The identifier of the community.
    */
-  @Schema(description = "The number total of messages that satisfies the search.", example = "100")
-  public long total;
+  @Schema(description = "The identifier of the task associated to the state.", example = "1")
+  public String taskId;
 
   /**
-   * The found profiles.
+   * The identifier of the community.
    */
-  @ArraySchema(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/5c28427ce0c05596ef9001ffa8a08f8eb125611f/sources/wenet-models-openapi.yaml#/components/schemas/Message"), arraySchema = @Schema(description = "The set of messages found"))
-  public List<Message> messages;
+  @Schema(description = "The identifier of the user associated to the state.", example = "1")
+  public String userId;
+
+  /**
+   * The attributes that define the state.
+   */
+  @Schema(type = "object", description = "The attributes that define the state.", implementation = Object.class)
+  @JsonDeserialize(using = JsonObjectDeserializer.class)
+  public JsonObject attributes;
+
+  /**
+   * Create a new state.
+   */
+  public State() {
+
+    this.attributes = new JsonObject();
+
+  }
 
 }

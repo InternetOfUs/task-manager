@@ -24,32 +24,34 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.wenet_task_manager.api.messages;
+package eu.internetofus.common.components.interaction_protocol_engine;
 
 import eu.internetofus.common.components.ModelTestCase;
-import eu.internetofus.common.components.service.MessageTest;
-import java.util.ArrayList;
+import io.vertx.core.json.JsonObject;
 
 /**
- * Test the {@link MessagesPage}.
+ * Test the {@link State}.
  *
- * @see MessagesPage
+ * @see State
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public class MessagesPageTest extends ModelTestCase<MessagesPage> {
+public class StateTest extends ModelTestCase<State> {
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public MessagesPage createModelExample(final int index) {
+  public State createModelExample(final int index) {
 
-    final var model = new MessagesPage();
-    model.offset = index;
-    model.total = 100 + index;
-    model.messages = new ArrayList<>();
-    model.messages.add(new MessageTest().createModelExample(index));
+    assert index >= 0;
+    final var model = new State();
+    model.communityId = "community_" + index;
+    model.taskId = "task_" + index;
+    model.userId = "user_" + index;
+    model.attributes = new JsonObject().put("index", index);
+    model._creationTs = 1234567891 + index;
+    model._lastUpdateTs = 1234567991 + index * 2;
     return model;
   }
 

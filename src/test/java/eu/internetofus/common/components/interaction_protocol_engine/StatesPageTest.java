@@ -24,32 +24,31 @@
  * -----------------------------------------------------------------------------
  */
 
-package eu.internetofus.wenet_task_manager.api.messages;
+package eu.internetofus.common.components.interaction_protocol_engine;
 
 import eu.internetofus.common.components.ModelTestCase;
-import eu.internetofus.common.components.service.MessageTest;
 import java.util.ArrayList;
 
 /**
- * Test the {@link MessagesPage}.
+ * Test the {@link StatesPage}.
  *
- * @see MessagesPage
+ * @see StatesPage
  *
  * @author UDT-IA, IIIA-CSIC
  */
-public class MessagesPageTest extends ModelTestCase<MessagesPage> {
+public class StatesPageTest extends ModelTestCase<StatesPage> {
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public MessagesPage createModelExample(final int index) {
+  public StatesPage createModelExample(final int index) {
 
-    final var model = new MessagesPage();
+    final var model = new StatesPage();
     model.offset = index;
     model.total = 100 + index;
-    model.messages = new ArrayList<>();
-    model.messages.add(new MessageTest().createModelExample(index));
+    model.states = new ArrayList<>();
+    model.states.add(new StateTest().createModelExample(index));
     return model;
   }
 
