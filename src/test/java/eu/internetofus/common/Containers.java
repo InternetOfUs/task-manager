@@ -57,7 +57,7 @@ public class Containers {
   /**
    * The name of the mongo docker container to use.
    */
-  public static final String MONGO_DOCKER_NAME = "mongo:4.4.1";
+  public static final String MONGO_DOCKER_NAME = "mongo:4.4.3";
 
   /**
    * The port for the MongoDB that has to be exported.

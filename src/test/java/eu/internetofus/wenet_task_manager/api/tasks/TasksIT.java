@@ -46,6 +46,7 @@ import eu.internetofus.common.components.task_manager.TaskTransactionTest;
 import eu.internetofus.common.components.task_manager.WeNetTaskManager;
 import eu.internetofus.common.vertx.AbstractModelResourcesIT;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
+import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
@@ -53,7 +54,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.VertxTestContext;
-import java.util.ArrayList;
 import java.util.UUID;
 import javax.ws.rs.core.Response.Status;
 import org.junit.jupiter.api.Test;
@@ -1063,7 +1063,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
 
       StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(storedTask -> {
 
-        var newTask = Model.fromJsonObject(storedTask.toJsonObject(), Task.class);
+        final var newTask = Model.fromJsonObject(storedTask.toJsonObject(), Task.class);
         newTask.id = null;
         newTask.appId = app.appId;
         newTask.communityId = null;
@@ -1126,7 +1126,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
   public void shouldNoAddTransactionIntoUndefinedTask(final Vertx vertx, final WebClient client,
       final VertxTestContext testContext) {
 
-    var transaction = new TaskTransaction();
+    final var transaction = new TaskTransaction();
     transaction.label = "action";
     testRequest(client, HttpMethod.POST, Tasks.PATH + "/undefined" + Tasks.TRANSACTIONS_PATH).expect(res -> {
 
@@ -1177,7 +1177,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
 
     StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
 
-      var transaction = new TaskTransaction();
+      final var transaction = new TaskTransaction();
       transaction.taskId = "undefined";
       transaction.label = "action";
       testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + task.id + Tasks.TRANSACTIONS_PATH).expect(res -> {
@@ -1205,7 +1205,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
 
     StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
 
-      var transaction = new TaskTransaction();
+      final var transaction = new TaskTransaction();
       transaction.label = "action";
       testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + task.id + Tasks.TRANSACTIONS_PATH).expect(res -> {
 
@@ -1259,7 +1259,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
 
     StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
 
-      var message = new MessageTest().createModelExample(3);
+      final var message = new MessageTest().createModelExample(3);
       message.appId = task.appId;
       message.receiverId = task.requesterId;
 
@@ -1289,22 +1289,17 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
 
     StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
 
-      var transaction = new TaskTransaction();
-      transaction.id = UUID.randomUUID().toString();
+      final var transaction = new TaskTransaction();
       transaction.label = "action";
-      transaction.actioneerId = task.requesterId;
-      transaction.taskId = task.id;
-      task.transactions = new ArrayList<>();
-      task.transactions.add(transaction);
-      testContext.assertComplete(WeNetTaskManager.createProxy(vertx).updateTask(task.id, task))
-          .onSuccess(updatedTask -> {
+      testContext.assertComplete(TasksRepository.createProxy(vertx).addTransactionIntoTask(task.id, transaction))
+          .onSuccess(addedTransaction -> {
 
-            var message = new MessageTest().createModelExample(3);
+            final var message = new MessageTest().createModelExample(3);
             message.appId = task.appId;
             message.receiverId = task.requesterId;
 
             testRequest(client, HttpMethod.POST,
-                Tasks.PATH + "/" + task.id + Tasks.TRANSACTIONS_PATH + "/" + transaction.id + Tasks.MESSAGES_PATH)
+                Tasks.PATH + "/" + task.id + Tasks.TRANSACTIONS_PATH + "/" + addedTransaction.id + Tasks.MESSAGES_PATH)
                     .expect(res -> {
 
                       assertThat(res.statusCode()).isEqualTo(Status.CREATED.getStatusCode());

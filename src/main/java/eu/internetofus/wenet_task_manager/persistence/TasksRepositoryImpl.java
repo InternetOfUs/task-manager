@@ -170,13 +170,13 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
    */
   protected Future<Void> migrateFixingCommunityId() {
 
-    Promise<Void> promise = Promise.promise();
+    final Promise<Void> promise = Promise.promise();
     final var notExists = new JsonObject().put("communityId", new JsonObject().put("$exists", false));
     final var notString = new JsonObject().put("communityId",
         new JsonObject().put("$not", new JsonObject().put("$type", "string")));
     final var query = new JsonObject().put("$or",
         new JsonArray().add(notExists).add(notString).add(new JsonObject().putNull("communityId")));
-    var batch = this.pool.findBatch(TASKS_COLLECTION, query);
+    final var batch = this.pool.findBatch(TASKS_COLLECTION, query);
     batch.handler(task -> {
 
     });
@@ -189,13 +189,14 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
    * {@inheritDoc}
    */
   @Override
-  public void addTransactionIntoTask(String taskId, JsonObject transaction, Handler<AsyncResult<JsonObject>> handler) {
+  public void addTransactionIntoTask(final String taskId, final JsonObject transaction,
+      final Handler<AsyncResult<JsonObject>> handler) {
 
-    var tmpId = UUID.randomUUID().toString();
-    var now = TimeManager.now();
+    final var tmpId = UUID.randomUUID().toString();
+    final var now = TimeManager.now();
     transaction.put("id", tmpId).put("_creationTs", now).put("_lastUpdateTs", now);
-    var query = new JsonObject().put("_id", taskId);
-    var update = new JsonObject().put("$set", new JsonObject().put("_lastUpdateTs", now)).put("$push",
+    final var query = new JsonObject().put("_id", taskId);
+    final var update = new JsonObject().put("$set", new JsonObject().put("_lastUpdateTs", now)).put("$push",
         new JsonObject().put("transactions", transaction));
 
     this.pool.findOneAndUpdate(TASKS_COLLECTION, query, update).compose(task -> {
@@ -206,11 +207,11 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 
       } else {
 
-        var transactions = task.getJsonArray("transactions", new JsonArray());
-        var transactionId = String.valueOf(transactions.size());
+        final var transactions = task.getJsonArray("transactions", new JsonArray());
+        final var transactionId = String.valueOf(transactions.size());
         transaction.put("id", transactionId);
         query.put("transactions", new JsonObject().put("$elemMatch", new JsonObject().put("id", tmpId)));
-        var update2 = new JsonObject().put("$set", new JsonObject().put("transactions.$.id", transactionId));
+        final var update2 = new JsonObject().put("$set", new JsonObject().put("transactions.$.id", transactionId));
         return this.pool.findOneAndUpdate(TASKS_COLLECTION, query, update2).compose(task2 -> {
 
           if (task2 == null) {
@@ -235,14 +236,14 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
    * {@inheritDoc}
    */
   @Override
-  public void addMessageIntoTransaction(String taskId, String taskTransactionId, JsonObject message,
-      Handler<AsyncResult<JsonObject>> handler) {
+  public void addMessageIntoTransaction(final String taskId, final String taskTransactionId, final JsonObject message,
+      final Handler<AsyncResult<JsonObject>> handler) {
 
-    var query = new JsonObject().put("_id", taskId).put("transactions",
+    final var query = new JsonObject().put("_id", taskId).put("transactions",
         new JsonObject().put("$elemMatch", new JsonObject().put("id", taskTransactionId)));
-    var now = TimeManager.now();
-    var update = new JsonObject().put("$push", new JsonObject().put("transactions.$.messages", message)).put("$set",
-        new JsonObject().put("_lastUpdateTs", now).put("transactions.$._lastUpdateTs", now));
+    final var now = TimeManager.now();
+    final var update = new JsonObject().put("$push", new JsonObject().put("transactions.$.messages", message))
+        .put("$set", new JsonObject().put("_lastUpdateTs", now).put("transactions.$._lastUpdateTs", now));
     this.pool.findOneAndUpdate(TASKS_COLLECTION, query, update).compose(task -> {
 
       if (task == null) {
@@ -263,8 +264,8 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTaskTransactionsPage(JsonObject query, JsonObject order, int offset, int limit,
-      Handler<AsyncResult<JsonObject>> searchHandler) {
+  public void retrieveTaskTransactionsPage(final JsonObject query, final JsonObject order, final int offset,
+      final int limit, final Handler<AsyncResult<JsonObject>> searchHandler) {
 
     this.aggregatePageObject(TASKS_COLLECTION, query, order, offset, limit, "transactions").onComplete(searchHandler);
 
@@ -274,8 +275,8 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveMessagesPage(JsonObject query, JsonObject order, int offset, int limit,
-      Handler<AsyncResult<JsonObject>> searchHandler) {
+  public void retrieveMessagesPage(final JsonObject query, final JsonObject order, final int offset, final int limit,
+      final Handler<AsyncResult<JsonObject>> searchHandler) {
 
     this.aggregatePageObject(TASKS_COLLECTION, query, order, offset, limit, "transactions.messages")
         .onComplete(searchHandler);

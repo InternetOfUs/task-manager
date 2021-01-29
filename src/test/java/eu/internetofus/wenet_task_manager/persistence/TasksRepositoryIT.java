@@ -758,7 +758,7 @@ public class TasksRepositoryIT {
       final var index = i;
       future = future.compose(task -> {
 
-        var transaction = new TaskTransactionTest().createModelExample(index);
+        final var transaction = new TaskTransactionTest().createModelExample(index);
         transaction.id = UUID.randomUUID().toString();
         transaction.taskId = task.id;
         return TasksRepository.createProxy(vertx).addTransactionIntoTask(task.id, transaction).compose(stored -> {
@@ -806,15 +806,15 @@ public class TasksRepositoryIT {
   @Test
   public void shouldAddMessageIntoTransaction(final Vertx vertx, final VertxTestContext testContext) {
 
-    var exampleTask = new TaskTest().createModelExample(1);
-    var transactionId = exampleTask.transactions.get(0).id;
+    final var exampleTask = new TaskTest().createModelExample(1);
+    final var transactionId = exampleTask.transactions.get(0).id;
     var future = TasksRepository.createProxy(vertx).storeTask(exampleTask);
     for (var i = 0; i < 10; i++) {
 
       final var index = i;
       future = future.compose(task -> {
 
-        var message = new MessageTest().createModelExample(index);
+        final var message = new MessageTest().createModelExample(index);
         message.appId = task.appId;
         return TasksRepository.createProxy(vertx).addMessageIntoTransaction(task.id, transactionId, message)
             .compose(stored -> {
@@ -855,46 +855,83 @@ public class TasksRepositoryIT {
    * @see TasksRepository#addMessageIntoTransaction(String, String, Message)
    */
   @Test
-  public void shouldAddTransactionAndMessageIntoTask(final Vertx vertx, final VertxTestContext testContext) {
+  public void shouldAddMultipleTransactionsAndMessagesIntoTask(final Vertx vertx, final VertxTestContext testContext) {
 
-    var task = new TaskTest().createModelExample(1);
-    task.id = null;
-    var transaction = new TaskTransactionTest().createModelExample(2);
-    transaction.id = null;
-    var message = new MessageTest().createModelExample(3);
-    var future = TasksRepository.createProxy(vertx).storeTask(task).compose(createdTask -> {
+    StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
 
-      task.id = createdTask.id;
-      task._creationTs = createdTask._creationTs;
-      task._lastUpdateTs = createdTask._lastUpdateTs;
-      transaction.taskId = task.id;
-      return TasksRepository.createProxy(vertx).addTransactionIntoTask(task.id, transaction);
+      final var transaction1 = new TaskTransactionTest().createModelExample(1);
+      transaction1.id = null;
+      transaction1.messages = null;
+      final var transaction2 = new TaskTransactionTest().createModelExample(2);
+      transaction2.id = null;
+      transaction2.messages = null;
+      final var message1 = new MessageTest().createModelExample(3);
+      final var message2 = new MessageTest().createModelExample(4);
 
-    }).compose(addedTransaction -> {
+      final var future = TasksRepository.createProxy(vertx).addTransactionIntoTask(task.id, transaction1)
+          .compose(addedTransaction -> {
 
-      transaction.id = addedTransaction.id;
-      transaction._creationTs = addedTransaction._creationTs;
-      transaction._lastUpdateTs = task._lastUpdateTs = addedTransaction._lastUpdateTs;
-      return TasksRepository.createProxy(vertx).addMessageIntoTransaction(task.id, transaction.id, message);
+            transaction1.id = addedTransaction.id;
+            transaction1._creationTs = addedTransaction._creationTs;
+            transaction1._lastUpdateTs = task._lastUpdateTs = addedTransaction._lastUpdateTs;
+            return TasksRepository.createProxy(vertx).addMessageIntoTransaction(task.id, transaction1.id, message1)
+                .compose(addedMessage -> TasksRepository.createProxy(vertx).addMessageIntoTransaction(task.id,
+                    transaction1.id, message2));
 
-    }).compose(addedMessage -> TasksRepository.createProxy(vertx).searchTask(task.id));
+          }).compose(message -> {
 
-    testContext.assertComplete(future).onSuccess(updatedTask -> testContext.verify(() -> {
+            return TasksRepository.createProxy(vertx).addTransactionIntoTask(task.id, transaction2)
+                .compose(addedTransaction -> {
 
-      assertThat(updatedTask._lastUpdateTs).isBetween(task._lastUpdateTs, task._lastUpdateTs + 1);
-      task._lastUpdateTs = updatedTask._lastUpdateTs;
-      var updatedTransaction = updatedTask.transactions.get(1);
-      assertThat(updatedTransaction._lastUpdateTs).isBetween(transaction._lastUpdateTs, transaction._lastUpdateTs + 1);
-      transaction._lastUpdateTs = updatedTransaction._lastUpdateTs;
-      assertThat(updatedTask).isNotEqualTo(task);
-      task.transactions.add(transaction);
-      assertThat(updatedTask).isNotEqualTo(task);
-      transaction.messages.add(message);
-      assertThat(updatedTask).isEqualTo(task);
+                  transaction2.id = addedTransaction.id;
+                  transaction2._creationTs = addedTransaction._creationTs;
+                  transaction2._lastUpdateTs = task._lastUpdateTs = addedTransaction._lastUpdateTs;
+                  return TasksRepository.createProxy(vertx)
+                      .addMessageIntoTransaction(task.id, transaction2.id, message1)
+                      .compose(addedMessage -> TasksRepository.createProxy(vertx).addMessageIntoTransaction(task.id,
+                          transaction2.id, message2));
 
-      testContext.completeNow();
+                });
 
-    }));
+          }).compose(addedMessage -> TasksRepository.createProxy(vertx).searchTask(task.id));
+
+      testContext.assertComplete(future).onSuccess(updatedTask -> testContext.verify(() -> {
+
+        assertThat(updatedTask._lastUpdateTs).isBetween(task._lastUpdateTs, task._lastUpdateTs + 1);
+        task._lastUpdateTs = updatedTask._lastUpdateTs;
+        final var updatedTransaction1 = updatedTask.transactions.get(0);
+        assertThat(updatedTransaction1._lastUpdateTs).isBetween(transaction1._lastUpdateTs,
+            transaction2._lastUpdateTs + 1);
+        transaction1._lastUpdateTs = updatedTransaction1._lastUpdateTs;
+        assertThat(updatedTask).isNotEqualTo(task);
+        task.transactions = new ArrayList<>();
+        assertThat(updatedTask).isNotEqualTo(task);
+        task.transactions.add(transaction1);
+        assertThat(updatedTask).isNotEqualTo(task);
+        transaction1.messages = new ArrayList<>();
+        assertThat(updatedTask).isNotEqualTo(task);
+        transaction1.messages.add(message1);
+        assertThat(updatedTask).isNotEqualTo(task);
+        transaction1.messages.add(message2);
+        final var updatedTransaction2 = updatedTask.transactions.get(1);
+        assertThat(updatedTransaction2._lastUpdateTs).isBetween(transaction2._lastUpdateTs,
+            transaction2._lastUpdateTs + 2);
+        transaction2._lastUpdateTs = updatedTransaction2._lastUpdateTs;
+        assertThat(updatedTask).isNotEqualTo(task);
+        task.transactions.add(transaction2);
+        assertThat(updatedTask).isNotEqualTo(task);
+        transaction2.messages = new ArrayList<>();
+        assertThat(updatedTask).isNotEqualTo(task);
+        transaction2.messages.add(message1);
+        assertThat(updatedTask).isNotEqualTo(task);
+        transaction2.messages.add(message2);
+        assertThat(updatedTask).isEqualTo(task);
+
+        testContext.completeNow();
+
+      }));
+
+    });
   }
 
   /**
@@ -908,7 +945,7 @@ public class TasksRepositoryIT {
   @Test
   public void shouldNotStoreNullTask(final Vertx vertx, final VertxTestContext testContext) {
 
-    var task = new Task() {
+    final var task = new Task() {
 
       /**
        * {@inheritDoc}
