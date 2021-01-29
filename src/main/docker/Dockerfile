@@ -23,6 +23,7 @@ ARG DEFAULT_DB_USER_PASSWORD=password
 ARG DEFAULT_WENET_PROFILE_MANAGER_API="https://wenet.u-hopper.com/prod/profile_manager"
 ARG DEFAULT_WENET_INTERACTION_PROTOCOL_ENGINE_API="https://wenet.u-hopper.com/prod/interaction_protocol_engine"
 ARG DEFAULT_WENET_SERVICE_API="https://wenet.u-hopper.com/prod/service"
+ARG DEFAULT_COMP_AUTH_KEY=""
 ENV API_HOST=${DEFAULT_API_HOST}
 ENV API_PORT=${DEFAULT_API_PORT}
 ENV DB_HOST=${DEFAULT_DB_HOST}
@@ -34,6 +35,7 @@ ENV WENET_PROFILE_MANAGER_API=${DEFAULT_WENET_PROFILE_MANAGER_API}
 ENV WENET_INTERACTION_PROTOCOL_ENGINE_API=${DEFAULT_WENET_INTERACTION_PROTOCOL_ENGINE_API}
 ENV WENET_SERVICE_API=${DEFAULT_WENET_SERVICE_API}
 ENV RUN_ARGS=""
+ENV COMP_AUTH_KEY=${DEFAULT_COMP_AUTH_KEY}
 
 # Create running dierectories
 RUN mkdir -p /usr/wenet/task-manager/lib
@@ -71,4 +73,5 @@ CMD /wait && java -jar wenet-task-manager.jar -c etc \
   -pwenetComponents.profileManager=${WENET_PROFILE_MANAGER_API}\
   -pwenetComponents.interactionProtocolEngine=${WENET_INTERACTION_PROTOCOL_ENGINE_API}\
   -pwenetComponents.service=${WENET_SERVICE_API}\
+  -pwebClient.wenetComponentApikey=${COMP_AUTH_KEY}\
   ${RUN_ARGS}
