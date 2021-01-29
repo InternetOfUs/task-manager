@@ -7,6 +7,7 @@ ENV MAVEN_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
 RUN mkdir -p /build
 WORKDIR /build
 COPY pom.xml .
+RUN mkdir -p /root/.m2
 RUN --mount=type=cache,id=mvn-cache,target=/root/.m2 mvn dependency:go-offline
 COPY src/ /build/src/
 RUN --mount=type=cache,id=mvn-cache,target=/root/.m2 mvn -DfinalName=wenet-task-manager -DskipTests install
