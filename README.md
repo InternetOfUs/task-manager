@@ -122,7 +122,7 @@ On this container, you can use the next environment variables:
  - **COMP_AUTH_KEY** to define the authentication key that the componet has to use to interact with the other WeNet components.
 
 When the container is started, it stores the log mesages at **/usr/wenet/task-manager/var/log/task-manager.log**. This file is limited
-to 10 MB and rolled using the pattern **task-manager.log.X** (where X is a number between 1 and 99).
+to 10 MB and rolled every day using the pattern **task-manager.log.X** (where X is a number between 1 and 99).
 
 If you want to start also a database and link both you can use the defined docker compose configuration.
 
