@@ -29,6 +29,7 @@ package eu.internetofus.wenet_task_manager.api;
 import eu.internetofus.common.components.task_manager.WeNetTaskManager;
 import eu.internetofus.common.components.task_manager.WeNetTaskManagerClient;
 import eu.internetofus.common.vertx.AbstractAPIVerticle;
+import eu.internetofus.common.vertx.AbstractServicesVerticle;
 import eu.internetofus.wenet_task_manager.api.help.Help;
 import eu.internetofus.wenet_task_manager.api.help.HelpResource;
 import eu.internetofus.wenet_task_manager.api.messages.Messages;
@@ -40,7 +41,6 @@ import eu.internetofus.wenet_task_manager.api.task_types.TaskTypesResource;
 import eu.internetofus.wenet_task_manager.api.tasks.Tasks;
 import eu.internetofus.wenet_task_manager.api.tasks.TasksResource;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.openapi.RouterBuilder;
 import io.vertx.serviceproxy.ServiceBinder;
 
@@ -98,7 +98,7 @@ public class APIVerticle extends AbstractAPIVerticle {
 
     final var conf = new JsonObject();
     conf.put(WeNetTaskManagerClient.TASK_MANAGER_CONF_KEY, "http://" + host + ":" + port);
-    final var client = WebClient.create(this.vertx);
+    final var client = AbstractServicesVerticle.createWebClientSession(this.getVertx(), this.config());
     WeNetTaskManager.register(this.vertx, client, conf);
 
   }
