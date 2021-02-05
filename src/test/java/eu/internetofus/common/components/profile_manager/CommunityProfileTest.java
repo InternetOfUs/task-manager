@@ -131,9 +131,13 @@ public class CommunityProfileTest extends ModelTestCase<CommunityProfile> {
     model.name = "Name_" + index;
     model.description = "Description_" + index;
     model.norms = new ArrayList<>();
+    model.norms.add(new ProtocolNormTest().createModelExample(index - 1));
     model.norms.add(new ProtocolNormTest().createModelExample(index));
+    model.norms.add(new ProtocolNormTest().createModelExample(index + 1));
     model.socialPractices = new ArrayList<>();
+    model.socialPractices.add(new SocialPracticeTest().createModelExample(index - 1));
     model.socialPractices.add(new SocialPracticeTest().createModelExample(index));
+    model.socialPractices.add(new SocialPracticeTest().createModelExample(index + 1));
     return model;
   }
 
@@ -175,6 +179,8 @@ public class CommunityProfileTest extends ModelTestCase<CommunityProfile> {
         model.appId = storedApp.appId;
         model.members.clear();
         model.members.add(member);
+        model.norms = null;
+        model.socialPractices = null;
         return Future.succeededFuture(model);
 
       });
@@ -240,7 +246,8 @@ public class CommunityProfileTest extends ModelTestCase<CommunityProfile> {
   public void shouldExampleWithMultipleNormsBeValid(final Vertx vertx, final VertxTestContext testContext) {
 
     this.createModelExample(1, vertx, testContext).onSuccess(model -> {
-
+      model.norms = new ArrayList<>();
+      model.norms.add(new ProtocolNormTest().createModelExample(1));
       model.norms.add(new ProtocolNormTest().createModelExample(2));
       model.norms.add(new ProtocolNormTest().createModelExample(3));
       assertIsValid(model, vertx, testContext);
@@ -263,6 +270,8 @@ public class CommunityProfileTest extends ModelTestCase<CommunityProfile> {
 
     this.createModelExample(1, vertx, testContext).onSuccess(model -> {
 
+      model.socialPractices = new ArrayList<>();
+      model.socialPractices.add(new SocialPracticeTest().createModelExample(1));
       model.socialPractices.add(new SocialPracticeTest().createModelExample(2));
       model.socialPractices.add(new SocialPracticeTest().createModelExample(3));
       for (var i = 0; i < model.socialPractices.size(); i++) {
@@ -425,6 +434,8 @@ public class CommunityProfileTest extends ModelTestCase<CommunityProfile> {
 
     this.createModelExample(1, vertx, testContext).onSuccess(model -> {
 
+      model.socialPractices = new ArrayList<>();
+      model.socialPractices.add(new SocialPracticeTest().createModelExample(1));
       model.socialPractices.add(new SocialPracticeTest().createModelExample(2));
       model.socialPractices.get(1).label = ValidationsTest.STRING_256;
       assertIsNotValid(model, "socialPractices[1].label", vertx, testContext);
@@ -445,6 +456,8 @@ public class CommunityProfileTest extends ModelTestCase<CommunityProfile> {
 
     this.createModelExample(1, vertx, testContext).onSuccess(model -> {
 
+      model.norms = new ArrayList<>();
+      model.norms.add(new ProtocolNormTest().createModelExample(1));
       model.norms.add(new ProtocolNormTest().createModelExample(2));
       model.norms.get(1).thenceforth = null;
       assertIsNotValid(model, "norms[1].thenceforth", vertx, testContext);
@@ -590,7 +603,8 @@ public class CommunityProfileTest extends ModelTestCase<CommunityProfile> {
 
     this.createModelExample(1, vertx, testContext).onSuccess(target -> {
       final var source = new CommunityProfile();
-      source.socialPractices = new ArrayList<>(target.socialPractices);
+      source.socialPractices = new ArrayList<>();
+      source.socialPractices.add(new SocialPracticeTest().createModelExample(1));
       source.socialPractices.add(new SocialPracticeTest().createModelExample(2));
       source.socialPractices.get(1).label = ValidationsTest.STRING_256;
       assertCannotMerge(target, source, "socialPractices[1].label", vertx, testContext);
@@ -611,7 +625,9 @@ public class CommunityProfileTest extends ModelTestCase<CommunityProfile> {
 
     this.createModelExample(1, vertx, testContext).onSuccess(target -> {
       final var source = new CommunityProfile();
-      source.norms = new ArrayList<>(target.norms);
+      source.norms = new ArrayList<>();
+      source.norms.add(new ProtocolNormTest().createModelExample(0));
+      source.norms.add(new ProtocolNormTest().createModelExample(1));
       source.norms.add(new ProtocolNormTest().createModelExample(2));
       source.norms.get(1).whenever = null;
       assertCannotMerge(target, source, "norms[1].whenever", vertx, testContext);
@@ -809,7 +825,8 @@ public class CommunityProfileTest extends ModelTestCase<CommunityProfile> {
 
     this.createModelExample(1, vertx, testContext).onSuccess(target -> {
       final var source = Model.fromJsonObject(target.toJsonObject(), CommunityProfile.class);
-      source.socialPractices = new ArrayList<>(target.socialPractices);
+      source.socialPractices = new ArrayList<>();
+      source.socialPractices.add(new SocialPracticeTest().createModelExample(1));
       source.socialPractices.add(new SocialPracticeTest().createModelExample(2));
       source.socialPractices.get(1).label = ValidationsTest.STRING_256;
       assertCannotUpdate(target, source, "socialPractices[1].label", vertx, testContext);
@@ -830,7 +847,9 @@ public class CommunityProfileTest extends ModelTestCase<CommunityProfile> {
 
     this.createModelExample(1, vertx, testContext).onSuccess(target -> {
       final var source = Model.fromJsonObject(target.toJsonObject(), CommunityProfile.class);
-      source.norms = new ArrayList<>(target.norms);
+      source.norms = new ArrayList<>();
+      source.norms.add(new ProtocolNormTest().createModelExample(0));
+      source.norms.add(new ProtocolNormTest().createModelExample(1));
       source.norms.add(new ProtocolNormTest().createModelExample(2));
       source.norms.get(1).thenceforth = null;
       assertCannotUpdate(target, source, "norms[1].thenceforth", vertx, testContext);
