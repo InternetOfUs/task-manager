@@ -402,13 +402,30 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
               assertThat(page).isNotNull();
               assertThat(page.offset).isEqualTo(1);
               assertThat(page.total).isEqualTo(4);
-              assertThat(page.tasks).isNotNull().hasSize(2).contains(tasks.get(2), tasks.get(4));
+              assertThat(page.tasks).isNotNull().hasSize(2);
+              this.assertEquivalent(tasks.get(2), page.tasks.get(0));
+              this.assertEquivalent(tasks.get(4), page.tasks.get(1));
+              assertThat(page.tasks).contains(tasks.get(2), tasks.get(4));
 
             }).send(testContext);
 
       }));
 
     });
+
+  }
+
+  /**
+   * Check if two tasks are equivalent.
+   *
+   * @param source task to compare.
+   * @param target task to compare.
+   */
+  private void assertEquivalent(final Task source, final Task target) {
+
+    source._lastUpdateTs = target._lastUpdateTs;
+    source.transactions = target.transactions;
+    assertThat(source).isEqualTo(target);
 
   }
 
@@ -436,7 +453,8 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
             assertThat(page).isNotNull();
             assertThat(page.offset).isEqualTo(1);
             assertThat(page.total).isEqualTo(2);
-            assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
+            assertThat(page.tasks).isNotNull().hasSize(1);
+            this.assertEquivalent(tasks.get(1), page.tasks.get(0));
 
           }).send(testContext);
 
@@ -497,7 +515,9 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
               assertThat(page).isNotNull();
               assertThat(page.offset).isEqualTo(3);
               assertThat(page.total).isEqualTo(4);
-              assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(6));
+              assertThat(page.tasks).isNotNull().hasSize(1);
+              this.assertEquivalent(tasks.get(6), page.tasks.get(0));
+              assertThat(page.tasks).contains(tasks.get(6));
 
             }).send(testContext);
 
@@ -532,7 +552,8 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
             assertThat(page).isNotNull();
             assertThat(page.offset).isEqualTo(1);
             assertThat(page.total).isEqualTo(2);
-            assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
+            assertThat(page.tasks).isNotNull().hasSize(1);
+            this.assertEquivalent(tasks.get(1), page.tasks.get(0));
 
           }).send(testContext);
 
@@ -591,8 +612,12 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
           assertThat(page).isNotNull();
           assertThat(page.offset).isEqualTo(0);
           assertThat(page.total).isEqualTo(4);
-          assertThat(page.tasks).isNotNull().hasSize(4).contains(tasks.get(0), tasks.get(2), tasks.get(4),
-              tasks.get(6));
+          assertThat(page.tasks).isNotNull().hasSize(4);
+          this.assertEquivalent(tasks.get(0), page.tasks.get(0));
+          this.assertEquivalent(tasks.get(2), page.tasks.get(1));
+          this.assertEquivalent(tasks.get(4), page.tasks.get(2));
+          this.assertEquivalent(tasks.get(6), page.tasks.get(3));
+          assertThat(page.tasks).contains(tasks.get(0), tasks.get(2), tasks.get(4), tasks.get(6));
 
         }).send(testContext);
 
@@ -627,7 +652,8 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
             assertThat(page).isNotNull();
             assertThat(page.offset).isEqualTo(1);
             assertThat(page.total).isEqualTo(2);
-            assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(1));
+            assertThat(page.tasks).isNotNull().hasSize(1);
+            this.assertEquivalent(tasks.get(1), page.tasks.get(0));
 
           }).send(testContext);
 
@@ -686,7 +712,12 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
         assertThat(page).isNotNull();
         assertThat(page.offset).isEqualTo(0);
         assertThat(page.total).isEqualTo(4);
-        assertThat(page.tasks).isNotNull().hasSize(4).contains(tasks.get(0), tasks.get(2), tasks.get(4), tasks.get(6));
+        assertThat(page.tasks).isNotNull().hasSize(4);
+        this.assertEquivalent(tasks.get(0), page.tasks.get(0));
+        this.assertEquivalent(tasks.get(2), page.tasks.get(1));
+        this.assertEquivalent(tasks.get(4), page.tasks.get(2));
+        this.assertEquivalent(tasks.get(6), page.tasks.get(3));
+        assertThat(page.tasks).contains(tasks.get(0), tasks.get(2), tasks.get(4), tasks.get(6));
 
       }).send(testContext);
 
@@ -720,7 +751,9 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
                 assertThat(page).isNotNull();
                 assertThat(page.offset).isEqualTo(1);
                 assertThat(page.total).isEqualTo(8);
-                assertThat(page.tasks).isNotNull().hasSize(1).contains(tasks.get(6));
+                assertThat(page.tasks).isNotNull().hasSize(1);
+                this.assertEquivalent(tasks.get(6), page.tasks.get(0));
+                assertThat(page.tasks).contains(tasks.get(6));
 
               }).send(testContext);
 
@@ -780,8 +813,11 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
             assertThat(page).isNotNull();
             assertThat(page.offset).isEqualTo(0);
             assertThat(page.total).isEqualTo(4);
-            assertThat(page.tasks).isNotNull().hasSize(4).contains(tasks.get(0), tasks.get(2), tasks.get(4),
-                tasks.get(6));
+            assertThat(page.tasks).isNotNull().hasSize(4);
+            this.assertEquivalent(tasks.get(0), page.tasks.get(0));
+            this.assertEquivalent(tasks.get(2), page.tasks.get(1));
+            this.assertEquivalent(tasks.get(4), page.tasks.get(2));
+            this.assertEquivalent(tasks.get(6), page.tasks.get(3));
 
           }).send(testContext);
 
@@ -816,7 +852,10 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
                 assertThat(page).isNotNull();
                 assertThat(page.offset).isEqualTo(2);
                 assertThat(page.total).isEqualTo(8);
-                assertThat(page.tasks).isNotNull().hasSize(2).contains(tasks.get(5), tasks.get(4));
+                assertThat(page.tasks).isNotNull().hasSize(2);
+                this.assertEquivalent(tasks.get(5), page.tasks.get(0));
+                this.assertEquivalent(tasks.get(4), page.tasks.get(1));
+                assertThat(page.tasks).contains(tasks.get(5), tasks.get(4));
 
               }).send(testContext);
 
@@ -849,7 +888,12 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
                 assertThat(page).isNotNull();
                 assertThat(page.offset).isEqualTo(0);
                 assertThat(page.total).isEqualTo(4);
-                assertThat(page.tasks).isNotNull().isEqualTo(tasks.subList(2, 6));
+                assertThat(page.tasks).isNotNull().hasSize(4);
+                this.assertEquivalent(tasks.get(2), page.tasks.get(0));
+                this.assertEquivalent(tasks.get(3), page.tasks.get(1));
+                this.assertEquivalent(tasks.get(4), page.tasks.get(2));
+                this.assertEquivalent(tasks.get(5), page.tasks.get(3));
+                assertThat(page.tasks).isEqualTo(tasks.subList(2, 6));
 
               }).send(testContext);
 
@@ -882,7 +926,12 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
                 assertThat(page).isNotNull();
                 assertThat(page.offset).isEqualTo(0);
                 assertThat(page.total).isEqualTo(4);
-                assertThat(page.tasks).isNotNull().isEqualTo(tasks.subList(2, 6));
+                assertThat(page.tasks).isNotNull().hasSize(4);
+                this.assertEquivalent(tasks.get(2), page.tasks.get(0));
+                this.assertEquivalent(tasks.get(3), page.tasks.get(1));
+                this.assertEquivalent(tasks.get(4), page.tasks.get(2));
+                this.assertEquivalent(tasks.get(5), page.tasks.get(3));
+                assertThat(page.tasks).isEqualTo(tasks.subList(2, 6));
 
               }).send(testContext);
 
@@ -941,7 +990,12 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
             assertThat(page).isNotNull();
             assertThat(page.offset).isEqualTo(0);
             assertThat(page.total).isEqualTo(4);
-            assertThat(page.tasks).isNotNull().isEqualTo(tasks.subList(2, 6));
+            assertThat(page.tasks).isNotNull().hasSize(4);
+            this.assertEquivalent(tasks.get(2), page.tasks.get(0));
+            this.assertEquivalent(tasks.get(3), page.tasks.get(1));
+            this.assertEquivalent(tasks.get(4), page.tasks.get(2));
+            this.assertEquivalent(tasks.get(5), page.tasks.get(3));
+            assertThat(page.tasks).isEqualTo(tasks.subList(2, 6));
 
           }).send(testContext);
 
@@ -977,7 +1031,11 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
             assertThat(page).isNotNull();
             assertThat(page.offset).isEqualTo(0);
             assertThat(page.total).isEqualTo(4);
-            assertThat(page.tasks).isNotNull().contains(tasks.get(0), tasks.get(2), tasks.get(4), tasks.get(6));
+            assertThat(page.tasks).isNotNull().hasSize(4);
+            this.assertEquivalent(tasks.get(0), page.tasks.get(0));
+            this.assertEquivalent(tasks.get(2), page.tasks.get(1));
+            this.assertEquivalent(tasks.get(4), page.tasks.get(2));
+            this.assertEquivalent(tasks.get(6), page.tasks.get(3));
 
           }).send(testContext);
 
@@ -1013,7 +1071,11 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
             assertThat(page).isNotNull();
             assertThat(page.offset).isEqualTo(0);
             assertThat(page.total).isEqualTo(4);
-            assertThat(page.tasks).isNotNull().contains(tasks.get(1), tasks.get(3), tasks.get(5), tasks.get(7));
+            assertThat(page.tasks).isNotNull().hasSize(4);
+            this.assertEquivalent(tasks.get(1), page.tasks.get(0));
+            this.assertEquivalent(tasks.get(3), page.tasks.get(1));
+            this.assertEquivalent(tasks.get(5), page.tasks.get(2));
+            this.assertEquivalent(tasks.get(7), page.tasks.get(3));
 
           }).send(testContext);
 
