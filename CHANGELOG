@@ -3,9 +3,10 @@
 All notable changes to `wenet-task-manager` will be documented in this file
 
 
-## Version 0.10.2 (2021-02-12)
+## Version 0.10.2 (2021-02-15)
 
  * Fix junit with new common models.
+ * Fix problem when update null messages.
 
 
 ## Version 0.10.1 (2021-02-01)

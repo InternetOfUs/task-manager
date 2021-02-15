@@ -239,12 +239,20 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
   public void addMessageIntoTransaction(final String taskId, final String taskTransactionId, final JsonObject message,
       final Handler<AsyncResult<JsonObject>> handler) {
 
-    final var query = new JsonObject().put("_id", taskId).put("transactions",
-        new JsonObject().put("$elemMatch", new JsonObject().put("id", taskTransactionId)));
-    final var now = TimeManager.now();
-    final var update = new JsonObject().put("$push", new JsonObject().put("transactions.$.messages", message))
-        .put("$set", new JsonObject().put("_lastUpdateTs", now).put("transactions.$._lastUpdateTs", now));
-    this.pool.findOneAndUpdate(TASKS_COLLECTION, query, update).compose(task -> {
+    final var queryNull = new JsonObject().put("_id", taskId).put("transactions",
+        new JsonObject().put("$elemMatch", new JsonObject().put("id", taskTransactionId).putNull("messages")));
+    final var updateNull = new JsonObject().put("$set",
+        new JsonObject().put("transactions.$.messages", new JsonArray()));
+    this.pool.findOneAndUpdate(TASKS_COLLECTION, queryNull, updateNull).compose(task -> {
+
+      final var query = new JsonObject().put("_id", taskId).put("transactions",
+          new JsonObject().put("$elemMatch", new JsonObject().put("id", taskTransactionId)));
+      final var now = TimeManager.now();
+      final var update = new JsonObject().put("$push", new JsonObject().put("transactions.$.messages", message))
+          .put("$set", new JsonObject().put("_lastUpdateTs", now).put("transactions.$._lastUpdateTs", now));
+      return this.pool.findOneAndUpdate(TASKS_COLLECTION, query, update);
+
+    }).compose(task -> {
 
       if (task == null) {
 

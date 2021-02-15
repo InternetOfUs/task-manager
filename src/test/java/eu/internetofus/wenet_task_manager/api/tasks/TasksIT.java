@@ -31,6 +31,7 @@ import static io.reactiverse.junit5.web.TestRequest.queryParam;
 import static io.reactiverse.junit5.web.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import eu.internetofus.common.TimeManager;
 import eu.internetofus.common.components.ErrorMessage;
 import eu.internetofus.common.components.Model;
 import eu.internetofus.common.components.StoreServices;
@@ -54,6 +55,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.junit5.VertxTestContext;
+import java.util.ArrayList;
 import java.util.UUID;
 import javax.ws.rs.core.Response.Status;
 import org.junit.jupiter.api.Test;
@@ -1450,6 +1452,76 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
         assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
       }).send(testContext);
+
+    });
+  }
+
+  /**
+   * Should add message into a transaction after the task is closed.
+   *
+   * @param vertx       event bus to use.
+   * @param client      to connect to the server.
+   * @param testContext context to test.
+   */
+  @Test
+  public void shouldAddMessageAfterClosedTask(final Vertx vertx, final WebClient client,
+      final VertxTestContext testContext) {
+
+    StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
+
+      Future<TaskTransaction> futureTransaction = Future.succeededFuture();
+      for (var i = 0; i < 10; i++) {
+        final var transaction = new TaskTransaction();
+        transaction.actioneerId = task.requesterId;
+        transaction.label = "echo";
+        futureTransaction = futureTransaction
+            .compose(empty -> WeNetTaskManager.createProxy(vertx).addTransactionIntoTask(task.id, transaction));
+      }
+
+      testContext.assertComplete(futureTransaction).onSuccess(transaction -> {
+
+        final var taskToClose = new Task();
+        taskToClose.closeTs = TimeManager.now();
+        taskToClose.attributes = task.attributes;
+        testContext.assertComplete(WeNetTaskManager.createProxy(vertx).mergeTask(task.id, taskToClose))
+            .onSuccess(closedTask -> {
+
+              final var message = new Message();
+              message.appId = task.appId;
+              message.receiverId = task.requesterId;
+              message.label = "echo";
+              testContext
+                  .assertComplete(
+                      WeNetTaskManager.createProxy(vertx).addMessageIntoTransaction(task.id, transaction.id, message))
+                  .onSuccess(addedMessage -> {
+
+                    testContext.assertComplete(WeNetTaskManager.createProxy(vertx).retrieveTask(task.id))
+                        .onSuccess(retrievedTask -> testContext.verify(() -> {
+
+                          closedTask.transactions.get(10).messages = new ArrayList<>();
+                          closedTask.transactions.get(10).messages.add(addedMessage);
+                          closedTask._lastUpdateTs = retrievedTask._lastUpdateTs;
+                          assertThat(retrievedTask).isEqualTo(closedTask);
+                          testContext.assertComplete(WeNetTaskManager.createProxy(vertx)
+                              .addMessageIntoTransaction(task.id, transaction.id, message)).onSuccess(addedMessage2 -> {
+
+                                testContext.assertComplete(WeNetTaskManager.createProxy(vertx).retrieveTask(task.id))
+                                    .onSuccess(retrievedTask2 -> testContext.verify(() -> {
+
+                                      closedTask.transactions.get(10).messages.add(addedMessage2);
+                                      closedTask._lastUpdateTs = retrievedTask2._lastUpdateTs;
+                                      assertThat(retrievedTask2).isEqualTo(closedTask);
+                                      testContext.completeNow();
+
+                                    }));
+                              });
+
+                        }));
+                  });
+
+            });
+
+      });
 
     });
   }
