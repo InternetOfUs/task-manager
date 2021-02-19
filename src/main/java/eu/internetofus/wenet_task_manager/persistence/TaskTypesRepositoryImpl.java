@@ -63,10 +63,12 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
   public static final String DEFAULT_TASK_TYPE_RESOURCE_PREFIX = "eu/internetofus/wenet_task_manager/persistence/DefaultTaskType_";
 
   /**
-   * The idneitfier of the default task types defined on the repository.
+   * The identifier of the default task types defined on the repository.
    */
   public static final String[] DEFAULT_TASK_TYPE_IDS = { WeNetTaskManager.HARDCODED_DINNER_TASK_TYPE_ID,
-      WeNetTaskManager.QUESTION_AND_ANSWER_TASK_TYPE_ID, WeNetTaskManager.ECHO_TASK_TYPE_ID };
+      WeNetTaskManager.QUESTION_AND_ANSWER_TASK_TYPE_ID, WeNetTaskManager.ECHO_V1_TASK_TYPE_ID,
+      WeNetTaskManager.EAT_TOGETHER_WITH_NORMS_V1_TASK_TYPE_ID,
+      WeNetTaskManager.QUESTION_AND_ANSWER_WITH_NORMS_V1_TASK_TYPE_ID };
 
   /**
    * The event bus where this is registered.
@@ -80,7 +82,7 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
    * @param pool    to create the connections.
    * @param version of the schemas.
    */
-  public TaskTypesRepositoryImpl(Vertx vertx, final MongoClient pool, final String version) {
+  public TaskTypesRepositoryImpl(final Vertx vertx, final MongoClient pool, final String version) {
 
     super(pool, version);
 
@@ -149,8 +151,8 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTaskTypesPage(final JsonObject query, final JsonObject order, final int offset,
-      final int limit, final Handler<AsyncResult<JsonObject>> searchHandler) {
+  public void retrieveTaskTypesPage(final JsonObject query, final JsonObject order, final int offset, final int limit,
+      final Handler<AsyncResult<JsonObject>> searchHandler) {
 
     final var options = new FindOptions();
     options.setSort(order);
@@ -183,38 +185,38 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
     final var notExists = new JsonObject().put(SCHEMA_VERSION, new JsonObject().put("$exists", false));
     final var notEq = new JsonObject().put(SCHEMA_VERSION, new JsonObject().put("$lt", "0.6.0"));
     final var query = new JsonObject().put("$or", new JsonArray().add(notExists).add(notEq));
-    Promise<Void> promise = Promise.promise();
+    final Promise<Void> promise = Promise.promise();
     this.pool.findBatch(TASK_TYPES_COLLECTION, query).handler(taskType -> {
 
-      var newTransactions = new JsonObject();
-      var oldTransactions = taskType.getJsonArray("transactions", new JsonArray());
-      var maxTransactions = oldTransactions.size();
+      final var newTransactions = new JsonObject();
+      final var oldTransactions = taskType.getJsonArray("transactions", new JsonArray());
+      final var maxTransactions = oldTransactions.size();
       for (var i = 0; i < maxTransactions; i++) {
 
-        var taskTransactionType = oldTransactions.getJsonObject(i);
-        var properties = new JsonObject();
-        var taskAttributeTypes = taskTransactionType.getJsonArray("attributes", new JsonArray());
-        var maxAttributes = taskAttributeTypes.size();
+        final var taskTransactionType = oldTransactions.getJsonObject(i);
+        final var properties = new JsonObject();
+        final var taskAttributeTypes = taskTransactionType.getJsonArray("attributes", new JsonArray());
+        final var maxAttributes = taskAttributeTypes.size();
         for (var j = 0; j < maxAttributes; j++) {
 
-          var taskAttribute = taskAttributeTypes.getJsonObject(j);
-          var newAttribute = new JsonObject();
+          final var taskAttribute = taskAttributeTypes.getJsonObject(j);
+          final var newAttribute = new JsonObject();
           properties.put(taskAttribute.getString("name"), newAttribute);
-          var description = taskAttribute.getString("description");
+          final var description = taskAttribute.getString("description");
           if (description != null) {
 
             newAttribute.put("description", description);
           }
 
-          var type = taskAttribute.getString("type");
+          final var type = taskAttribute.getString("type");
           if (type != null) {
 
             newAttribute.put("type", type);
           }
 
         }
-        var newTransaction = new JsonObject();
-        var description = taskTransactionType.getString("description");
+        final var newTransaction = new JsonObject();
+        final var description = taskTransactionType.getString("description");
         if (description != null) {
 
           newTransaction.put("description", description);
@@ -227,8 +229,8 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
 
       }
 
-      var now = TimeManager.now();
-      var updateQuery = new JsonObject().put("$set", new JsonObject().put(SCHEMA_VERSION, "0.6.0")
+      final var now = TimeManager.now();
+      final var updateQuery = new JsonObject().put("$set", new JsonObject().put(SCHEMA_VERSION, "0.6.0")
           .put("_creationTs", now).put("_lastUpdateTs", now).put("transactions", newTransactions));
 
       final var options = new UpdateOptions().setMulti(false);
@@ -250,7 +252,7 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
   protected Future<Void> updateDefaultTaskTypes() {
 
     Future<Void> future = Future.succeededFuture();
-    for (var taskTypeId : DEFAULT_TASK_TYPE_IDS) {
+    for (final var taskTypeId : DEFAULT_TASK_TYPE_IDS) {
 
       future = future.compose(empty -> this.loadResourceTaskType(taskTypeId).compose(this::updateDefaultTaskType));
 
@@ -266,14 +268,14 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
    *
    * @return the future when the task type is updated.
    */
-  protected Future<Void> updateDefaultTaskType(TaskType taskType) {
+  protected Future<Void> updateDefaultTaskType(final TaskType taskType) {
 
-    Promise<Void> promise = Promise.promise();
+    final Promise<Void> promise = Promise.promise();
     this.searchTaskType(taskType.id).onComplete(search -> {
 
       if (search.failed()) {
         // Not exist => create
-        Future<Void> voidSuccessFuture = Future.succeededFuture();
+        final Future<Void> voidSuccessFuture = Future.succeededFuture();
         this.storeTaskType(taskType).compose(stored -> voidSuccessFuture).onComplete(promise);
 
       } else {
@@ -293,16 +295,16 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
    *
    * @return the future with the default task types.
    */
-  protected Future<TaskType> loadResourceTaskType(String id) {
+  protected Future<TaskType> loadResourceTaskType(final String id) {
 
     return this.vertx.executeBlocking(promise -> {
 
       try {
 
-        var resourcePath = DEFAULT_TASK_TYPE_RESOURCE_PREFIX + id + ".json";
-        String value = IOUtils.resourceToString(resourcePath, Charset.defaultCharset(),
+        final var resourcePath = DEFAULT_TASK_TYPE_RESOURCE_PREFIX + id + ".json";
+        final var value = IOUtils.resourceToString(resourcePath, Charset.defaultCharset(),
             this.getClass().getClassLoader());
-        var data = Json.decodeValue(value);
+        final var data = Json.decodeValue(value);
         TaskType taskType = null;
         if (data instanceof JsonObject) {
 
@@ -317,7 +319,7 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
           promise.fail("The '" + resourcePath + "' is not a task type in JSON.");
         }
 
-      } catch (Throwable cause) {
+      } catch (final Throwable cause) {
 
         promise.fail(cause);
       }

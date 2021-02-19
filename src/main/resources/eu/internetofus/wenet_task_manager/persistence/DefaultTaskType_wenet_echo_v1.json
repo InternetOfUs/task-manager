@@ -1,5 +1,5 @@
 {
-   "id":"wenet-echo-1.0.0",
+   "id":"wenet_echo_v1",
    "name":"Echo",
    "description":"This tasks echo the transaction messages",
    "keywords":[
@@ -39,8 +39,12 @@
    },
    "norms":[
       {
-         "whenever":"get_transaction(Transaction) & Transaction.label = \"echo\"",
-         "thenceforth":"pull_callback({\"label\":\"echo\",\"attributes\":{\"message\":Transaction.message}},_)"
+         "whenever":"is_received_created_task()",
+         "thenceforth":"get_task(Task) and get_task_id(TaskId,Task) and wenet_task_manager_add_transaction_into_task(_,TaskId,json([label='CREATED_TASK']))"
+      },
+      {
+         "whenever":"is_received_do_transaction(Transaction) and get_task_transaction_label('echo',Transaction)",
+         "thenceforth":"wenet_task_manager_add_transaction_into_task(AddedTransaction,Transaction) add get_task_transaction_attributes(Attributes,Transaction) and wenet_create_callback_message(Callback,'echo',Attributes) and wenet_service_post_callback(Callback)"
       }
    ]
 }

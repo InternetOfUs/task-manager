@@ -1,0 +1,258 @@
+{
+   "id":"wenet_eat_together_with_norms_v1",
+   "name":"Eat together",
+   "description":"Make a social event to share some food and fun.",
+   "keywords":[
+      "Social event",
+      "Eat",
+      "hardcoded"
+   ],
+   "attributes":{
+      "deadlineTs":{
+         "type":"integer",
+         "description":"The maximum time epoch that any user can accept to be a volunteer"
+      },
+      "startTs":{
+         "type":"integer",
+         "description":"The time epoch when the social event is going to start"
+      },
+      "endTs":{
+         "type":"integer",
+         "description":"The time epoch when the social event will end"
+      }
+   },
+   "transactions":{
+      "volunteerForTask":{
+         "type":"object",
+         "description":"Accept to attent the event",
+         "properties":{
+            "volunteerId":{
+               "type":"string",
+               "description":"The identifier of the volunteer that want to be a volunteer"
+            }
+         }
+      },
+      "refuseTask":{
+         "type":"object",
+         "description":"Refuse to attent the event",
+         "properties":{
+            "volunteerId":{
+               "type":"string",
+               "description":"The identifier of the volunteer that not want to be a volunteer"
+            }
+         }
+      },
+      "acceptVolunteer":{
+         "type":"object",
+         "description":"Accept a volunteer to attend the event",
+         "properties":{
+            "volunteerId":{
+               "type":"string",
+               "description":"The identifier of the volunteer that was accepted"
+            }
+         }
+      },
+      "refuseVolunteer":{
+         "type":"object",
+         "description":"Refuse a volunteer to attend the event",
+         "properties":{
+            "volunteerId":{
+               "type":"string",
+               "description":"The identifier of the volunteer that was refused"
+            }
+         }
+      },
+      "taskCompleted":{
+         "type":"object",
+         "description":"Finish the task",
+         "properties":{
+            "outcome":{
+               "type":"string",
+               "enum":[
+                  "cancelled",
+                  "completed",
+                  "failed"
+               ],
+               "description":"The reason why the task is completed"
+            }
+         }
+      }
+   },
+   "callbacks":{
+      "TextualMessage":{
+         "description":"A simple textual message from WeNet to the user",
+         "properties":{
+            "title":{
+               "type":"string",
+               "description":"The title of the message"
+            },
+            "text":{
+               "type":"string",
+               "description":"The text of the message"
+            },
+            "communityId":{
+               "type":"string",
+               "description":"ID of the community related to the message",
+               "nullable":true
+            },
+            "taskId":{
+               "type":"string",
+               "description":"The identifier of the target task",
+               "example":"28961582-84d2-41d1-b555-c09dce046831",
+               "nullable":true
+            }
+         }
+      },
+      "TaskProposalNotification":{
+         "description":"This notification is used in order to propose a user to volunteer to a newly created task",
+         "properties":{
+            "communityId":{
+               "type":"string",
+               "description":"ID of the community related to the message",
+               "nullable":true
+            },
+            "taskId":{
+               "type":"string",
+               "description":"The identifier of the target task",
+               "example":"28961582-84d2-41d1-b555-c09dce046831",
+               "nullable":true
+            }
+         }
+      },
+      "TaskVolunteerNotification":{
+         "description":"This notification is used in order to notify the task creator that a new volunteer is proposing to participate to the task",
+         "properties":{
+            "volunteerId":{
+               "type":"string",
+               "description":"The Wenet ID of the volunteer that is applying to the task"
+            },
+            "communityId":{
+               "type":"string",
+               "description":"ID of the community related to the message",
+               "nullable":true
+            },
+            "taskId":{
+               "type":"string",
+               "description":"The identifier of the target task",
+               "example":"28961582-84d2-41d1-b555-c09dce046831",
+               "nullable":true
+            }
+         }
+      },
+      "TaskSelectionNotification":{
+         "description":"This notification is used in order to notify the user who volunteered about the decision of the task creator",
+         "properties":{
+            "outcome":{
+               "type":"string",
+               "enum":[
+                  "accepted",
+                  "refused"
+               ],
+               "example":"accepted"
+            },
+            "communityId":{
+               "type":"string",
+               "description":"ID of the community related to the message",
+               "nullable":true
+            },
+            "taskId":{
+               "type":"string",
+               "description":"The identifier of the target task",
+               "example":"28961582-84d2-41d1-b555-c09dce046831",
+               "nullable":true
+            }
+         }
+      },
+      "TaskConcludedNotification":{
+         "description":"This notification is used in order to notify task participants that a task has been completed, the outcome could be\n* completed (if completed correctly)\n* failed (if something went wrong)\n* cancelled (the creator cancelled the task)",
+         "properties":{
+            "outcome":{
+               "type":"string",
+               "description":"The outcome of the task (has it been completed with success or not)",
+               "enum":[
+                  "cancelled",
+                  "completed",
+                  "failed"
+               ],
+               "example":"completed"
+            },
+            "communityId":{
+               "type":"string",
+               "description":"ID of the community related to the message",
+               "nullable":true
+            },
+            "taskId":{
+               "type":"string",
+               "description":"The identifier of the target task",
+               "nullable":true,
+               "example":"28961582-84d2-41d1-b555-c09dce046831"
+            }
+         }
+      },
+      "IncentiveMessage":{
+         "description":"This message contains an incentive for an user",
+         "properties":{
+            "issuer":{
+               "type":"string",
+               "description":"The issuer of the incentive"
+            },
+            "content":{
+               "type":"string",
+               "description":"The content of the incentive",
+               "example":"we are happy to see your participation in the I-log app, you are doing a great job!"
+            },
+            "communityId":{
+               "type":"string",
+               "description":"ID of the community related to the message",
+               "nullable":true
+            },
+            "taskId":{
+               "type":"string",
+               "description":"The identifier of the target task",
+               "example":"28961582-84d2-41d1-b555-c09dce046831",
+               "nullable":true
+            }
+         }
+      },
+      "IncentiveBadge":{
+         "description":"This is a badge of an incentive",
+         "properties":{
+            "issuer":{
+               "type":"string",
+               "description":"The issuer of the incentive"
+            },
+            "badgeClass":{
+               "type":"string",
+               "description":"the class of the badge",
+               "example":"hpqAdI7hQf2maQ13AW1jXA"
+            },
+            "imageUrl":{
+               "type":"string",
+               "description":"the URL of the image of the badge",
+               "example":"https://wenet.server/media/uploads/badges/assertion-OYmfmtDFSIKG-qeZfXz4QQ.png"
+            },
+            "criteria":{
+               "type":"string",
+               "description":"the criteria with which the badge was assigned",
+               "example":"The user will get this badge for 50 relations in Twitter"
+            },
+            "message":{
+               "type":"string",
+               "description":"a human-readable text to be shown to the user when she receives the badge",
+               "example":"Congratulations! you just earned a new badge for your relations on Twitter"
+            },
+            "communityId":{
+               "type":"string",
+               "description":"ID of the community related to the message",
+               "nullable":true
+            },
+            "taskId":{
+               "type":"string",
+               "description":"The identifier of the target task",
+               "example":"28961582-84d2-41d1-b555-c09dce046831",
+               "nullable":true
+            }
+         }
+      }
+   }
+}

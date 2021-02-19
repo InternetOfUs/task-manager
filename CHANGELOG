@@ -3,6 +3,12 @@
 All notable changes to `wenet-task-manager` will be documented in this file
 
 
+## Version 0.11.0 (2021-02-19)
+
+ * Add task type for eat together and Q&A with norms.
+ * Upgrade Vert.x version.
+
+
 ## Version 0.10.2 (2021-02-15)
 
  * Fix junit with new common models.

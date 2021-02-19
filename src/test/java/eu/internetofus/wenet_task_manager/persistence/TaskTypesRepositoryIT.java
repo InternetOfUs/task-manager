@@ -494,7 +494,7 @@ public class TaskTypesRepositoryIT {
   public void shouldRetrieveTaskTypesByName(final Vertx vertx, final VertxTestContext testContext) {
 
     final var name = UUID.randomUUID().toString();
-    final ModelsPageContext context = new ModelsPageContext();
+    final var context = new ModelsPageContext();
     context.query = TaskTypesRepository.createTaskTypesPageQuery("/.*" + name + ".*/", null, null);
     context.limit = 10;
     testContext.assertComplete(TaskTypesRepository.createProxy(vertx).retrieveTaskTypesPage(context))
@@ -642,61 +642,22 @@ public class TaskTypesRepositoryIT {
   }
 
   /**
-   * Check that the hardcoded eat task type is stored.
+   * Check that can obtain the default task types.
    *
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    */
   @Test
-  public void shouldFoundHardcodedEatTaskType(final Vertx vertx, final VertxTestContext testContext) {
+  public void shouldFoundDefaultTaskTypes(final Vertx vertx, final VertxTestContext testContext) {
 
-    testContext
-        .assertComplete(
-            WeNetTaskManager.createProxy(vertx).retrieveTaskType(WeNetTaskManager.HARDCODED_DINNER_TASK_TYPE_ID))
-        .onSuccess(found -> testContext.verify(() -> {
+    Future<?> future = Future.succeededFuture();
+    for (final var id : TaskTypesRepositoryImpl.DEFAULT_TASK_TYPE_IDS) {
 
-          assertThat(found.norms).isNullOrEmpty();
-          testContext.completeNow();
+      future = future.compose(previous -> WeNetTaskManager.createProxy(vertx).retrieveTaskType(id));
 
-        }));
-  }
+    }
+    testContext.assertComplete(future).onSuccess(found -> testContext.completeNow());
 
-  /**
-   * Check that the question and answer task type is stored.
-   *
-   * @param vertx       event bus to use.
-   * @param testContext context that executes the test.
-   */
-  @Test
-  public void shouldFoundQuestionAndAnswerTaskType(final Vertx vertx, final VertxTestContext testContext) {
-
-    testContext
-        .assertComplete(
-            WeNetTaskManager.createProxy(vertx).retrieveTaskType(WeNetTaskManager.QUESTION_AND_ANSWER_TASK_TYPE_ID))
-        .onSuccess(found -> testContext.verify(() -> {
-
-          assertThat(found.norms).isNullOrEmpty();
-          testContext.completeNow();
-
-        }));
-  }
-
-  /**
-   * Check that the echo task type is stored.
-   *
-   * @param vertx       event bus to use.
-   * @param testContext context that executes the test.
-   */
-  @Test
-  public void shouldFoundEchoTaskType(final Vertx vertx, final VertxTestContext testContext) {
-
-    testContext.assertComplete(WeNetTaskManager.createProxy(vertx).retrieveTaskType(WeNetTaskManager.ECHO_TASK_TYPE_ID))
-        .onSuccess(found -> testContext.verify(() -> {
-
-          assertThat(found.norms).isNotEmpty();
-          testContext.completeNow();
-
-        }));
   }
 
 }
