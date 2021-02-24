@@ -254,5 +254,11 @@
             }
          }
       }
-   }
+   },
+   "norms":[
+      {
+         "whenever":"is_received_created_task()",
+         "thenceforth":"wenet_task_manager_add_created_transation_to_current_task(_)"
+      }
+     ]
 }
