@@ -29,6 +29,7 @@ package eu.internetofus.wenet_task_manager;
 import static eu.internetofus.common.components.AbstractComponentMocker.createClientWithDefaultSession;
 
 import eu.internetofus.common.Containers;
+import eu.internetofus.common.components.incentive_server.WeNetIncentiveServerSimulator;
 import eu.internetofus.common.components.service.WeNetServiceSimulator;
 import eu.internetofus.common.vertx.AbstractMain;
 import eu.internetofus.common.vertx.AbstractWeNetComponentIntegrationExtension;
@@ -53,6 +54,7 @@ public class WeNetTaskManagerIntegrationExtension extends AbstractWeNetComponent
     final var client = createClientWithDefaultSession(vertx);
     final var conf = context.configuration.getJsonObject("wenetComponents", new JsonObject());
     WeNetServiceSimulator.register(vertx, client, conf);
+    WeNetIncentiveServerSimulator.register(vertx, client, conf);
 
   }
 
