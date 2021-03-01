@@ -30,7 +30,9 @@ import eu.internetofus.common.components.EatTogetherWithNormsProtocolITC;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
- * Interaction test over the eat together protocol with norms.
+ * Interaction test over the eat together protocol with norms. ATTENTION: This
+ * test is sequential and maintains the state between methods. In other words,
+ * you must to run the entire test methods on the specified order to work.
  *
  * @author UDT-IA, IIIA-CSIC
  */
