@@ -65,14 +65,16 @@ public class TaskTransactionsResource implements TaskTransactions {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTaskTransactionsPage(String appId, String requesterId, String taskTypeId, String goalName,
-      String goalDescription, String goalKeywordsValue, Long taskCreationFrom, Long taskCreationTo, Long taskUpdateFrom,
-      Long taskUpdateTo, Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId, String id, String label,
-      String actioneerId, Long creationFrom, Long creationTo, Long updateFrom, Long updateTo, String orderValue,
-      int offset, int limit, ServiceRequest request, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public void retrieveTaskTransactionsPage(final String appId, final String requesterId, final String taskTypeId,
+      final String goalName, final String goalDescription, final String goalKeywordsValue, final Long taskCreationFrom,
+      final Long taskCreationTo, final Long taskUpdateFrom, final Long taskUpdateTo, final Boolean hasCloseTs,
+      final Long closeFrom, final Long closeTo, final String taskId, final String id, final String label,
+      final String actioneerId, final Long creationFrom, final Long creationTo, final Long updateFrom,
+      final Long updateTo, final String orderValue, final int offset, final int limit, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
-    var goalKeywords = ServiceRequests.extractQueryArray(goalKeywordsValue);
-    var order = ServiceRequests.extractQueryArray(orderValue);
+    final var goalKeywords = ServiceRequests.extractQueryArray(goalKeywordsValue);
+    final var order = ServiceRequests.extractQueryArray(orderValue);
     final var query = TasksRepository.createTaskTransactionsPageQuery(appId, requesterId, taskTypeId, goalName,
         goalDescription, goalKeywords, taskCreationFrom, taskCreationTo, taskUpdateFrom, taskUpdateTo, hasCloseTs,
         closeFrom, closeTo, taskId, id, label, actioneerId, creationFrom, creationTo, updateFrom, updateTo);
@@ -86,13 +88,13 @@ public class TaskTransactionsResource implements TaskTransactions {
             if (retrieve.failed()) {
 
               final var cause = retrieve.cause();
-              Logger.debug(cause, "GET /tasks/transactions with {} => Retrieve error", query);
+              Logger.debug(cause, "GET /taskTransactions with {} => Retrieve error", query);
               ServiceResponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, cause);
 
             } else {
 
               final var tasksPage = retrieve.result();
-              Logger.debug("GET /tasks/transactions with {} => {}.", query, tasksPage);
+              Logger.debug("GET /taskTransactions with {} => {}.", query, tasksPage);
               ServiceResponseHandlers.responseOk(resultHandler, tasksPage);
             }
 
@@ -100,7 +102,7 @@ public class TaskTransactionsResource implements TaskTransactions {
 
     } catch (final ValidationErrorException error) {
 
-      Logger.debug(error, "GET /tasks/transactions with {} => Retrieve error", query);
+      Logger.debug(error, "GET /taskTransactions with {} => Retrieve error", query);
       ServiceResponseHandlers.responseFailedWith(resultHandler, Status.BAD_REQUEST, error);
 
     }

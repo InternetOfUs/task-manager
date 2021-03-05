@@ -40,11 +40,11 @@
    "norms":[
       {
          "whenever":"is_received_created_task()",
-         "thenceforth":"wenet_task_manager_add_created_transation_to_current_task(_)"
+         "thenceforth":"wenet_task_manager_add_created_transation()"
       },
       {
          "whenever":"is_received_do_transaction_with_label(Transaction,'echo')",
-         "thenceforth":"get_task(Task) and get_task_id(TaskId,Task) and wenet_task_manager_add_transaction_into_task(AddedTransaction,TaskId,Transaction) and get_task_transaction_id(TransactionId,AddedTransaction) and get_task_transaction_attributes(Attributes,Transaction) and wenet_create_callback_message(Callback,'echo',Attributes) and wenet_service_post_callback(Callback) and wenet_task_manager_add_message_into_transaction(_,TaskId,TransactionId,Callback)"
+         "thenceforth":"wenet_task_manager_add_transaction_into_task(Transaction) and get_task_transaction_attributes(Attributes,Transaction) and create_callback_message(Callback,'echo',Attributes) and wenet_service_post_callback(Callback) and wenet_task_manager_add_message_into_transaction(Callback)"
       }
    ]
 }
