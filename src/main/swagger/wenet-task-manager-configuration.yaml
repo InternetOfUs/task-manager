@@ -14,11 +14,11 @@ openAPI:
       description: Other services provided by the API.
   info:
     # The verion of the API has to be synchonized with the 'api-version' property of the 'pom.xml'
-    version: '0.5.0'
+    version: '0.6.0'
     title: WeNet - Task manager API
     description:  >-
       The task manager component is the one responsible for storing and maintaining the task and task types, and start the actions that can modify the task state.
-      
+
       A task is considered an instance of a task type. This task type contains the description of the attributes necessary to define the task,
       the list of possible transactions (actions) that can be done in the task, and a set of norms that define how the task can change its state.
       For example a simplified task type to organize a dinner with friends, can be:
@@ -36,7 +36,7 @@ openAPI:
         - When a user declines, therefore, inform add a user to declined and remove from unanswered
         - When requester close therefore inform to accepted friends that the dinner is set and unanswered friend that the dinner is cancelled and mark it as closed
         - When requester cancel therefore inform to an accepted and unanswered friend that the dinner is cancelled and mark it as closed
-      
+
       So the attributes a task of this type when some users has accepted an others has declined, can be:
        - **when**: Saturday night
        - **where**: Giorgios restaurant on the main street
@@ -44,7 +44,7 @@ openAPI:
        - **unanswered**: User2, User89, user78
        - **declined**: User67
        - **attenders**: User1, User34
-      
+
       The transactions can be considered as asynchronous actions that can be done to change the task state.
       When a user, an application or other WeNet component wants to change the state of a task, it has to
       post a transaction to the task manager. It checks that the transaction is correct according to
