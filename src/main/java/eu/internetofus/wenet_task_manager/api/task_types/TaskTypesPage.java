@@ -57,7 +57,7 @@ public class TaskTypesPage extends ReflectionModel implements Model {
   /**
    * The found profiles.
    */
-  @ArraySchema(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/44659645df310753374c4e0ad5a6f86d8a2c6e0f/sources/wenet-models-openapi.yaml#/components/schemas/TaskType"), arraySchema = @Schema(description = "The set of task types found"))
+  @ArraySchema(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/TaskType"), arraySchema = @Schema(description = "The set of task types found"))
   public List<TaskType> taskTypes;
 
 }
