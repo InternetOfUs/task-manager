@@ -40,11 +40,11 @@
    "norms":[
       {
          "whenever":"is_received_created_task()",
-         "thenceforth":"wenet_task_manager_add_created_transation()"
+         "thenceforth":"add_created_transaction()"
       },
       {
-         "whenever":"is_received_do_transaction_with_label(Transaction,'echo')",
-         "thenceforth":"wenet_task_manager_add_transaction_into_task(Transaction) and get_task_transaction_attributes(Attributes,Transaction) and create_callback_message(Callback,'echo',Attributes) and wenet_service_post_callback(Callback) and wenet_task_manager_add_message_into_transaction(Callback)"
+         "whenever":"is_received_do_transaction('echo',Content)",
+         "thenceforth":"add_message_transaction() and send_user_message('echo',Content)"
       }
    ]
 }

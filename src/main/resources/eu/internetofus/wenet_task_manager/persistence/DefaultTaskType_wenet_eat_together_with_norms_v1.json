@@ -258,19 +258,23 @@
    "norms":[
       {
          "whenever":"is_received_created_task() and not(get_task_attribute_value(_,deadlineTs))",
-         "thenceforth":"create_callback_message(Callback,'TextualMessage',json([title='No deadline defined',text='You must define a deadline for the task'])) and wenet_service_post_callback(Callback)"
+         "thenceforth":"send_user_message('TextualMessage',json([title='No deadline defined',text='You must define a deadline for the task']))"
       },
       {
          "whenever":"is_received_created_task() and get_task_attribute_value(Deadline,deadlineTs) and is_now_greater_than_or_equal_to(Deadline)",
-         "thenceforth":"create_callback_message(Callback,'TextualMessage',json([title='Bad deadline',text='You must define a deadline that is after now'])) and wenet_service_post_callback(Callback)"
+         "thenceforth":"send_user_message('TextualMessage',json([title='Bad deadline',text='You must define a deadline that is after now']))"
       },
       {
-         "whenever":"is_received_created_task() and get_task_attribute_value(Deadline,deadlineTs) and is_now_less_than(Deadline) and get_app_users_except_me(Unanswered)",
-         "thenceforth":"wenet_task_manager_add_created_transation() and wenet_task_manager_merge_task(_,json([attributes=json([unanswered=Unanswered])])) and wenet_interaction_protocol_engine_send_messages(Unanswered,'notifyNewEatTogether',json([])) and create_task_status(Status,'taskCreated','A task is created') and wenet_incentive_server_update_task_status(_,Status)"
+         "whenever":"is_received_created_task() and get_task_attribute_value(Deadline,deadlineTs) and is_now_less_than(Deadline) and get_app_users_except_me(Unanswered) and length(Unanswered,Size) and =(Size,0)",
+         "thenceforth":"send_user_message('TextualMessage',json([title='No users',text='I do not found other users to eat together']))"
       },
       {
-         "whenever":"is_received_message_from_another_iteraction_protocol_engine_with_particle(ReceivedMessage,'notifyNewEatTogether')",
-         "thenceforth":"get_protocol_message_community_id(CommunityId,ReceivedMessage) and get_protocol_message_task_id(TaskId,ReceivedMessage) and get_protocol_message_transaction_id(TransactionId,ReceivedMessage) and create_callback_message(Message,'TaskProposalNotification',json([communityId=CommunityId,taskId=TaskId])) and wenet_task_manager_add_message_into_transaction(Callback,TaskId,TransactionId,Message) and wenet_service_post_callback(Callback)"
+         "whenever":"is_received_created_task() and get_task_attribute_value(Deadline,deadlineTs) and is_now_less_than(Deadline) and get_app_users_except_me(Unanswered) and length(Unanswered,Size) and >(Size,0)",
+         "thenceforth":"add_created_transaction() and put_task_attribute(unanswered,Unanswered) and send_messages(Unanswered,'notifyNewEatTogether',json([])) and notify_incentive_server('taskCreated','A task is created')"
+      },
+      {
+         "whenever":"is_received(_,'notifyNewEatTogether',_)",
+         "thenceforth":"get_community_id(CommunityId) and get_task_id(TaskId) and send_user_message('TaskProposalNotification',json([communityId=CommunityId,taskId=TaskId]))"
       }
      ]
 }
