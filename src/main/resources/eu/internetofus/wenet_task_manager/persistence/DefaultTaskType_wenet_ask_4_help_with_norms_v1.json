@@ -139,5 +139,15 @@
             }
          }
       }
-   }
+   },
+   "norms":[
+      {
+         "whenever":"is_received_created_task()",
+         "thenceforth":"add_created_transaction() and get_app_users_except_me(Unanswered) and send_messages(Unanswered,'notifyNewAskForHelp',json([]))"
+      },
+      {
+         "whenever":"is_received(_,'notifyNewAskForHelp',_)",
+         "thenceforth":"get_task_goal_name(Question) and get_task_requester_id(UserId) and send_user_message('QuestionToAnswerMessage',json([question=Question,userId=UserId]))"
+      }
+   	]
 }
