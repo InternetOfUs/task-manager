@@ -313,11 +313,11 @@
          "thenceforth":"add_message_transaction() and wenet_remove(NewUnanswered,Me,Unanswered) and put_task_attribute(unanswered,NewUnanswered) and wenet_add(NewDeclined,Me,Declined) and put_task_attribute(declined,NewDeclined) and notify_incentive_server('refuseTask','An user has declined to be a volunteer for a task.')"
       },
       {
-         "whenever":"is_received_do_transaction('acceptVolunteer',json(Attributes)) and not(is_task_closed()) and  get_task_attribute_value(Volunteers,volunteers) and member(volunteerId=VolunteerId,Attributes) and not(member(VolunteerId,Volunteers))",
+         "whenever":"is_received_do_transaction('acceptVolunteer',Attributes) and not(is_task_closed()) and  get_task_attribute_value(Volunteers,volunteers) and get_attribute(VolunteerId,volunteerId,Attributes) and not(member(VolunteerId,Volunteers))",
          "thenceforth":"send_user_message('TextualMessage',json([title='Unexpected volunteer to accept',text='The selected user is not a volunteer, so you can not accept it.']))"
       },
       {
-         "whenever":"is_received_do_transaction('acceptVolunteer',json(Attributes)) and not(is_task_closed()) and  get_task_attribute_value(Volunteers,volunteers) and member(volunteerId=VolunteerId,Attributes) and member(VolunteerId,Volunteers) and get_task_attribute_value(Accepted,accepted)",
+         "whenever":"is_received_do_transaction('acceptVolunteer',Attributes) and not(is_task_closed()) and  get_task_attribute_value(Volunteers,volunteers) and get_attribute(VolunteerId,volunteerId,Attributes) and member(VolunteerId,Volunteers) and get_task_attribute_value(Accepted,accepted)",
          "thenceforth":"add_message_transaction() and wenet_remove(NewVolunteers,VolunteerId,Volunteers) and put_task_attribute(volunteers,NewVolunteers) and wenet_add(NewAccepted,VolunteerId,Accepted) and put_task_attribute(accepted,NewAccepted) and send_message(VolunteerId,'acceptVolunteer',@(null))"
       },
       {
@@ -325,11 +325,11 @@
          "thenceforth":"send_user_message('TaskSelectionNotification',json([communityId=CommunityId,taskId=TaskId,outcome='accepted'])) and notify_incentive_server('acceptVolunteer','An user is selected to provide help.')"
       },
       {
-         "whenever":"is_received_do_transaction('refuseVolunteer',json(Attributes)) and not(is_task_closed()) and  get_task_attribute_value(Volunteers,volunteers) and member(volunteerId=VolunteerId,Attributes) and not(member(VolunteerId,Volunteers))",
+         "whenever":"is_received_do_transaction('refuseVolunteer',Attributes) and not(is_task_closed()) and  get_task_attribute_value(Volunteers,volunteers) and get_attribute(VolunteerId,volunteerId,Attributes) and not(member(VolunteerId,Volunteers))",
          "thenceforth":"send_user_message('TextualMessage',json([title='Unexpected volunteer to refuse',text='The selected user is not a volunteer, so you can not refuse it.']))"
       },
       {
-         "whenever":"is_received_do_transaction('refuseVolunteer',json(Attributes)) and not(is_task_closed()) and  get_task_attribute_value(Volunteers,volunteers) and member(volunteerId=VolunteerId,Attributes) and member(VolunteerId,Volunteers) and get_task_attribute_value(Refused,refused)",
+         "whenever":"is_received_do_transaction('refuseVolunteer',Attributes) and not(is_task_closed()) and  get_task_attribute_value(Volunteers,volunteers) and get_attribute(VolunteerId,volunteerId,Attributes) and member(VolunteerId,Volunteers) and get_task_attribute_value(Refused,refused)",
          "thenceforth":"add_message_transaction() and wenet_remove(NewVolunteers,VolunteerId,Volunteers) and put_task_attribute(volunteers,NewVolunteers) and wenet_add(NewRefused,VolunteerId,Refused) and put_task_attribute(refused,NewRefused) and send_message(VolunteerId,'refuseVolunteer',@(null))"
       },
       {
@@ -337,11 +337,11 @@
          "thenceforth":"send_user_message('TaskSelectionNotification',json([communityId=CommunityId,taskId=TaskId,outcome='refused'])) and notify_incentive_server('refuseVolunteer','An user is refused as volunteer.')"
       },
       {
-         "whenever":"is_received_do_transaction('taskCompleted',json(Attributes)) and not(is_task_closed()) and member(outcome=Outcome,Attributes) and get_task_attribute_value(Unanswered,unanswered) and get_task_attribute_value(Volunteers,volunteers) and get_task_attribute_value(Accepted,accepted)",
+         "whenever":"is_received_do_transaction('taskCompleted',Attributes) and not(is_task_closed()) and get_attribute(Outcome,outcome,Attributes) and get_task_attribute_value(Unanswered,unanswered) and get_task_attribute_value(Volunteers,volunteers) and get_task_attribute_value(Accepted,accepted)",
          "thenceforth":"add_message_transaction() and close_task() and put_task_attribute(outcome,Outcome) and wenet_format(Msg,'A task is completed with the outcome: {}',Outcome) and notify_incentive_server('taskCompleted',Msg) and send_messages(Unanswered,'taskCompleted',Attributes) and send_messages(Volunteers,'taskCompleted',Attributes) and send_messages(Accepted,'taskCompleted',Attributes)"
       },
       {
-         "whenever":"is_received(_,'taskCompleted',json(Attributes)) and get_community_id(CommunityId) and get_task_id(TaskId) and member(outcome=Outcome,Attributes)",
+         "whenever":"is_received(_,'taskCompleted',Attributes) and get_community_id(CommunityId) and get_task_id(TaskId) and get_attribute(Outcome,outcome,Attributes)",
          "thenceforth":"send_user_message('TaskConcludedNotification',json([communityId=CommunityId,taskId=TaskId,outcome=Outcome]))"
       }
      ]
