@@ -68,7 +68,8 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
   public static final String[] DEFAULT_TASK_TYPE_IDS = { WeNetTaskManager.HARDCODED_DINNER_TASK_TYPE_ID,
       WeNetTaskManager.QUESTION_AND_ANSWER_TASK_TYPE_ID, WeNetTaskManager.ECHO_V1_TASK_TYPE_ID,
       WeNetTaskManager.EAT_TOGETHER_WITH_NORMS_V1_TASK_TYPE_ID,
-      WeNetTaskManager.QUESTION_AND_ANSWER_WITH_NORMS_V1_TASK_TYPE_ID };
+      WeNetTaskManager.QUESTION_AND_ANSWER_WITH_NORMS_V1_TASK_TYPE_ID,
+      WeNetTaskManager.ENGLISH_AUCTION_WITH_NORMS_V1_TASK_TYPE_ID };
 
   /**
    * The event bus where this is registered.

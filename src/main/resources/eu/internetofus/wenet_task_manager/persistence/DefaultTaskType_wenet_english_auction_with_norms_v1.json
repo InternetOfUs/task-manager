@@ -1,0 +1,110 @@
+{
+   "id":"wenet_english_auction_with_norms_v1",
+   "name":"English auction",
+   "description":"An English auction is an open-outcry ascending dynamic auction. On the goal name is defined the item and on the goal description provide information of the item to sell.",
+   "keywords":[
+      "Auction",
+      "Bid",
+      "Sold"
+   ],
+   "attributes":{
+      "quorum":{
+         "type":"integer",
+         "description":"The minimum users that has to be to start the auction.",
+         "default":2,
+         "minimum":2
+      },
+      "startPrice":{
+         "type":"number",
+         "description":"The initial price to start the auction.",
+         "minimum":0.01
+      },
+      "whom":{
+         "type":"string",
+         "description":"The type of users to participate on the auction. Can be 'any' user defined on the app, any user on the community ('community_member'), any user into a 3 km near to me('neighbor'), any user into a 30 km near to me('villager'), or any user into a 300 km near to me('citizen')",
+         "default":"any",
+         "enum":[
+         	"any",
+         	"community_member",
+         	"neighbor",
+         	"villager",
+         	"citizen"
+         ]
+      },
+      "startTime":{
+      	"type":"integer",
+      	"description":"The UTC epoch timestamp representing the time whne the auction will be started."
+      }
+   },
+   "transactions":{
+      "enter":{
+         "type":"object",
+         "description":"Enter into the auction."
+      },
+      "exit":{
+         "type":"object",
+         "description":"Exit of the auction."
+      },
+      "bid":{
+         "type":"object",
+         "description":"Provide a bid over the aution item.",
+         "properties":{
+            "price":{
+               "type":"number",
+               "description":"The bidding price for the item that is on the auction."
+            }
+         }
+      },
+      "close":{
+         "type":"object",
+         "description":"Close the auction",
+         "properties":{
+            "reason":{
+               "type":"string",
+               "description":"Explains why the auction is cancelled."
+            }
+         }
+      }
+   },
+   "callbacks":{
+   	  "CreationError":{
+   	  	"description":"Inform that the task can not be created.",
+   	  	"type":"object",
+   	  	"properties":{
+   	  		"code":{
+   	  			"type":"string",
+   	  			"description":"The error code that explains why can not create the auction. 'bad_startTime' if the start time is not right. 'no_users_found' if can not found users to participate on the auction.",
+   	  			"enum":[
+   	  				"bad_startTime",
+   	  				"no_users_found"
+   	  			]
+   	  		},
+   	  		"taskId":{
+               "type":"string",
+               "description":"The identifier of the task that can not be created.",
+               "example":"1"
+            }
+   	  	}
+   	  },
+      "NewAuction":{
+         "description":"Inform about an auction that the user can participate.",
+         "properties":{
+            "taskId":{
+               "type":"string",
+               "description":"The identifier of the task where the auction will be done",
+               "example":"1"
+            }
+         }
+      }
+   },
+   "norms":[
+      {
+         "whenever":"is_received_created_task() and get_task_attribute_value(StartTime,startTime) and is_now_greater_than_or_equal_to(StartTime) and get_task_id(TaskId)",
+         "thenceforth":"send_user_message('CreationError',json([code='bad_startTime',taskId=TaskId]))"
+      },
+      {
+         "whenever":"is_received_created_task() and get_task_attribute_value(Quorum,quorum) and <(Quorum,2) and get_task_id(TaskId)",
+         "thenceforth":"send_user_message('CreationError',json([code='bad_quorum',taskId=TaskId]))"
+      }
+     ]
+}
