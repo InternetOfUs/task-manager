@@ -19,6 +19,49 @@
 				"villager",
 				"citizen"
 			]
+		},
+		"automatic": {
+			"attributes": {
+				"type": "object",
+				"nullable":"true",
+				"description": "If this attribute is defined the aution is automatically executed.",
+				"quorum": {
+					"type": "integer",
+					"description": "The minimum users that has to be on the auction to start it.",
+					"default": 2,
+					"minimum": 2
+				},
+				"delayToStart": {
+					"type": "integer",
+					"description": "The seconds to wait to start after the aucion has quorum.",
+					"default": 10,
+					"minimum": 1
+				},
+				"startPrice": {
+					"type": "number",
+					"description": "The initial price to start the auction.",
+					"default": 0.01,
+					"minimum": 0.01
+				},
+				"offerIncrement": {
+					"type": "number",
+					"description": "The percentage to increment the price after a bid is accepted.",
+					"default": 0.05,
+					"minimum": 0.01
+				},
+				"offerDelay": {
+					"type": "integer",
+					"description": "The seconds to have to wait to do a new offer.",
+					"default": 3,
+					"minimum": 1
+				},
+				"maxCalls": {
+					"type": "integer",
+					"description": "The seconds to have to wait to do a new offer.",
+					"default": 3,
+					"minimum": 1
+				}
+			}
 		}
 	},
 	"transactions": {
@@ -49,34 +92,6 @@
 					"description": "Explains why the auction is cancelled."
 				}
 			}
-		},
-		"call": {
-			"type": "object",
-			"description": "Offer the item at the speciifed price",
-			"properties": {
-				"price": {
-					"type": "number",
-					"description": "The price to sell the item of the auction."
-				},
-				"last": {
-					"type": "boolean",
-					"description": "This is 'true' if is the last oportunity to do a bid over the item."
-				}
-			}
-		},
-		"sold": {
-			"type": "object",
-			"description": "Inform that the  the item at the speciifed price",
-			"properties": {
-				"price": {
-					"type": "number",
-					"description": "The price to sell the item of the auction."
-				},
-				"last": {
-					"type": "boolean",
-					"description": "This is 'true' if is the last oportunity to do a bid over the item."
-				}
-			}
 		}
 	},
 	"callbacks": {
@@ -88,6 +103,7 @@
 					"type": "string",
 					"description": "The code that describe the error.",
 					"enum": [
+						"cannot_create_task_with_bad_startTime",
 						"cannot_create_task_no_found_quorum",
 						"cannot_enter_because_task_is_closed",
 						"cannot_exit_because_task_is_closed",
@@ -105,7 +121,6 @@
 		},
 		"NewAuction": {
 			"description": "Inform about an auction that the user can participate.",
-			"type": "object",
 			"properties": {
 				"taskId": {
 					"type": "string",
@@ -114,38 +129,18 @@
 				}
 			}
 		},
-		"Entered": {
-			"description": "Inform that an user want to participate on the auction.",
-			"type": "object",
-			"properties": {
-				"taskId": {
-					"type": "string",
-					"description": "The identifier of the task where the auction will be done",
-					"example": "1"
-				},
-				"userId": {
-					"type": "string",
-					"description": "The identifier of the user that want to participate",
-					"example": "1"
-				}
-			}
-		},
-		"Call": {
-			"description": "Inform about the current price to buy the item.",
+		"StartAuction": {
+			"description": "Inform taht the auciton has started.",
 			"properties": {
 				"taskId": {
 					"type": "string",
 					"description": "The identifier of the task where the auction has sarted",
 					"example": "1"
-				},
-				"price": {
-					"type": "number",
-					"description": "The price to pay for the item"
 				}
 			}
 		},
-		"Bid": {
-			"description": "Inform about a price that an user want to buy the item.",
+		"Offer": {
+			"description": "Inform that the auciton has started.",
 			"properties": {
 				"taskId": {
 					"type": "string",
@@ -154,13 +149,8 @@
 				},
 				"price": {
 					"type": "number",
-					"description": "The price to buy the item.",
+					"description": "The prixe to buy the item.",
 					"example": "10.20"
-				},
-				"buyerId": {
-					"type": "string",
-					"description": "The identifier .",
-					"example": "1"
 				}
 			}
 		},
