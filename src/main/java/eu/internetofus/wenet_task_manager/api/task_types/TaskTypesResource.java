@@ -27,8 +27,10 @@
 package eu.internetofus.wenet_task_manager.api.task_types;
 
 import eu.internetofus.common.components.ValidationErrorException;
+import eu.internetofus.common.components.task_manager.ProtocolNorm;
 import eu.internetofus.common.components.task_manager.TaskType;
 import eu.internetofus.common.vertx.ModelContext;
+import eu.internetofus.common.vertx.ModelFieldContext;
 import eu.internetofus.common.vertx.ModelResources;
 import eu.internetofus.common.vertx.ServiceContext;
 import eu.internetofus.common.vertx.ServiceRequests;
@@ -154,8 +156,8 @@ public class TaskTypesResource implements TaskTypes {
       final String orderValue, final int offset, final int limit, final ServiceRequest request,
       final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
-    var keywords = ServiceRequests.extractQueryArray(keywordsValue);
-    var order = ServiceRequests.extractQueryArray(orderValue);
+    final var keywords = ServiceRequests.extractQueryArray(keywordsValue);
+    final var order = ServiceRequests.extractQueryArray(orderValue);
     final var query = TaskTypesRepository.createTaskTypesPageQuery(name, description, keywords);
 
     try {
@@ -201,6 +203,92 @@ public class TaskTypesResource implements TaskTypes {
         (id, handler) -> this.typesRepository.searchTaskType(id).onComplete(handler),
         (taskType, handler) -> this.typesRepository.updateTaskType(taskType).onComplete(handler), context);
 
+  }
+
+  /**
+   * Create the context to manage the task type norms.
+   *
+   * @param taskTypeId identifier of the task type where the element is defined.
+   *
+   * @return the context for the task type norms.
+   */
+  protected ModelFieldContext<TaskType, String, ProtocolNorm, Integer> createTaskTypeNormsContext(
+      final String taskTypeId) {
+
+    final var element = new ModelFieldContext<TaskType, String, ProtocolNorm, Integer>();
+    element.model = this.createTaskTypeContext();
+    element.name = "norms";
+    element.type = ProtocolNorm.class;
+    element.model.id = taskTypeId;
+    return element;
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addTaskTypeNorm(final String taskTypeId, final JsonObject body, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
+
+    final var context = new ServiceContext(request, resultHandler);
+    final var element = this.createTaskTypeNormsContext(taskTypeId);
+    ModelResources.createModelFieldElement(this.vertx, body, element,
+        (id, handler) -> this.typesRepository.searchTaskType(id).onComplete(handler), type -> type.norms,
+        (type, norms) -> type.norms = norms,
+        (type, handler) -> this.typesRepository.updateTaskType(type).onComplete(handler), context);
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void updateTaskTypeNorm(final String taskTypeId, final int index, final JsonObject body,
+      final ServiceRequest request, final Handler<AsyncResult<ServiceResponse>> resultHandler) {
+
+    final var context = new ServiceContext(request, resultHandler);
+    final var element = this.createTaskTypeNormsContext(taskTypeId);
+    element.id = index;
+    ModelResources.updateModelFieldElement(this.vertx, body, element,
+        (id, handler) -> this.typesRepository.searchTaskType(id).onComplete(handler), type -> type.norms,
+        ModelResources.searchElementByIndex(),
+        (type, handler) -> this.typesRepository.updateTaskType(type).onComplete(handler), context);
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void mergeTaskTypeNorm(final String taskTypeId, final int index, final JsonObject body,
+      final ServiceRequest request, final Handler<AsyncResult<ServiceResponse>> resultHandler) {
+
+    final var context = new ServiceContext(request, resultHandler);
+    final var element = this.createTaskTypeNormsContext(taskTypeId);
+    element.id = index;
+    ModelResources.mergeModelFieldElement(this.vertx, body, element,
+        (id, handler) -> this.typesRepository.searchTaskType(id).onComplete(handler), type -> type.norms,
+        ModelResources.searchElementByIndex(),
+        (type, handler) -> this.typesRepository.updateTaskType(type).onComplete(handler), context);
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void deleteTaskTypeNorm(final String taskTypeId, final int index, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
+
+    final var context = new ServiceContext(request, resultHandler);
+    final var element = this.createTaskTypeNormsContext(taskTypeId);
+    element.id = index;
+
+    ModelResources.deleteModelFieldElement(element,
+        (id, handler) -> this.typesRepository.searchTaskType(id).onComplete(handler), type -> type.norms,
+        ModelResources.searchElementByIndex(),
+        (type, handler) -> this.typesRepository.updateTaskType(type).onComplete(handler), context);
   }
 
 }

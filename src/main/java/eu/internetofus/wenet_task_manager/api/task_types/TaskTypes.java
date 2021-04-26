@@ -76,11 +76,6 @@ public interface TaskTypes {
   String ADDRESS = "wenet_task_manager.api.task_types";
 
   /**
-   * The sub path to retrieve a task type.
-   */
-  String TASK_TYPE_ID_PATH = "/{taskTypeId}";
-
-  /**
    * Called when want to create a task type.
    *
    * @param body          the new task type to create.
@@ -106,7 +101,7 @@ public interface TaskTypes {
    * @param resultHandler to inform of the response.
    */
   @GET
-  @Path(TASK_TYPE_ID_PATH)
+  @Path("/{taskTypeId}")
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(summary = "Return a task type associated to the identifier", description = "Allow to get a task type associated to an identifier")
   @ApiResponse(responseCode = "200", description = "The task type associated to the identifier", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/TaskType")))
@@ -154,7 +149,7 @@ public interface TaskTypes {
    * @param resultHandler to inform of the response.
    */
   @PUT
-  @Path(TASK_TYPE_ID_PATH)
+  @Path("/{taskTypeId}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(summary = "Modify a task type", description = "Change the attributes of a task type")
@@ -177,7 +172,7 @@ public interface TaskTypes {
    * @param resultHandler to inform of the response.
    */
   @PATCH
-  @Path(TASK_TYPE_ID_PATH)
+  @Path("/{taskTypeId}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(summary = "Modify a task type", description = "Change the attributes of a task type")
@@ -199,7 +194,7 @@ public interface TaskTypes {
    * @param resultHandler to inform of the response.
    */
   @DELETE
-  @Path(TASK_TYPE_ID_PATH)
+  @Path("/{taskTypeId}")
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(summary = "Delete the task type associated to the identifier", description = "Allow to delete a task type associated to an identifier")
   @ApiResponse(responseCode = "204", description = "The task type was deleted successfully")
@@ -207,6 +202,101 @@ public interface TaskTypes {
   void deleteTaskType(
       @PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to delete") String taskTypeId,
       @Parameter(hidden = true, required = false) ServiceRequest context,
+      @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
+
+  /**
+   * Add a norm into a task type.
+   *
+   * @param taskTypeId    identifier of the task type to add the norm.
+   * @param body          the norm to add.
+   * @param request       context of the request.
+   * @param resultHandler to inform of the response.
+   */
+  @POST
+  @Path("/{taskTypeId}/norms")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(summary = "Add a norm into a task type", description = "Add a new norm into the norms of a task type")
+  @RequestBody(description = "The new norm to add", required = true, content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/ProtocolNorm")))
+  @ApiResponse(responseCode = "200", description = "The added norm", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/ProtocolNorm")))
+  @ApiResponse(responseCode = "400", description = "Bad norm", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @ApiResponse(responseCode = "404", description = "Not found task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  void addTaskTypeNorm(
+      @PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to add a norm", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
+      @Parameter(hidden = true, required = false) JsonObject body,
+      @Parameter(hidden = true, required = false) ServiceRequest request,
+      @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
+
+  /**
+   * Update a norm from a task type.
+   *
+   * @param taskTypeId    identifier of the task type to put a norm.
+   * @param index         identifier of the norm to update.
+   * @param body          the norm to update.
+   * @param request       context of the request.
+   * @param resultHandler to inform of the response.
+   */
+  @PUT
+  @Path("/{taskTypeId}/norms/{index:0-9}")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(summary = "Updated a norm from a task type", description = "Update a norm defined in a task type")
+  @RequestBody(description = "The new values to update a norm", required = true, content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/ProtocolNorm")))
+  @ApiResponse(responseCode = "200", description = "The updated norm", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/ProtocolNorm")))
+  @ApiResponse(responseCode = "400", description = "Bad norm", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @ApiResponse(responseCode = "404", description = "Not found task type or norm", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  void updateTaskTypeNorm(
+      @PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to update a norm", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
+      @PathParam("index") @Parameter(description = "The identifier of the norm to update", example = "1") int index,
+      @Parameter(hidden = true, required = false) JsonObject body,
+      @Parameter(hidden = true, required = false) ServiceRequest request,
+      @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
+
+  /**
+   * Merge a norm from a task type.
+   *
+   * @param taskTypeId    identifier of the task type to put a norm.
+   * @param index         identifier of the norm to merge.
+   * @param body          the norm to merge.
+   * @param request       context of the request.
+   * @param resultHandler to inform of the response.
+   */
+  @PATCH
+  @Path("/{taskTypeId}/norms/{index:0-9}")
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(summary = "Merged a norm from a task type", description = "Merge a norm defined in a task type")
+  @RequestBody(description = "The new values to merge a norm", required = true, content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/ProtocolNorm")))
+  @ApiResponse(responseCode = "200", description = "The merged norm", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/ProtocolNorm")))
+  @ApiResponse(responseCode = "400", description = "Bad norm", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @ApiResponse(responseCode = "404", description = "Not found task type or norm", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  void mergeTaskTypeNorm(
+      @PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to merge a norm", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
+      @PathParam("index") @Parameter(description = "The identifier of the norm to merge", example = "1") int index,
+      @Parameter(hidden = true, required = false) JsonObject body,
+      @Parameter(hidden = true, required = false) ServiceRequest request,
+      @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
+
+  /**
+   * Delete a norm from a task type.
+   *
+   * @param taskTypeId    identifier of the task type to delete the norm.
+   * @param index         identifier of the norm to delete.
+   * @param request       context of the request.
+   * @param resultHandler to inform of the response.
+   */
+  @DELETE
+  @Path("/{taskTypeId}/norms/{index:0-9}")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(summary = "Add a norm into a task type", description = "Add a new norm into the norms of a task type")
+  @RequestBody(description = "The new norm to add", required = true, content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/ProtocolNorm")))
+  @ApiResponse(responseCode = "200", description = "The task type where has added the norm", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/ProtocolNorm")))
+  @ApiResponse(responseCode = "400", description = "Bad norm", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @ApiResponse(responseCode = "404", description = "Not found task type or norm", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  void deleteTaskTypeNorm(
+      @PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to delete a norm", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
+      @PathParam("index") @Parameter(description = "The identifier of the norm to delete", example = "1") int index,
+      @Parameter(hidden = true, required = false) ServiceRequest request,
       @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
 
 }
