@@ -14,7 +14,7 @@ openAPI:
       description: Other services provided by the API.
   info:
     # The verion of the API has to be synchonized with the 'api-version' property of the 'pom.xml'
-    version: '0.6.0'
+    version: '0.7.0'
     title: WeNet - Task manager API
     description:  >-
       The task manager component is the one responsible for storing and maintaining the task and task types, and start the actions that can modify the task state.
