@@ -31,6 +31,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.Explode;
 import io.swagger.v3.oas.annotations.enums.ParameterStyle;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -205,6 +206,46 @@ public interface TaskTypes {
       @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
 
   /**
+   * Called when want to get the norms from a task type.
+   *
+   * @param taskTypeId    identifier of the task type to get all norms.
+   * @param request       of the operation.
+   * @param resultHandler to inform of the response.
+   */
+  @GET
+  @Path("/{taskTypeId}/norms")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(summary = "Return the norms from a task type", description = "Allow to get all the norms defined into a task type")
+  @ApiResponse(responseCode = "200", description = "The norms defined into the task type", content = @Content(array = @ArraySchema(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/ProtocolNorm"))))
+  @ApiResponse(responseCode = "404", description = "Not found task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @Tag(name = "Norms")
+  void retrieveTaskTypeNorms(
+      @PathParam("taskTypeId") @Parameter(description = "The identifier of the task type where the norms are defined", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
+      @Parameter(hidden = true, required = false) ServiceRequest request,
+      @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
+
+  /**
+   * Called when want to get a norm from a task type.
+   *
+   * @param taskTypeId    identifier of the task type where the norm is defined.
+   * @param index         of the norm to get.
+   * @param request       of the operation.
+   * @param resultHandler to inform of the response.
+   */
+  @GET
+  @Path("/{taskTypeId}/norms/{index}")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(summary = "Return a norm from a tasktype", description = "Allow to get a norm defined into a tasktype")
+  @ApiResponse(responseCode = "200", description = "The norm defined into the tasktype", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/ProtocolNorm")))
+  @ApiResponse(responseCode = "404", description = "Not found tasktype or norm", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @Tag(name = "Norms")
+  void retrieveTaskTypeNorm(
+      @PathParam("taskTypeId") @Parameter(description = "The identifier of the task type where the norm is defined", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
+      @PathParam("index") @Parameter(description = "The index of the norm to get", example = "1") int index,
+      @Parameter(hidden = true, required = false) ServiceRequest request,
+      @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
+
+  /**
    * Add a norm into a task type.
    *
    * @param taskTypeId    identifier of the task type to add the norm.
@@ -221,6 +262,7 @@ public interface TaskTypes {
   @ApiResponse(responseCode = "200", description = "The added norm", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/ProtocolNorm")))
   @ApiResponse(responseCode = "400", description = "Bad norm", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   @ApiResponse(responseCode = "404", description = "Not found task type", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @Tag(name = "Norms")
   void addTaskTypeNorm(
       @PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to add a norm", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
       @Parameter(hidden = true, required = false) JsonObject body,
@@ -237,7 +279,7 @@ public interface TaskTypes {
    * @param resultHandler to inform of the response.
    */
   @PUT
-  @Path("/{taskTypeId}/norms/{index:0-9}")
+  @Path("/{taskTypeId}/norms/{index}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(summary = "Updated a norm from a task type", description = "Update a norm defined in a task type")
@@ -245,6 +287,7 @@ public interface TaskTypes {
   @ApiResponse(responseCode = "200", description = "The updated norm", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/ProtocolNorm")))
   @ApiResponse(responseCode = "400", description = "Bad norm", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   @ApiResponse(responseCode = "404", description = "Not found task type or norm", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @Tag(name = "Norms")
   void updateTaskTypeNorm(
       @PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to update a norm", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
       @PathParam("index") @Parameter(description = "The identifier of the norm to update", example = "1") int index,
@@ -262,7 +305,7 @@ public interface TaskTypes {
    * @param resultHandler to inform of the response.
    */
   @PATCH
-  @Path("/{taskTypeId}/norms/{index:0-9}")
+  @Path("/{taskTypeId}/norms/{index}")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(summary = "Merged a norm from a task type", description = "Merge a norm defined in a task type")
@@ -270,6 +313,7 @@ public interface TaskTypes {
   @ApiResponse(responseCode = "200", description = "The merged norm", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/ProtocolNorm")))
   @ApiResponse(responseCode = "400", description = "Bad norm", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   @ApiResponse(responseCode = "404", description = "Not found task type or norm", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @Tag(name = "Norms")
   void mergeTaskTypeNorm(
       @PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to merge a norm", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
       @PathParam("index") @Parameter(description = "The identifier of the norm to merge", example = "1") int index,
@@ -286,13 +330,13 @@ public interface TaskTypes {
    * @param resultHandler to inform of the response.
    */
   @DELETE
-  @Path("/{taskTypeId}/norms/{index:0-9}")
+  @Path("/{taskTypeId}/norms/{index}")
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(summary = "Add a norm into a task type", description = "Add a new norm into the norms of a task type")
-  @RequestBody(description = "The new norm to add", required = true, content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/ProtocolNorm")))
   @ApiResponse(responseCode = "200", description = "The task type where has added the norm", content = @Content(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/ProtocolNorm")))
   @ApiResponse(responseCode = "400", description = "Bad norm", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   @ApiResponse(responseCode = "404", description = "Not found task type or norm", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  @Tag(name = "Norms")
   void deleteTaskTypeNorm(
       @PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to delete a norm", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
       @PathParam("index") @Parameter(description = "The identifier of the norm to delete", example = "1") int index,

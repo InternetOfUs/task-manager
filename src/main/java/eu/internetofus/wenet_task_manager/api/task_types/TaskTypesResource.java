@@ -291,4 +291,32 @@ public class TaskTypesResource implements TaskTypes {
         (type, handler) -> this.typesRepository.updateTaskType(type).onComplete(handler), context);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void retrieveTaskTypeNorms(final String taskTypeId, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
+
+    final var context = new ServiceContext(request, resultHandler);
+    final var model = this.createTaskTypeContext();
+    model.id = taskTypeId;
+    ModelResources.retrieveModelField(model,
+        (id, handler) -> this.typesRepository.searchTaskType(id).onComplete(handler), type -> type.norms, context);
+
+  }
+
+  @Override
+  public void retrieveTaskTypeNorm(final String taskTypeId, final int index, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
+
+    final var context = new ServiceContext(request, resultHandler);
+    final var element = this.createTaskTypeNormsContext(taskTypeId);
+    element.id = index;
+    ModelResources.retrieveModelFieldElement(element,
+        (id, handler) -> this.typesRepository.searchTaskType(id).onComplete(handler), type -> type.norms,
+        ModelResources.searchElementByIndex(), context);
+
+  }
+
 }

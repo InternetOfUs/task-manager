@@ -10,6 +10,8 @@ openAPI:
       description: The functionality provided allows to manage the task types.
     - name: Task Transactions
       description: The functionality provided allows to modify a task by a transaction.
+    - name: Norms
+      description: The functionality provided allows to manage the norms of a component.
     - name: Other
       description: Other services provided by the API.
   info:
