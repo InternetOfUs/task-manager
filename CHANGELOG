@@ -3,9 +3,12 @@
 All notable changes to `wenet-task-manager` will be documented in this file
 
 
-## Version 0.12.0 (2021-04-26)
+## Version 0.12.0 (2021-06-28)
 
  * Add API service to manage the norms defined into a task type.
+ * Use ProtocolNorms on the Task.
+ * Allow create an empty TaskType.
+ * Change license from MIT to Apache V2.
 
 
 ## Version 0.11.0 (2021-03-31)
