@@ -36,7 +36,7 @@ import eu.internetofus.common.components.profile_manager.WeNetProfileManagerMock
 import eu.internetofus.common.components.service.WeNetService;
 import eu.internetofus.common.components.service.WeNetServiceSimulator;
 import eu.internetofus.common.components.service.WeNetServiceSimulatorMocker;
-import eu.internetofus.common.components.task_manager.TaskTransactionTest;
+import eu.internetofus.common.components.models.TaskTransactionTest;
 import eu.internetofus.common.components.task_manager.WeNetTaskManager;
 import eu.internetofus.common.components.task_manager.WeNetTaskManagerMocker;
 import io.vertx.core.Vertx;

@@ -25,7 +25,7 @@
  */
 package eu.internetofus.wenet_task_manager.api.task_transactions;
 
-import eu.internetofus.common.components.ValidationErrorException;
+import eu.internetofus.common.model.ValidationErrorException;
 import eu.internetofus.common.vertx.ServiceRequests;
 import eu.internetofus.common.vertx.ServiceResponseHandlers;
 import eu.internetofus.wenet_task_manager.api.tasks.Tasks;

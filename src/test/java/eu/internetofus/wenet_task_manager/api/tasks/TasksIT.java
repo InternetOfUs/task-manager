@@ -31,20 +31,20 @@ import static io.reactiverse.junit5.web.TestRequest.queryParam;
 import static io.reactiverse.junit5.web.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import eu.internetofus.common.TimeManager;
-import eu.internetofus.common.components.ErrorMessage;
-import eu.internetofus.common.components.Model;
 import eu.internetofus.common.components.StoreServices;
-import eu.internetofus.common.components.profile_manager.WeNetUserProfile;
+import eu.internetofus.common.components.models.Message;
+import eu.internetofus.common.components.models.MessageTest;
+import eu.internetofus.common.components.models.Task;
+import eu.internetofus.common.components.models.TaskTest;
+import eu.internetofus.common.components.models.TaskTransaction;
+import eu.internetofus.common.components.models.TaskTransactionTest;
+import eu.internetofus.common.components.models.WeNetUserProfile;
 import eu.internetofus.common.components.service.App;
-import eu.internetofus.common.components.service.Message;
-import eu.internetofus.common.components.service.MessageTest;
 import eu.internetofus.common.components.service.WeNetServiceSimulator;
-import eu.internetofus.common.components.task_manager.Task;
-import eu.internetofus.common.components.task_manager.TaskTest;
-import eu.internetofus.common.components.task_manager.TaskTransaction;
-import eu.internetofus.common.components.task_manager.TaskTransactionTest;
 import eu.internetofus.common.components.task_manager.WeNetTaskManager;
+import eu.internetofus.common.model.ErrorMessage;
+import eu.internetofus.common.model.Model;
+import eu.internetofus.common.model.TimeManager;
 import eu.internetofus.common.vertx.AbstractModelResourcesIT;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
@@ -122,15 +122,6 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
     source.id = target.id;
     source._creationTs = target._creationTs;
     source._lastUpdateTs = target._lastUpdateTs;
-    if (source.norms != null && target.norms != null && source.norms.size() == target.norms.size()) {
-
-      final var max = source.norms.size();
-      for (var i = 0; i < max; i++) {
-
-        source.norms.get(i).id = target.norms.get(i).id;
-      }
-
-    }
     assertThat(source).isEqualTo(target);
 
   }

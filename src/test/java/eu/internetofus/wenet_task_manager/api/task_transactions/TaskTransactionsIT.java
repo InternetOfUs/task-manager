@@ -30,11 +30,11 @@ import static io.reactiverse.junit5.web.TestRequest.queryParam;
 import static io.reactiverse.junit5.web.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import eu.internetofus.common.TimeManager;
-import eu.internetofus.common.components.ErrorMessage;
-import eu.internetofus.common.components.HumanDescription;
-import eu.internetofus.common.components.task_manager.Task;
-import eu.internetofus.common.components.task_manager.TaskTransaction;
+import eu.internetofus.common.model.TimeManager;
+import eu.internetofus.common.model.ErrorMessage;
+import eu.internetofus.common.components.models.HumanDescription;
+import eu.internetofus.common.components.models.Task;
+import eu.internetofus.common.components.models.TaskTransaction;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
 import io.vertx.core.Future;

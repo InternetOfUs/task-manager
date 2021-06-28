@@ -26,13 +26,13 @@
 
 package eu.internetofus.wenet_task_manager.api.tasks;
 
-import eu.internetofus.common.components.Model;
-import eu.internetofus.common.components.ValidationErrorException;
+import eu.internetofus.common.model.Model;
+import eu.internetofus.common.model.ValidationErrorException;
 import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngine;
 import eu.internetofus.common.components.service.App;
-import eu.internetofus.common.components.service.Message;
-import eu.internetofus.common.components.task_manager.Task;
-import eu.internetofus.common.components.task_manager.TaskTransaction;
+import eu.internetofus.common.components.models.Message;
+import eu.internetofus.common.components.models.Task;
+import eu.internetofus.common.components.models.TaskTransaction;
 import eu.internetofus.common.vertx.ModelContext;
 import eu.internetofus.common.vertx.ModelResources;
 import eu.internetofus.common.vertx.ServiceContext;

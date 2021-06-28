@@ -26,8 +26,8 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
-import eu.internetofus.common.TimeManager;
-import eu.internetofus.common.components.task_manager.Task;
+import eu.internetofus.common.model.TimeManager;
+import eu.internetofus.common.components.models.Task;
 import eu.internetofus.common.vertx.Repository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;

@@ -29,10 +29,10 @@ package eu.internetofus.wenet_task_manager.api.task_types;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import eu.internetofus.common.components.StoreServices;
-import eu.internetofus.common.components.task_manager.ProtocolNorm;
-import eu.internetofus.common.components.task_manager.ProtocolNormTest;
-import eu.internetofus.common.components.task_manager.TaskType;
-import eu.internetofus.common.components.task_manager.TaskTypeTest;
+import eu.internetofus.common.components.models.ProtocolNorm;
+import eu.internetofus.common.components.models.ProtocolNormTest;
+import eu.internetofus.common.components.models.TaskType;
+import eu.internetofus.common.components.models.TaskTypeTest;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.VertxTestContext;

@@ -26,9 +26,9 @@
 
 package eu.internetofus.wenet_task_manager.api.task_types;
 
-import eu.internetofus.common.components.ValidationErrorException;
-import eu.internetofus.common.components.task_manager.ProtocolNorm;
-import eu.internetofus.common.components.task_manager.TaskType;
+import eu.internetofus.common.model.ValidationErrorException;
+import eu.internetofus.common.components.models.ProtocolNorm;
+import eu.internetofus.common.components.models.TaskType;
 import eu.internetofus.common.vertx.ModelContext;
 import eu.internetofus.common.vertx.ModelFieldContext;
 import eu.internetofus.common.vertx.ModelResources;

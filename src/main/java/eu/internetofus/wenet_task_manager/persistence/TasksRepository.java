@@ -26,11 +26,11 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
-import eu.internetofus.common.components.Model;
-import eu.internetofus.common.components.ValidationErrorException;
-import eu.internetofus.common.components.service.Message;
-import eu.internetofus.common.components.task_manager.Task;
-import eu.internetofus.common.components.task_manager.TaskTransaction;
+import eu.internetofus.common.model.Model;
+import eu.internetofus.common.model.ValidationErrorException;
+import eu.internetofus.common.components.models.Message;
+import eu.internetofus.common.components.models.Task;
+import eu.internetofus.common.components.models.TaskTransaction;
 import eu.internetofus.common.vertx.QueryBuilder;
 import eu.internetofus.common.vertx.Repository;
 import eu.internetofus.wenet_task_manager.api.messages.MessagesPage;

@@ -31,11 +31,10 @@ import static io.reactiverse.junit5.web.TestRequest.queryParam;
 import static io.reactiverse.junit5.web.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import eu.internetofus.common.components.ErrorMessage;
 import eu.internetofus.common.components.StoreServices;
-import eu.internetofus.common.components.ValidationsTest;
-import eu.internetofus.common.components.task_manager.TaskType;
-import eu.internetofus.common.components.task_manager.TaskTypeTest;
+import eu.internetofus.common.components.models.TaskType;
+import eu.internetofus.common.components.models.TaskTypeTest;
+import eu.internetofus.common.model.ErrorMessage;
 import eu.internetofus.common.vertx.AbstractModelResourcesIT;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import eu.internetofus.wenet_task_manager.api.tasks.Tasks;
@@ -75,7 +74,6 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
   protected TaskType createInvalidModel() {
 
     final var model = new TaskTypeTest().createModelExample(1);
-    model.name = ValidationsTest.STRING_256;
     return model;
 
   }

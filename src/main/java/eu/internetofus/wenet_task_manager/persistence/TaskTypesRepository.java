@@ -26,9 +26,9 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
-import eu.internetofus.common.components.Model;
-import eu.internetofus.common.components.ValidationErrorException;
-import eu.internetofus.common.components.task_manager.TaskType;
+import eu.internetofus.common.model.Model;
+import eu.internetofus.common.model.ValidationErrorException;
+import eu.internetofus.common.components.models.TaskType;
 import eu.internetofus.common.vertx.ModelsPageContext;
 import eu.internetofus.common.vertx.QueryBuilder;
 import eu.internetofus.common.vertx.Repository;

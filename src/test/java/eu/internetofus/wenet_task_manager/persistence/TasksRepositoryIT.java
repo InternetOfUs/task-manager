@@ -28,14 +28,14 @@ package eu.internetofus.wenet_task_manager.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import eu.internetofus.common.components.HumanDescriptionTest;
+import eu.internetofus.common.components.models.HumanDescriptionTest;
 import eu.internetofus.common.components.StoreServices;
-import eu.internetofus.common.components.service.Message;
-import eu.internetofus.common.components.service.MessageTest;
-import eu.internetofus.common.components.task_manager.Task;
-import eu.internetofus.common.components.task_manager.TaskTest;
-import eu.internetofus.common.components.task_manager.TaskTransaction;
-import eu.internetofus.common.components.task_manager.TaskTransactionTest;
+import eu.internetofus.common.components.models.Message;
+import eu.internetofus.common.components.models.MessageTest;
+import eu.internetofus.common.components.models.Task;
+import eu.internetofus.common.components.models.TaskTest;
+import eu.internetofus.common.components.models.TaskTransaction;
+import eu.internetofus.common.components.models.TaskTransactionTest;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;

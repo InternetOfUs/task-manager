@@ -28,8 +28,8 @@ package eu.internetofus.wenet_task_manager.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import eu.internetofus.common.components.task_manager.TaskType;
-import eu.internetofus.common.components.task_manager.TaskTypeTest;
+import eu.internetofus.common.components.models.TaskType;
+import eu.internetofus.common.components.models.TaskTypeTest;
 import eu.internetofus.common.components.task_manager.WeNetTaskManager;
 import eu.internetofus.common.vertx.ModelsPageContext;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;

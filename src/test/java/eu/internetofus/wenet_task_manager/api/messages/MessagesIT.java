@@ -30,12 +30,12 @@ import static io.reactiverse.junit5.web.TestRequest.queryParam;
 import static io.reactiverse.junit5.web.TestRequest.testRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import eu.internetofus.common.TimeManager;
-import eu.internetofus.common.components.ErrorMessage;
-import eu.internetofus.common.components.HumanDescription;
-import eu.internetofus.common.components.service.Message;
-import eu.internetofus.common.components.task_manager.Task;
-import eu.internetofus.common.components.task_manager.TaskTransaction;
+import eu.internetofus.common.components.models.HumanDescription;
+import eu.internetofus.common.components.models.Message;
+import eu.internetofus.common.components.models.Task;
+import eu.internetofus.common.components.models.TaskTransaction;
+import eu.internetofus.common.model.ErrorMessage;
+import eu.internetofus.common.model.TimeManager;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import eu.internetofus.wenet_task_manager.persistence.TasksRepository;
 import io.vertx.core.Future;
@@ -70,9 +70,10 @@ public class MessagesIT {
    *
    * @return the future task to use in a test.
    */
-  public Future<Task> assertTaskForTest(String testId, int index, final Vertx vertx, VertxTestContext testContext) {
+  public Future<Task> assertTaskForTest(final String testId, final int index, final Vertx vertx,
+      final VertxTestContext testContext) {
 
-    Task task = new Task();
+    final var task = new Task();
     task.id = UUID.randomUUID().toString();
     task.appId = testId + "_App_" + index;
     task.attributes = new JsonObject().put("index", index).put("testId", testId);
@@ -90,7 +91,7 @@ public class MessagesIT {
     task._lastUpdateTs = task._creationTs + index * 10000;
     for (var i = 0; i < 20; i++) {
 
-      var transaction = new TaskTransaction();
+      final var transaction = new TaskTransaction();
       transaction.id = String.valueOf(i);
       transaction.actioneerId = testId + "_Actioneer_" + i;
       transaction.taskId = task.id;
@@ -102,7 +103,7 @@ public class MessagesIT {
       transaction.messages = new ArrayList<>();
       for (var j = 0; j < 20; j++) {
 
-        var message = new Message();
+        final var message = new Message();
         message.appId = task.appId;
         message.label = testId + "_label_" + j;
         message.attributes = new JsonObject().put("i", i).put("j", j);
@@ -169,10 +170,10 @@ public class MessagesIT {
    */
   @ParameterizedTest(name = "Should retrieve page that filter by {0}")
   @ValueSource(strings = { "appId", "requesterId", "taskTypeId" })
-  public void shouldRetrieveTaskMessagePageFromTaskField(String field, final Vertx vertx, final WebClient client,
+  public void shouldRetrieveTaskMessagePageFromTaskField(final String field, final Vertx vertx, final WebClient client,
       final VertxTestContext testContext) {
 
-    var testId = UUID.randomUUID().toString();
+    final var testId = UUID.randomUUID().toString();
     this.assertTaskForTest(testId, 1, vertx, testContext).onSuccess(task -> {
 
       this.assertTaskForTest(testId, 2, vertx, testContext).onSuccess(task2 -> {
@@ -212,11 +213,11 @@ public class MessagesIT {
    */
   @ParameterizedTest(name = "Should retrieve page that filter by goal {0}")
   @ValueSource(strings = { "name", "description" })
-  public void shouldRetrieveTaskMessagePageFromTaskByGoalField(String field, final Vertx vertx, final WebClient client,
-      final VertxTestContext testContext) {
+  public void shouldRetrieveTaskMessagePageFromTaskByGoalField(final String field, final Vertx vertx,
+      final WebClient client, final VertxTestContext testContext) {
 
-    var goalField = "goal" + field.substring(0, 1).toUpperCase() + field.substring(1);
-    var testId = UUID.randomUUID().toString();
+    final var goalField = "goal" + field.substring(0, 1).toUpperCase() + field.substring(1);
+    final var testId = UUID.randomUUID().toString();
     this.assertTaskForTest(testId, 1, vertx, testContext).onSuccess(task -> {
 
       this.assertTaskForTest(testId, 2, vertx, testContext).onSuccess(task2 -> {
@@ -257,7 +258,7 @@ public class MessagesIT {
   public void shouldRetrieveMessagePageFromTaskByGoalKeywords(final Vertx vertx, final WebClient client,
       final VertxTestContext testContext) {
 
-    var testId = UUID.randomUUID().toString();
+    final var testId = UUID.randomUUID().toString();
     this.assertTaskForTest(testId, 1, vertx, testContext).onSuccess(task -> {
 
       this.assertTaskForTest(testId, 2, vertx, testContext).onSuccess(task2 -> {
@@ -299,10 +300,10 @@ public class MessagesIT {
    */
   @ParameterizedTest(name = "Should retrieve empty page that filter by {0}From and {0}To")
   @ValueSource(strings = { "taskCreation", "taskUpdate", "close", "transactionCreation", "transactionUpdate" })
-  public void shouldRetrieveEmptyMessagePageBecauseNoMessageOnTimeRange(String fieldPrefix, final Vertx vertx,
+  public void shouldRetrieveEmptyMessagePageBecauseNoMessageOnTimeRange(final String fieldPrefix, final Vertx vertx,
       final WebClient client, final VertxTestContext testContext) {
 
-    var testId = UUID.randomUUID().toString();
+    final var testId = UUID.randomUUID().toString();
     this.assertTaskForTest(testId, 1, vertx, testContext).onSuccess(task -> {
 
       this.assertTaskForTest(testId, 2, vertx, testContext).onSuccess(task2 -> {
@@ -336,7 +337,7 @@ public class MessagesIT {
   public void shouldRetrieveEmptyMessagePageBecauseNoTransactionOnClosedTask(final Vertx vertx, final WebClient client,
       final VertxTestContext testContext) {
 
-    var testId = UUID.randomUUID().toString();
+    final var testId = UUID.randomUUID().toString();
     this.assertTaskForTest(testId, 1, vertx, testContext).onSuccess(task -> {
 
       this.assertTaskForTest(testId, 2, vertx, testContext).onSuccess(task2 -> {
@@ -368,7 +369,7 @@ public class MessagesIT {
   public void shouldRetrieveMessagePageFromTaskId(final Vertx vertx, final WebClient client,
       final VertxTestContext testContext) {
 
-    var testId = UUID.randomUUID().toString();
+    final var testId = UUID.randomUUID().toString();
     this.assertTaskForTest(testId, 1, vertx, testContext).onSuccess(task -> {
 
       this.assertTaskForTest(testId, 1, vertx, testContext).onSuccess(task2 -> {
@@ -397,7 +398,7 @@ public class MessagesIT {
   public void shouldRetrieveMessagePageFromTransactionId(final Vertx vertx, final WebClient client,
       final VertxTestContext testContext) {
 
-    var testId = UUID.randomUUID().toString();
+    final var testId = UUID.randomUUID().toString();
     this.assertTaskForTest(testId, 1, vertx, testContext).onSuccess(task -> {
 
       this.assertTaskForTest(testId, 2, vertx, testContext).onSuccess(task2 -> {
@@ -438,7 +439,7 @@ public class MessagesIT {
   public void shouldRetrieveMessagePageFromTransactionLabel(final Vertx vertx, final WebClient client,
       final VertxTestContext testContext) {
 
-    var testId = UUID.randomUUID().toString();
+    final var testId = UUID.randomUUID().toString();
     this.assertTaskForTest(testId, 1, vertx, testContext).onSuccess(task -> {
 
       this.assertTaskForTest(testId, 2, vertx, testContext).onSuccess(task2 -> {
@@ -479,7 +480,7 @@ public class MessagesIT {
   public void shouldRetrieveMessagePageFromTransactionActioneer(final Vertx vertx, final WebClient client,
       final VertxTestContext testContext) {
 
-    var testId = UUID.randomUUID().toString();
+    final var testId = UUID.randomUUID().toString();
     this.assertTaskForTest(testId, 1, vertx, testContext).onSuccess(task -> {
 
       this.assertTaskForTest(testId, 2, vertx, testContext).onSuccess(task2 -> {
@@ -520,7 +521,7 @@ public class MessagesIT {
   public void shouldRetrieveMessagePageFromMessageLabel(final Vertx vertx, final WebClient client,
       final VertxTestContext testContext) {
 
-    var testId = UUID.randomUUID().toString();
+    final var testId = UUID.randomUUID().toString();
     this.assertTaskForTest(testId, 1, vertx, testContext).onSuccess(task -> {
 
       this.assertTaskForTest(testId, 2, vertx, testContext).onSuccess(task2 -> {
@@ -560,7 +561,7 @@ public class MessagesIT {
   public void shouldRetrieveMessagePageFromMessageReceiver(final Vertx vertx, final WebClient client,
       final VertxTestContext testContext) {
 
-    var testId = UUID.randomUUID().toString();
+    final var testId = UUID.randomUUID().toString();
     this.assertTaskForTest(testId, 1, vertx, testContext).onSuccess(task -> {
 
       this.assertTaskForTest(testId, 2, vertx, testContext).onSuccess(task2 -> {

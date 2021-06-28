@@ -28,8 +28,8 @@ package eu.internetofus.wenet_task_manager.api.task_types;
 
 import java.util.ArrayList;
 
-import eu.internetofus.common.components.ModelTestCase;
-import eu.internetofus.common.components.task_manager.TaskTypeTest;
+import eu.internetofus.common.model.ModelTestCase;
+import eu.internetofus.common.components.models.TaskTypeTest;
 
 /**
  * Test the {@link TaskTypesPage}.

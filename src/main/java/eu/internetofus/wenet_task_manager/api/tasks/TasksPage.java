@@ -28,9 +28,9 @@ package eu.internetofus.wenet_task_manager.api.tasks;
 
 import java.util.List;
 
-import eu.internetofus.common.components.Model;
-import eu.internetofus.common.components.ReflectionModel;
-import eu.internetofus.common.components.task_manager.Task;
+import eu.internetofus.common.model.Model;
+import eu.internetofus.common.model.ReflectionModel;
+import eu.internetofus.common.components.models.Task;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -57,7 +57,7 @@ public class TasksPage extends ReflectionModel implements Model {
   /**
    * The found profiles.
    */
-  @ArraySchema(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/99249b00800807c94cb973b08c265e0a37f820ab/sources/wenet-models-openapi.yaml#/components/schemas/Task"), arraySchema = @Schema(description = "The set of tasks found"))
+  @ArraySchema(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/7af902b41c0d088f33ba35efd095624aa8aa6a6a/sources/wenet-models-openapi.yaml#/components/schemas/Task"), arraySchema = @Schema(description = "The set of tasks found"))
   public List<Task> tasks;
 
 }

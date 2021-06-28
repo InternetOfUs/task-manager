@@ -26,8 +26,8 @@
 
 package eu.internetofus.wenet_task_manager.api.task_types;
 
-import eu.internetofus.common.components.Model;
-import eu.internetofus.common.components.task_manager.TaskType;
+import eu.internetofus.common.model.Model;
+import eu.internetofus.common.components.models.TaskType;
 import eu.internetofus.common.vertx.AbstractModelFieldResourcesIT;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import org.junit.jupiter.api.extension.ExtendWith;

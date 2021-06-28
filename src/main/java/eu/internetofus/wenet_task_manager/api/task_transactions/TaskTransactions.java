@@ -25,8 +25,8 @@
  */
 package eu.internetofus.wenet_task_manager.api.task_transactions;
 
-import eu.internetofus.common.components.ErrorMessage;
-import eu.internetofus.common.components.task_manager.Task;
+import eu.internetofus.common.model.ErrorMessage;
+import eu.internetofus.common.components.models.Task;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.Explode;

@@ -62,10 +62,10 @@ openAPI:
       name: MIT
       url: https://opensource.org/licenses/MIT
   servers:
-    - url: https://wenet.u-hopper.com/prod/task_manager
-      description: WeNet production server
+    - url: https://internetofus.u-hopper.com/prod/task_manager
+      description: Production instance
     - url: https://wenet.u-hopper.com/dev/task_manager
-      description: WeNet development server server
+      description: Staging instance
     - url: http://ardid.iiia.csic.es/wenet/task-manager/prod/
       description: IIIA production server
     - url: http://ardid.iiia.csic.es/wenet/task-manager/dev/
