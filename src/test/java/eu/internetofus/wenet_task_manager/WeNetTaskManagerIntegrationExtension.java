@@ -26,17 +26,12 @@
 
 package eu.internetofus.wenet_task_manager;
 
-import static eu.internetofus.common.components.AbstractComponentMocker.createClientWithDefaultSession;
-
 import eu.internetofus.common.components.Containers;
 import eu.internetofus.common.components.incentive_server.WeNetIncentiveServerSimulator;
-import eu.internetofus.common.components.personal_context_builder.WeNetPersonalContextBuilderSimulator;
 import eu.internetofus.common.components.service.WeNetServiceSimulator;
-import eu.internetofus.common.components.social_context_builder.WeNetSocialContextBuilderSimulator;
 import eu.internetofus.common.vertx.AbstractMain;
 import eu.internetofus.common.vertx.AbstractWeNetComponentIntegrationExtension;
 import eu.internetofus.common.vertx.MainArgumentBuilder;
-import eu.internetofus.common.vertx.WeNetModuleContext;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClientSession;
@@ -47,20 +42,6 @@ import io.vertx.ext.web.client.WebClientSession;
  * @author UDT-IA, IIIA-CSIC
  */
 public class WeNetTaskManagerIntegrationExtension extends AbstractWeNetComponentIntegrationExtension {
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected void afterStarted(final WeNetModuleContext context) {
-
-    final var vertx = context.vertx;
-    final var client = createClientWithDefaultSession(vertx);
-    final var conf = context.configuration.getJsonObject("wenetComponents", new JsonObject());
-    WeNetServiceSimulator.register(vertx, client, conf);
-    WeNetIncentiveServerSimulator.register(vertx, client, conf);
-
-  }
 
   /**
    * {@inheritDoc}
@@ -91,16 +72,12 @@ public class WeNetTaskManagerIntegrationExtension extends AbstractWeNetComponent
    *
    * @see WeNetServiceSimulator
    * @see WeNetIncentiveServerSimulator
-   * @see WeNetSocialContextBuilderSimulator
-   * @see WeNetPersonalContextBuilderSimulator
    */
   @Override
   protected void afterStarted(final Vertx vertx, final WebClientSession client, final JsonObject conf) {
 
     WeNetServiceSimulator.register(vertx, client, conf);
     WeNetIncentiveServerSimulator.register(vertx, client, conf);
-    WeNetSocialContextBuilderSimulator.register(vertx, client, conf);
-    WeNetPersonalContextBuilderSimulator.register(vertx, client, conf);
 
   }
 
