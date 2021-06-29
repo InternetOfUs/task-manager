@@ -26,13 +26,13 @@
 
 package eu.internetofus.wenet_task_manager.api.tasks;
 
-import eu.internetofus.common.model.Model;
-import eu.internetofus.common.model.ValidationErrorException;
 import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngine;
-import eu.internetofus.common.components.service.App;
 import eu.internetofus.common.components.models.Message;
 import eu.internetofus.common.components.models.Task;
 import eu.internetofus.common.components.models.TaskTransaction;
+import eu.internetofus.common.components.service.App;
+import eu.internetofus.common.model.Model;
+import eu.internetofus.common.model.ValidationErrorException;
 import eu.internetofus.common.vertx.ModelContext;
 import eu.internetofus.common.vertx.ModelResources;
 import eu.internetofus.common.vertx.ServiceContext;
@@ -138,7 +138,7 @@ public class TasksResource implements Tasks {
 
       App.getOrCreateDefaultCommunityFor(body.getString("appId"), this.vertx).onComplete(search -> {
 
-        var community = search.result();
+        final var community = search.result();
         if (community == null) {
 
           ServiceResponseHandlers.responseWithErrorMessage(resultHandler, Status.BAD_REQUEST, "bad_task.communityId",
@@ -282,12 +282,13 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTasksPage(String appId, String requesterId, String taskTypeId, String goalName,
-      String goalDescription, Long creationFrom, Long creationTo, Long updateFrom, Long updateTo, Boolean hasCloseTs,
-      Long closeFrom, Long closeTo, String orderValue, int offset, int limit, ServiceRequest context,
-      Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public void retrieveTasksPage(final String appId, final String requesterId, final String taskTypeId,
+      final String goalName, final String goalDescription, final Long creationFrom, final Long creationTo,
+      final Long updateFrom, final Long updateTo, final Boolean hasCloseTs, final Long closeFrom, final Long closeTo,
+      final String orderValue, final int offset, final int limit, final ServiceRequest context,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
-    var order = ServiceRequests.extractQueryArray(orderValue);
+    final var order = ServiceRequests.extractQueryArray(orderValue);
     final var query = TasksRepository.createTasksPageQuery(appId, requesterId, taskTypeId, goalName, goalDescription,
         creationFrom, creationTo, updateFrom, updateTo, hasCloseTs, closeFrom, closeTo);
 
@@ -324,8 +325,8 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void addTransactionIntoTask(String taskId, JsonObject body, ServiceRequest request,
-      Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public void addTransactionIntoTask(final String taskId, final JsonObject body, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var transactionModel = this.createTaskTransactionContext();
     final var context = new ServiceContext(request, resultHandler);
@@ -356,7 +357,7 @@ public class TasksResource implements Tasks {
 
                 } else {
 
-                  var result = added.result();
+                  final var result = added.result();
                   Logger.debug(" \"POST /tasks/{}/transactions with {} => CREATED {}.", taskId, transactionModel.source,
                       result);
                   ServiceResponseHandlers.responseWith(resultHandler, Status.CREATED, result);
@@ -375,8 +376,8 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void addMessageIntoTransaction(String taskId, String taskTransactionId, JsonObject body,
-      ServiceRequest request, Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public void addMessageIntoTransaction(final String taskId, final String taskTransactionId, final JsonObject body,
+      final ServiceRequest request, final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var messageModel = this.createMessageContext();
     final var context = new ServiceContext(request, resultHandler);
@@ -398,7 +399,7 @@ public class TasksResource implements Tasks {
 
               } else {
 
-                var result = added.result();
+                final var result = added.result();
                 Logger.debug(" \"POST /tasks/{}/transactions/{}/messages with {} => CREATED {}.", taskId,
                     taskTransactionId, messageModel.source, result);
                 ServiceResponseHandlers.responseWith(resultHandler, Status.CREATED, result);
@@ -416,8 +417,8 @@ public class TasksResource implements Tasks {
    * {@inheritDoc}
    */
   @Override
-  public void retrieveTaskTransaction(String taskId, String transactionId, ServiceRequest request,
-      Handler<AsyncResult<ServiceResponse>> resultHandler) {
+  public void retrieveTaskTransaction(final String taskId, final String transactionId, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
 
     final var model = this.createTaskContext();
     model.id = taskId;
@@ -427,7 +428,7 @@ public class TasksResource implements Tasks {
 
           if (model.target.transactions != null) {
 
-            for (var transaction : model.target.transactions) {
+            for (final var transaction : model.target.transactions) {
 
               if (transaction.id.equals(transactionId)) {
 

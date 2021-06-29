@@ -74,6 +74,7 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
   protected TaskType createInvalidModel() {
 
     final var model = new TaskTypeTest().createModelExample(1);
+    model.norms.get(0).whenever = model.norms.get(0).thenceforth;
     return model;
 
   }
@@ -85,7 +86,8 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
   protected Future<TaskType> createValidModelExample(final int index, final Vertx vertx,
       final VertxTestContext testContext) {
 
-    return Future.succeededFuture(new TaskTypeTest().createModelExample(index));
+    return new TaskTypeTest().createModelExample(index, vertx, testContext);
+
   }
 
   /**
@@ -131,16 +133,16 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
    *      io.vertx.ext.web.api.service.ServiceRequest, io.vertx.core.Handler)
    */
   @Test
-  public void shouldNotStoreEmptyTaskType(final Vertx vertx, final WebClient client,
-      final VertxTestContext testContext) {
+  public void shouldStoreEmptyTaskType(final Vertx vertx, final WebClient client, final VertxTestContext testContext) {
 
     final var taskType = new TaskType();
     testRequest(client, HttpMethod.POST, this.modelPath()).expect(res -> {
 
-      assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-      final var error = assertThatBodyIs(ErrorMessage.class, res);
-      assertThat(error.code).isNotEmpty();
-      assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
+      assertThat(res.statusCode()).isEqualTo(Status.CREATED.getStatusCode());
+      final var created = assertThatBodyIs(TaskType.class, res);
+      taskType.id = created.id;
+      taskType._creationTs = taskType._lastUpdateTs = created._creationTs;
+      assertThat(created).isEqualTo(taskType);
 
     }).sendJson(taskType.toJsonObject(), testContext);
 

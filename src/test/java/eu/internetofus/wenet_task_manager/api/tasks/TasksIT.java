@@ -1501,6 +1501,8 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
 
                                       closedTask.transactions.get(10).messages.add(addedMessage2);
                                       closedTask._lastUpdateTs = retrievedTask2._lastUpdateTs;
+                                      closedTask.transactions.get(
+                                          closedTask.transactions.size() - 1)._lastUpdateTs = closedTask._lastUpdateTs;
                                       assertThat(retrievedTask2).isEqualTo(closedTask);
                                       testContext.completeNow();
 
