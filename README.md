@@ -2,41 +2,109 @@
 
 ## Introduction
 
-The task manager component is the one responsible for storing and maintaining the task and task types, and start the actions that can modify the task state.
+The task manager component is the one responsible for storing and maintaining
+the task and task types. 
 
-A task is considered an instance of a task type. This task type contains the description of the attributes necessary to define the task,
-the list of possible transactions (actions) that can be done in the task, and a set of norms that define how the task can change its state.
-For example a simplified task type to organize a dinner with friends, can be:
- - **Attributes**
-  - **when**: the dinner will be
-  - **where**: the dinner will be.
- - **Transactions**
-  - **accept**: when a user accepts to attend the dinner.
-  - **decline**: when a user declines to attend the dinner.
-  - **close**: when no more users can apply to be on the dinner.
-  - **cancel**: when the user that organizes the dinner cancels.
- - **Norms**
-  - When task created, therefore, notify my friends to participate and mark as open and add friends to unanswered
-  - When user accept therefore inform task requester user accepts and add a user to attenders and remove from unanswered
-  - When a user declines, therefore, inform add a user to declined and remove from unanswered
-  - When requester close therefore inform to accepted friends that the dinner is set and unanswered friend that the dinner is cancelled and mark it as closed
-  - When requester cancel therefore inform to an accepted and unanswered friend that the dinner is cancelled and mark it as closed
+A task is used to coordinate a set of WeNet users to do something. It is defined
+by the next fields:
 
-So the attributes a task of this type when some users has accepted an others has declined, can be:
- - **when**: Saturday night
- - **where**: Giorgios restaurant on the main street
- - **state**: Open
- - **unanswered**: User2, User89, user78
- - **declined**: User67
- - **attenders**: User1, User34
+ * __id__  identifier of the task.
+ * __goal__  the objective to reach. In other words why the users cooperate.
+ * __requesterId__  the identifier of the user that has created the task.
+ * **_creationTs**  the difference, measured in seconds, between the time when the task
+ is created and midnight, January 1, 1970 UTC.
+ * **_lastUpdateTs**  the difference, measured in seconds, between the time when the task
+ is updated and midnight, January 1, 1970 UTC.
+ * __closeTs__  the difference, measured in seconds, between the time when the task
+ is considered done (closed) and midnight, January 1, 1970 UTC.
+ * __appId__  identifier of the application where the task is associated.
+ * __communityId__  identifier of the community where the task is associated.
+ * __taskTypeId__  identifier of the type. It defines the common behaviours
+ allowed to the users when interacting on the task.
+ * __attributes__  the JSON object with the values that instantiate the task.
+ The possible values are defined by the type.
+ * __norms__  that modify the default behaviour defined by the type. If you want
+to read more about how to define norms read the [WeNet developer documentation](https://internetofus.github.io/developer/docs/tech/conversation/norms)
+ * __transactions__  the historic list of transactions that have been done in
+ the task. Also, each transaction has the information of the application messages
+ that have been sent to the users that are involved in the task.
+ 
+On the other hand, the task type defines what the users can do in a task. For
+this purpose has the next fields:
 
-The transactions can be considered as asynchronous actions that can be done to change the task state.
-When a user, an application or other WeNet component wants to change the state of a task, it has to
-post a transaction to the task manager. It checks that the transaction is correct according to
-the task type, and after that, the transaction is sent to the interaction protocol engine to verify
-the task, community and user norms. In other words, the changes of the state are done by the norms
-that are evaluated on the interaction protocol engine, and not by the task manager after receiving
-a transaction.
+- **id**  identifier of the task type.
+- **name**  of the type.
+- **description**  of the type.
+- **keywords**  used to define the type.
+- **attributes**  is a JSON object where the fields are the possible attributes
+ of the task, and the value is the name is the OpenAPI description of the possible
+ values for the attribute.
+- **transactions**  is a JSON object where the fields are the possible labels
+of the transactions that the users can do on the task, and the value is the
+OpenAPI description of the attributes for the transaction.
+- **callbacks**  is a JSON object where the fields are the possible labels
+of the messages that the norms can send to the application for a user, and
+the value is the OpenAPI description of the attributes for the message.
+- **norms**  that describe the possible behaviour can do in a task of this type.
+ If you want to read more about how to define norms read the [WeNet developer documentation](https://internetofus.github.io/developer/docs/tech/conversation/norms)
+
+The next JSON is an example of a task type that echo the received transaction
+to the same user.
+
+```json
+
+{
+   "id":"wenet_echo_v1",
+   "name":"Echo",
+   "description":"This tasks echo the transaction messages",
+   "keywords":[
+      "example",
+      "test"
+   ],
+   "transactions":{
+      "echo":{
+         "type":"object",
+         "description":"Send the echo message",
+         "properties":{
+            "message":{
+               "type":"string",
+               "description":"The message to echo"
+            }
+         }
+      }
+   },
+   "callbacks":{
+      "echo":{
+         "type":"object",
+         "properties":{
+            "taskId":{
+               "type":"string",
+               "description":"The identifier of the task"
+            },
+            "communityId":{
+               "type":"string",
+               "description":"The identifier of the community"
+            },
+            "message":{
+               "type":"string",
+               "description":"The echo message"
+            }
+         }
+      }
+   },
+   "norms":[
+      {
+         "whenever":"is_received_created_task()",
+         "thenceforth":"add_created_transaction()"
+      },
+      {
+         "whenever":"is_received_do_transaction('echo',Content)",
+         "thenceforth":"add_message_transaction() and send_user_message('echo',Content)"
+      }
+   ]
+}
+
+```
 
 
 ## Setup and configuration
