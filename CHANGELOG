@@ -3,6 +3,10 @@
 All notable changes to `wenet-task-manager` will be documented in this file
 
 
+## Version 0.13.0 (2021-)
+
+
+
 ## Version 0.12.0 (2021-07-01)
 
  * Add API service to manage the norms defined into a task type.
