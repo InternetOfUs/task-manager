@@ -22,8 +22,8 @@ package eu.internetofus.wenet_task_manager.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import eu.internetofus.common.components.models.HumanDescriptionTest;
 import eu.internetofus.common.components.StoreServices;
+import eu.internetofus.common.components.models.HumanDescriptionTest;
 import eu.internetofus.common.components.models.Message;
 import eu.internetofus.common.components.models.MessageTest;
 import eu.internetofus.common.components.models.Task;
@@ -851,81 +851,86 @@ public class TasksRepositoryIT {
   @Test
   public void shouldAddMultipleTransactionsAndMessagesIntoTask(final Vertx vertx, final VertxTestContext testContext) {
 
-    StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
+    new TaskTest().createModelExample(1, vertx, testContext).onComplete(testContext.succeeding(example -> {
 
-      final var transaction1 = new TaskTransactionTest().createModelExample(1);
-      transaction1.id = null;
-      transaction1.messages = null;
-      final var transaction2 = new TaskTransactionTest().createModelExample(2);
-      transaction2.id = null;
-      transaction2.messages = null;
-      final var message1 = new MessageTest().createModelExample(3);
-      final var message2 = new MessageTest().createModelExample(4);
+      TasksRepository.createProxy(vertx).storeTask(example).onComplete(testContext.succeeding(task -> {
 
-      final var future = TasksRepository.createProxy(vertx).addTransactionIntoTask(task.id, transaction1)
-          .compose(addedTransaction -> {
+        final var transaction1 = new TaskTransactionTest().createModelExample(1);
+        transaction1.id = null;
+        transaction1.messages = null;
+        final var transaction2 = new TaskTransactionTest().createModelExample(2);
+        transaction2.id = null;
+        transaction2.messages = null;
+        final var message1 = new MessageTest().createModelExample(3);
+        final var message2 = new MessageTest().createModelExample(4);
 
-            transaction1.id = addedTransaction.id;
-            transaction1._creationTs = addedTransaction._creationTs;
-            transaction1._lastUpdateTs = task._lastUpdateTs = addedTransaction._lastUpdateTs;
-            return TasksRepository.createProxy(vertx).addMessageIntoTransaction(task.id, transaction1.id, message1)
-                .compose(addedMessage -> TasksRepository.createProxy(vertx).addMessageIntoTransaction(task.id,
-                    transaction1.id, message2));
+        final var future = TasksRepository.createProxy(vertx).addTransactionIntoTask(task.id, transaction1)
+            .compose(addedTransaction -> {
 
-          }).compose(message -> {
+              transaction1.id = addedTransaction.id;
+              transaction1._creationTs = addedTransaction._creationTs;
+              transaction1._lastUpdateTs = task._lastUpdateTs = addedTransaction._lastUpdateTs;
+              return TasksRepository.createProxy(vertx).addMessageIntoTransaction(task.id, transaction1.id, message1)
+                  .compose(addedMessage -> TasksRepository.createProxy(vertx).addMessageIntoTransaction(task.id,
+                      transaction1.id, message2));
 
-            return TasksRepository.createProxy(vertx).addTransactionIntoTask(task.id, transaction2)
-                .compose(addedTransaction -> {
+            }).compose(message -> {
 
-                  transaction2.id = addedTransaction.id;
-                  transaction2._creationTs = addedTransaction._creationTs;
-                  transaction2._lastUpdateTs = task._lastUpdateTs = addedTransaction._lastUpdateTs;
-                  return TasksRepository.createProxy(vertx)
-                      .addMessageIntoTransaction(task.id, transaction2.id, message1)
-                      .compose(addedMessage -> TasksRepository.createProxy(vertx).addMessageIntoTransaction(task.id,
-                          transaction2.id, message2));
+              return TasksRepository.createProxy(vertx).addTransactionIntoTask(task.id, transaction2)
+                  .compose(addedTransaction -> {
 
-                });
+                    transaction2.id = addedTransaction.id;
+                    transaction2._creationTs = addedTransaction._creationTs;
+                    transaction2._lastUpdateTs = task._lastUpdateTs = addedTransaction._lastUpdateTs;
+                    return TasksRepository.createProxy(vertx)
+                        .addMessageIntoTransaction(task.id, transaction2.id, message1)
+                        .compose(addedMessage -> TasksRepository.createProxy(vertx).addMessageIntoTransaction(task.id,
+                            transaction2.id, message2));
 
-          }).compose(addedMessage -> TasksRepository.createProxy(vertx).searchTask(task.id));
+                  });
 
-      testContext.assertComplete(future).onSuccess(updatedTask -> testContext.verify(() -> {
+            }).compose(addedMessage -> TasksRepository.createProxy(vertx).searchTask(task.id));
 
-        assertThat(updatedTask._lastUpdateTs).isBetween(task._lastUpdateTs, task._lastUpdateTs + 1);
-        task._lastUpdateTs = updatedTask._lastUpdateTs;
-        final var updatedTransaction1 = updatedTask.transactions.get(0);
-        assertThat(updatedTransaction1._lastUpdateTs).isBetween(transaction1._lastUpdateTs,
-            transaction2._lastUpdateTs + 1);
-        transaction1._lastUpdateTs = updatedTransaction1._lastUpdateTs;
-        assertThat(updatedTask).isNotEqualTo(task);
-        task.transactions = new ArrayList<>();
-        assertThat(updatedTask).isNotEqualTo(task);
-        task.transactions.add(transaction1);
-        assertThat(updatedTask).isNotEqualTo(task);
-        transaction1.messages = new ArrayList<>();
-        assertThat(updatedTask).isNotEqualTo(task);
-        transaction1.messages.add(message1);
-        assertThat(updatedTask).isNotEqualTo(task);
-        transaction1.messages.add(message2);
-        final var updatedTransaction2 = updatedTask.transactions.get(1);
-        assertThat(updatedTransaction2._lastUpdateTs).isBetween(transaction2._lastUpdateTs,
-            transaction2._lastUpdateTs + 2);
-        transaction2._lastUpdateTs = updatedTransaction2._lastUpdateTs;
-        assertThat(updatedTask).isNotEqualTo(task);
-        task.transactions.add(transaction2);
-        assertThat(updatedTask).isNotEqualTo(task);
-        transaction2.messages = new ArrayList<>();
-        assertThat(updatedTask).isNotEqualTo(task);
-        transaction2.messages.add(message1);
-        assertThat(updatedTask).isNotEqualTo(task);
-        transaction2.messages.add(message2);
-        assertThat(updatedTask).isEqualTo(task);
+        testContext.assertComplete(future).onSuccess(updatedTask -> testContext.verify(() -> {
 
-        testContext.completeNow();
+          assertThat(updatedTask._lastUpdateTs).isBetween(task._lastUpdateTs, task._lastUpdateTs + 1);
+          task._lastUpdateTs = updatedTask._lastUpdateTs;
+          final var updatedTransaction1 = updatedTask.transactions.get(0);
+          assertThat(updatedTransaction1._lastUpdateTs).isBetween(transaction1._lastUpdateTs,
+              transaction2._lastUpdateTs + 1);
+          transaction1._lastUpdateTs = updatedTransaction1._lastUpdateTs;
+          assertThat(updatedTask).isNotEqualTo(task);
+          task.transactions = new ArrayList<>();
+          assertThat(updatedTask).isNotEqualTo(task);
+          task.transactions.add(transaction1);
+          assertThat(updatedTask).isNotEqualTo(task);
+          transaction1.messages = new ArrayList<>();
+          assertThat(updatedTask).isNotEqualTo(task);
+          transaction1.messages.add(message1);
+          assertThat(updatedTask).isNotEqualTo(task);
+          transaction1.messages.add(message2);
+          final var updatedTransaction2 = updatedTask.transactions.get(1);
+          assertThat(updatedTransaction2._lastUpdateTs).isBetween(transaction2._lastUpdateTs,
+              transaction2._lastUpdateTs + 2);
+          transaction2._lastUpdateTs = updatedTransaction2._lastUpdateTs;
+          assertThat(updatedTask).isNotEqualTo(task);
+          task.transactions.add(transaction2);
+          assertThat(updatedTask).isNotEqualTo(task);
+          transaction2.messages = new ArrayList<>();
+          assertThat(updatedTask).isNotEqualTo(task);
+          transaction2.messages.add(message1);
+          assertThat(updatedTask).isNotEqualTo(task);
+          transaction2.messages.add(message2);
+          assertThat(updatedTask).isEqualTo(task);
+
+          testContext.completeNow();
+
+        }));
 
       }));
 
-    });
+    }));
+
   }
 
   /**

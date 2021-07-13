@@ -53,7 +53,7 @@ public class TasksRepositoryTest {
   @Test
   public void shouldNotFoundTaskBecauseReturnedJsonObjectIsNotRight(final VertxTestContext testContext) {
 
-    final TasksRepository repository = new TasksRepositoryImpl(null, null) {
+    final TasksRepository repository = new TasksRepositoryImpl(null, null, null) {
 
       @Override
       public void searchTask(final String id, final Handler<AsyncResult<JsonObject>> searchHandler) {
@@ -78,7 +78,7 @@ public class TasksRepositoryTest {
   @Test
   public void shouldNotStoreTaskBecauseReturnedJsonObjectIsNotRight(final VertxTestContext testContext) {
 
-    final TasksRepository repository = new TasksRepositoryImpl(null, null) {
+    final TasksRepository repository = new TasksRepositoryImpl(null, null, null) {
 
       @Override
       public void storeTask(final JsonObject task, final Handler<AsyncResult<JsonObject>> storeHandler) {
@@ -103,7 +103,7 @@ public class TasksRepositoryTest {
   public void shouldNotStoreTaskBecauseStoreFailed(final VertxTestContext testContext) {
 
     final Throwable cause = new IllegalArgumentException("Cause that can not be stored");
-    final TasksRepository repository = new TasksRepositoryImpl(null, null) {
+    final TasksRepository repository = new TasksRepositoryImpl(null, null, null) {
 
       @Override
       public void storeTask(final JsonObject task, final Handler<AsyncResult<JsonObject>> storeHandler) {
@@ -134,7 +134,7 @@ public class TasksRepositoryTest {
   public void shouldNotUpdateTaskBecauseUpdateFailed(final VertxTestContext testContext) {
 
     final Throwable cause = new IllegalArgumentException("Cause that can not be updated");
-    final TasksRepository repository = new TasksRepositoryImpl(null, null) {
+    final TasksRepository repository = new TasksRepositoryImpl(null, null, null) {
 
       @Override
       public void updateTask(final JsonObject task, final Handler<AsyncResult<Void>> updateHandler) {

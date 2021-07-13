@@ -20,11 +20,11 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
-import eu.internetofus.common.model.Model;
-import eu.internetofus.common.model.ValidationErrorException;
 import eu.internetofus.common.components.models.Message;
 import eu.internetofus.common.components.models.Task;
 import eu.internetofus.common.components.models.TaskTransaction;
+import eu.internetofus.common.model.Model;
+import eu.internetofus.common.model.ValidationErrorException;
 import eu.internetofus.common.vertx.QueryBuilder;
 import eu.internetofus.common.vertx.Repository;
 import eu.internetofus.wenet_task_manager.api.messages.MessagesPage;
@@ -79,7 +79,7 @@ public interface TasksRepository {
    */
   static Future<Void> register(final Vertx vertx, final MongoClient pool, final String version) {
 
-    final var repository = new TasksRepositoryImpl(pool, version);
+    final var repository = new TasksRepositoryImpl(vertx, pool, version);
     new ServiceBinder(vertx).setAddress(TasksRepository.ADDRESS).register(TasksRepository.class, repository);
     return repository.migrateDocumentsToCurrentVersions();
 
@@ -95,7 +95,7 @@ public interface TasksRepository {
   @GenIgnore
   default Future<Task> searchTask(final String id) {
 
-    Promise<JsonObject> promise = Promise.promise();
+    final Promise<JsonObject> promise = Promise.promise();
     this.searchTask(id, promise);
     return Model.fromFutureJsonObject(promise.future(), Task.class);
 
@@ -119,7 +119,7 @@ public interface TasksRepository {
   @GenIgnore
   default Future<Task> storeTask(@NotNull final Task task) {
 
-    Promise<JsonObject> promise = Promise.promise();
+    final Promise<JsonObject> promise = Promise.promise();
     this.storeTask(task.toJsonObject(), promise);
     return Model.fromFutureJsonObject(promise.future(), Task.class);
 
@@ -150,7 +150,7 @@ public interface TasksRepository {
 
     } else {
 
-      Promise<Void> promise = Promise.promise();
+      final Promise<Void> promise = Promise.promise();
       this.updateTask(object, promise);
       return promise.future();
     }
@@ -173,9 +173,9 @@ public interface TasksRepository {
    * @return the future delete result.
    */
   @GenIgnore
-  default Future<Void> deleteTask(String id) {
+  default Future<Void> deleteTask(final String id) {
 
-    Promise<Void> promise = Promise.promise();
+    final Promise<Void> promise = Promise.promise();
     this.deleteTask(id, promise);
     return promise.future();
 
@@ -286,7 +286,7 @@ public interface TasksRepository {
   default Future<TasksPage> retrieveTasksPage(final JsonObject query, final JsonObject order, final int offset,
       final int limit) {
 
-    Promise<JsonObject> promise = Promise.promise();
+    final Promise<JsonObject> promise = Promise.promise();
     this.retrieveTasksPage(query, order, offset, limit, promise);
     return Model.fromFutureJsonObject(promise.future(), TasksPage.class);
 
@@ -313,9 +313,9 @@ public interface TasksRepository {
    * @return the added task transaction.
    */
   @GenIgnore
-  default Future<TaskTransaction> addTransactionIntoTask(String taskId, TaskTransaction transaction) {
+  default Future<TaskTransaction> addTransactionIntoTask(final String taskId, final TaskTransaction transaction) {
 
-    Promise<JsonObject> promise = Promise.promise();
+    final Promise<JsonObject> promise = Promise.promise();
     this.addTransactionIntoTask(taskId, transaction.toJsonObject(), promise);
     return Model.fromFutureJsonObject(promise.future(), TaskTransaction.class);
 
@@ -340,9 +340,10 @@ public interface TasksRepository {
    * @return the added task transaction.
    */
   @GenIgnore
-  default Future<Message> addMessageIntoTransaction(String taskId, String taskTransactionId, Message message) {
+  default Future<Message> addMessageIntoTransaction(final String taskId, final String taskTransactionId,
+      final Message message) {
 
-    Promise<JsonObject> promise = Promise.promise();
+    final Promise<JsonObject> promise = Promise.promise();
     this.addMessageIntoTransaction(taskId, taskTransactionId, message.toJsonObject(), promise);
     return Model.fromFutureJsonObject(promise.future(), Message.class);
 
@@ -373,7 +374,7 @@ public interface TasksRepository {
   default Future<TaskTransactionsPage> retrieveTaskTransactionsPage(final JsonObject query, final JsonObject order,
       final int offset, final int limit) {
 
-    Promise<JsonObject> promise = Promise.promise();
+    final Promise<JsonObject> promise = Promise.promise();
     this.retrieveTaskTransactionsPage(query, order, offset, limit, promise);
     return Model.fromFutureJsonObject(promise.future(), TaskTransactionsPage.class);
 
@@ -437,10 +438,12 @@ public interface TasksRepository {
    *
    * @return the query that you have to use to obtains some task transactions.
    */
-  static JsonObject createTaskTransactionsPageQuery(String appId, String requesterId, String taskTypeId,
-      String goalName, String goalDescription, List<String> goalKeywords, Long taskCreationFrom, Long taskCreationTo,
-      Long taskUpdateFrom, Long taskUpdateTo, Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId,
-      String id, String label, String actioneerId, Long creationFrom, Long creationTo, Long updateFrom, Long updateTo) {
+  static JsonObject createTaskTransactionsPageQuery(final String appId, final String requesterId,
+      final String taskTypeId, final String goalName, final String goalDescription, final List<String> goalKeywords,
+      final Long taskCreationFrom, final Long taskCreationTo, final Long taskUpdateFrom, final Long taskUpdateTo,
+      final Boolean hasCloseTs, final Long closeFrom, final Long closeTo, final String taskId, final String id,
+      final String label, final String actioneerId, final Long creationFrom, final Long creationTo,
+      final Long updateFrom, final Long updateTo) {
 
     return new QueryBuilder().withEqOrRegex("_id", taskId).withEqOrRegex("appId", appId)
         .withEqOrRegex("requesterId", requesterId).withEqOrRegex("taskTypeId", taskTypeId)
@@ -465,7 +468,7 @@ public interface TasksRepository {
    */
   static JsonObject createTaskTransactionsPageSort(final List<String> order) throws ValidationErrorException {
 
-    var sort = Repository.queryParamToSort(order, "bad_order", (value) -> {
+    final var sort = Repository.queryParamToSort(order, "bad_order", (value) -> {
 
       switch (value) {
       case "id":
@@ -545,7 +548,7 @@ public interface TasksRepository {
   default Future<MessagesPage> retrieveMessagesPage(final JsonObject query, final JsonObject order, final int offset,
       final int limit) {
 
-    Promise<JsonObject> promise = Promise.promise();
+    final Promise<JsonObject> promise = Promise.promise();
     this.retrieveMessagesPage(query, order, offset, limit, promise);
     return Model.fromFutureJsonObject(promise.future(), MessagesPage.class);
 
@@ -613,12 +616,13 @@ public interface TasksRepository {
    *
    * @return the query that you have to use to obtains some messages.
    */
-  static JsonObject createMessagesPageQuery(String appId, String requesterId, String taskTypeId, String goalName,
-      String goalDescription, List<String> goalKeywords, Long taskCreationFrom, Long taskCreationTo,
-      Long taskUpdateFrom, Long taskUpdateTo, Boolean hasCloseTs, Long closeFrom, Long closeTo, String taskId,
-      String transactionId, String transactionLabel, String transactionActioneerId, Long transactionCreationFrom,
-      Long transactionCreationTo, Long transactionUpdateFrom, Long transactionUpdateTo, String receiverId,
-      String label) {
+  static JsonObject createMessagesPageQuery(final String appId, final String requesterId, final String taskTypeId,
+      final String goalName, final String goalDescription, final List<String> goalKeywords, final Long taskCreationFrom,
+      final Long taskCreationTo, final Long taskUpdateFrom, final Long taskUpdateTo, final Boolean hasCloseTs,
+      final Long closeFrom, final Long closeTo, final String taskId, final String transactionId,
+      final String transactionLabel, final String transactionActioneerId, final Long transactionCreationFrom,
+      final Long transactionCreationTo, final Long transactionUpdateFrom, final Long transactionUpdateTo,
+      final String receiverId, final String label) {
 
     return new QueryBuilder().withEqOrRegex("_id", taskId).withEqOrRegex("transactions.id", transactionId)
         .withEqOrRegex("transactions.label", transactionLabel)
@@ -646,7 +650,7 @@ public interface TasksRepository {
    */
   static JsonObject createMessagesPageSort(final List<String> order) throws ValidationErrorException {
 
-    var sort = Repository.queryParamToSort(order, "bad_order", (value) -> {
+    final var sort = Repository.queryParamToSort(order, "bad_order", (value) -> {
 
       switch (value) {
       case "taskTypeId":

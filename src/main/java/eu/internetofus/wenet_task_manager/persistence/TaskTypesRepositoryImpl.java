@@ -20,10 +20,10 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
-import eu.internetofus.common.model.TimeManager;
-import eu.internetofus.common.model.Model;
 import eu.internetofus.common.components.models.TaskType;
 import eu.internetofus.common.components.task_manager.WeNetTaskManager;
+import eu.internetofus.common.model.Model;
+import eu.internetofus.common.model.TimeManager;
 import eu.internetofus.common.vertx.Repository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -66,11 +66,6 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
       WeNetTaskManager.ENGLISH_AUCTION_WITH_NORMS_V1_TASK_TYPE_ID };
 
   /**
-   * The event bus where this is registered.
-   */
-  protected Vertx vertx;
-
-  /**
    * Create a new service.
    *
    * @param vertx   that contains the event bus to use.
@@ -79,9 +74,7 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
    */
   public TaskTypesRepositoryImpl(final Vertx vertx, final MongoClient pool, final String version) {
 
-    super(pool, version);
-
-    this.vertx = vertx;
+    super(vertx, pool, version);
 
   }
 

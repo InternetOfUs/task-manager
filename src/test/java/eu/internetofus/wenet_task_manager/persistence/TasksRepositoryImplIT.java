@@ -73,11 +73,11 @@ public class TasksRepositoryImplIT {
   @Test
   public void shouldMigrateTo_0_6_0(final Vertx vertx, final VertxTestContext testContext) {
 
-    var pool = MongoClient.createShared(vertx, Containers.status().getMongoDBConfig(), "TEST");
-    var task_0_5_0 = (JsonObject) Json.decodeValue(TASK_0_5_0);
+    final var pool = MongoClient.createShared(vertx, Containers.status().getMongoDBConfig(), "TEST");
+    final var task_0_5_0 = (JsonObject) Json.decodeValue(TASK_0_5_0);
     task_0_5_0.remove("id");
     testContext.assertComplete(pool.insert(TasksRepositoryImpl.TASKS_COLLECTION, task_0_5_0)).onSuccess(id -> {
-      var repository = new TasksRepositoryImpl(pool, "0.6.0");
+      final var repository = new TasksRepositoryImpl(vertx, pool, "0.6.0");
       testContext.assertComplete(repository.migrateTaskTo_0_6_0()
           .compose(empty -> pool.findOne(TasksRepositoryImpl.TASKS_COLLECTION, new JsonObject().put("_id", id), null))
           .onSuccess(migratedTask -> {
@@ -105,11 +105,11 @@ public class TasksRepositoryImplIT {
   @Test
   public void shouldMigrate0_5_0_ToLatest(final Vertx vertx, final VertxTestContext testContext) {
 
-    var pool = MongoClient.createShared(vertx, Containers.status().getMongoDBConfig(), "TEST");
-    var task_0_5_0 = (JsonObject) Json.decodeValue(TASK_0_5_0);
+    final var pool = MongoClient.createShared(vertx, Containers.status().getMongoDBConfig(), "TEST");
+    final var task_0_5_0 = (JsonObject) Json.decodeValue(TASK_0_5_0);
     task_0_5_0.remove("id");
     testContext.assertComplete(pool.insert(TasksRepositoryImpl.TASKS_COLLECTION, task_0_5_0)).onSuccess(id -> {
-      var repository = new TasksRepositoryImpl(pool, "latest");
+      final var repository = new TasksRepositoryImpl(vertx, pool, "latest");
       testContext.assertComplete(repository.migrateDocumentsToCurrentVersions()).onSuccess(migrated -> {
 
         testContext.assertComplete(repository.searchTask(id)).onSuccess(task -> testContext.completeNow());

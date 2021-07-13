@@ -28,7 +28,7 @@
   <require-maven-version>3.6</require-maven-version>
   <finalName>${project.artifactId}-${project.version}</finalName>
   <!-- application properties -->
-  <api-version>0.8.0</api-version>
+  <api-version>0.7.0</api-version>
   <!-- Maven plugins versions -->
   <io.swagger.core.v3-version>2.1.9</io.swagger.core.v3-version>
   <maven-clean-plugin-version>3.1.0</maven-clean-plugin-version>
@@ -50,7 +50,7 @@
   <gmavenplus-plugin-version>1.12.1</gmavenplus-plugin-version>
   <groovy-version>3.0.8</groovy-version>
   <!-- Library versions -->
-  <eu.internetofus.common-version>0.7.0</eu.internetofus.common-version>
+  <eu.internetofus.common-version>0.8.1</eu.internetofus.common-version>
  </properties>
  <repositories>
   <repository>
