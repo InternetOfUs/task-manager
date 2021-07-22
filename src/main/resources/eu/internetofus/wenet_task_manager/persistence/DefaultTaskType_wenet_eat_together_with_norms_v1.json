@@ -270,7 +270,7 @@
       },
       {
          "whenever":"is_received_created_task() and get_task_attribute_value(Deadline,deadlineTs) and is_now_less_than(Deadline) and get_app_users_except_me(Unanswered) and length(Unanswered,Size) and >(Size,0)",
-         "thenceforth":"add_created_transaction() and put_task_attribute(unanswered,Unanswered) and put_task_attribute(volunteers,[]) and put_task_attribute(declined,[]) and put_task_attribute(accepted,[]) and put_task_attribute(refused,[]) and send_messages(Unanswered,'notifyNewEatTogether',json([])) and notify_incentive_server('taskCreated','A task is created')"
+         "thenceforth":"add_created_transaction() and put_task_attribute(unanswered,Unanswered) and put_task_attribute(volunteers,[]) and put_task_attribute(declined,[]) and put_task_attribute(accepted,[]) and put_task_attribute(refused,[]) and send_messages(Unanswered,'notifyNewEatTogether',json([]))"
       },
       {
          "whenever":"is_received(_,'notifyNewEatTogether',_) and get_community_id(CommunityId) and get_task_id(TaskId)",
@@ -290,7 +290,7 @@
       },
       {
          "whenever":"is_received_do_transaction('volunteerForTask',_) and not(is_task_closed()) and  get_task_attribute_value(Deadline,deadlineTs) and is_now_less_than(Deadline) and get_task_attribute_value(Unanswered,unanswered) and get_profile_id(Me) and member(Me,Unanswered) and get_task_attribute_value(Volunteers,volunteers) and get_task_requester_id(RequesterId)",
-         "thenceforth":"add_message_transaction() and wenet_remove(NewUnanswered,Me,Unanswered) and put_task_attribute(unanswered,NewUnanswered) and wenet_add(NewVolunteers,Me,Volunteers) and put_task_attribute(volunteers,NewVolunteers) and notify_volunteers_to_social_context_builder(NewVolunteers,Me) and notify_incentive_server('volunteerForTask','An user has offered to be a volunteer for a task.') and send_message(RequesterId,'volunteerForTask',@(null))"
+         "thenceforth":"add_message_transaction() and wenet_remove(NewUnanswered,Me,Unanswered) and put_task_attribute(unanswered,NewUnanswered) and wenet_add(NewVolunteers,Me,Volunteers) and put_task_attribute(volunteers,NewVolunteers) and notify_volunteers_to_social_context_builder(NewVolunteers,Me) and send_message(RequesterId,'volunteerForTask',@(null))"
       },
       {
          "whenever":"is_received(SenderId,'volunteerForTask',_) and get_social_explanation(Explanation,SenderId) and get_community_id(CommunityId) and get_task_id(TaskId)",
@@ -310,7 +310,7 @@
       },
       {
          "whenever":"is_received_do_transaction('refuseTask',_) and not(is_task_closed()) and  get_task_attribute_value(Deadline,deadlineTs) and is_now_less_than(Deadline) and get_task_attribute_value(Unanswered,unanswered) and get_profile_id(Me) and member(Me,Unanswered) and get_task_attribute_value(Declined,declined)",
-         "thenceforth":"add_message_transaction() and wenet_remove(NewUnanswered,Me,Unanswered) and put_task_attribute(unanswered,NewUnanswered) and wenet_add(NewDeclined,Me,Declined) and put_task_attribute(declined,NewDeclined) and notify_incentive_server('refuseTask','An user has declined to be a volunteer for a task.')"
+         "thenceforth":"add_message_transaction() and wenet_remove(NewUnanswered,Me,Unanswered) and put_task_attribute(unanswered,NewUnanswered) and wenet_add(NewDeclined,Me,Declined) and put_task_attribute(declined,NewDeclined)"
       },
       {
          "whenever":"is_received_do_transaction('acceptVolunteer',Attributes) and not(is_task_closed()) and  get_task_attribute_value(Volunteers,volunteers) and get_attribute(VolunteerId,volunteerId,Attributes) and not(member(VolunteerId,Volunteers))",
@@ -322,7 +322,7 @@
       },
       {
          "whenever":"is_received(_,'acceptVolunteer',_) and get_community_id(CommunityId) and get_task_id(TaskId)",
-         "thenceforth":"send_user_message('TaskSelectionNotification',json([communityId=CommunityId,taskId=TaskId,outcome='accepted'])) and notify_incentive_server('acceptVolunteer','An user is selected to provide help.')"
+         "thenceforth":"send_user_message('TaskSelectionNotification',json([communityId=CommunityId,taskId=TaskId,outcome='accepted']))"
       },
       {
          "whenever":"is_received_do_transaction('refuseVolunteer',Attributes) and not(is_task_closed()) and  get_task_attribute_value(Volunteers,volunteers) and get_attribute(VolunteerId,volunteerId,Attributes) and not(member(VolunteerId,Volunteers))",
@@ -334,11 +334,11 @@
       },
       {
          "whenever":"is_received(_,'refuseVolunteer',_) and get_community_id(CommunityId) and get_task_id(TaskId)",
-         "thenceforth":"send_user_message('TaskSelectionNotification',json([communityId=CommunityId,taskId=TaskId,outcome='refused'])) and notify_incentive_server('refuseVolunteer','An user is refused as volunteer.')"
+         "thenceforth":"send_user_message('TaskSelectionNotification',json([communityId=CommunityId,taskId=TaskId,outcome='refused']))"
       },
       {
          "whenever":"is_received_do_transaction('taskCompleted',Attributes) and not(is_task_closed()) and get_attribute(Outcome,outcome,Attributes) and get_task_attribute_value(Unanswered,unanswered) and get_task_attribute_value(Volunteers,volunteers) and get_task_attribute_value(Accepted,accepted)",
-         "thenceforth":"add_message_transaction() and close_task() and put_task_attribute(outcome,Outcome) and wenet_format(Msg,'A task is completed with the outcome: {}',Outcome) and notify_incentive_server('taskCompleted',Msg) and send_messages(Unanswered,'taskCompleted',Attributes) and send_messages(Volunteers,'taskCompleted',Attributes) and send_messages(Accepted,'taskCompleted',Attributes)"
+         "thenceforth":"add_message_transaction() and close_task() and put_task_attribute(outcome,Outcome) and send_messages(Unanswered,'taskCompleted',Attributes) and send_messages(Volunteers,'taskCompleted',Attributes) and send_messages(Accepted,'taskCompleted',Attributes)"
       },
       {
          "whenever":"is_received(_,'taskCompleted',Attributes) and get_community_id(CommunityId) and get_task_id(TaskId) and get_attribute(Outcome,outcome,Attributes)",
