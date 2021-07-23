@@ -232,7 +232,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
 
       assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
       final var error = assertThatBodyIs(ErrorMessage.class, res);
-      assertThat(error.code).isNotEmpty().isEqualTo("bad_task_transaction.taskId");
+      assertThat(error.code).isNotEmpty().startsWith("bad_task_transaction.");
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
     }).sendJson(taskTransaction.toJsonObject(), testContext);
@@ -258,7 +258,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
 
       assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
       final var error = assertThatBodyIs(ErrorMessage.class, res);
-      assertThat(error.code).isNotEmpty().isEqualTo("bad_task_transaction.taskId");
+      assertThat(error.code).isNotEmpty().startsWith("bad_task_transaction.");
       assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
 
     }).sendJson(taskTransaction.toJsonObject(), testContext);
@@ -1255,7 +1255,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
     StoreServices.storeTaskExample(1, vertx, testContext).onSuccess(task -> {
 
       final var transaction = new TaskTransaction();
-      transaction.label = "action";
+      transaction.label = "t_zero";
       testRequest(client, HttpMethod.POST, Tasks.PATH + "/" + task.id + Tasks.TRANSACTIONS_PATH).expect(res -> {
 
         assertThat(res.statusCode()).isEqualTo(Status.CREATED.getStatusCode());
@@ -1458,7 +1458,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
       for (var i = 0; i < 10; i++) {
         final var transaction = new TaskTransaction();
         transaction.actioneerId = task.requesterId;
-        transaction.label = "echo";
+        transaction.label = "t_zero";
         futureTransaction = futureTransaction
             .compose(empty -> WeNetTaskManager.createProxy(vertx).addTransactionIntoTask(task.id, transaction));
       }
@@ -1474,7 +1474,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
               final var message = new Message();
               message.appId = task.appId;
               message.receiverId = task.requesterId;
-              message.label = "echo";
+              message.label = "m_zero";
               testContext
                   .assertComplete(
                       WeNetTaskManager.createProxy(vertx).addMessageIntoTransaction(task.id, transaction.id, message))

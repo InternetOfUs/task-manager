@@ -3,9 +3,10 @@
 All notable changes to `wenet-task-manager` will be documented in this file
 
 
-## Version 0.13.0 (2021-07-05)
+## Version 0.13.0 (2021-07-22)
 
  * Upgrade common version that fix migrate collections stack overflow error.
+ * Update defualt protocol with norms to the new incentive server interaction API.
 
 
 ## Version 0.12.0 (2021-07-01)
