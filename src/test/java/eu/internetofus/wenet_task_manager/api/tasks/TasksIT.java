@@ -1483,8 +1483,10 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
                     testContext.assertComplete(WeNetTaskManager.createProxy(vertx).retrieveTask(task.id))
                         .onSuccess(retrievedTask -> testContext.verify(() -> {
 
-                          closedTask.transactions.get(10).messages = new ArrayList<>();
-                          closedTask.transactions.get(10).messages.add(addedMessage);
+                          final var last = closedTask.transactions.size() - 1;
+                          final var messages = new ArrayList<Message>();
+                          closedTask.transactions.get(last).messages = messages;
+                          messages.add(addedMessage);
                           closedTask._lastUpdateTs = retrievedTask._lastUpdateTs;
                           assertThat(retrievedTask).isEqualTo(closedTask);
                           testContext.assertComplete(WeNetTaskManager.createProxy(vertx)
@@ -1493,7 +1495,7 @@ public class TasksIT extends AbstractModelResourcesIT<Task, String> {
                                 testContext.assertComplete(WeNetTaskManager.createProxy(vertx).retrieveTask(task.id))
                                     .onSuccess(retrievedTask2 -> testContext.verify(() -> {
 
-                                      closedTask.transactions.get(10).messages.add(addedMessage2);
+                                      messages.add(addedMessage2);
                                       closedTask._lastUpdateTs = retrievedTask2._lastUpdateTs;
                                       closedTask.transactions.get(
                                           closedTask.transactions.size() - 1)._lastUpdateTs = closedTask._lastUpdateTs;
