@@ -69,7 +69,7 @@ public class HelpResource implements Help {
     this.info.apiVersion = conf.getString("apiVersion", "Undefined");
     this.info.softwareVersion = conf.getString("softwareVersion", "Undefined");
     this.info.vendor = conf.getString("vendor", "UDT-IA, IIIA-CSIC");
-    this.info.license = conf.getString("license", "MIT");
+    this.info.license = conf.getString("license", "Apache v2");
 
   }
 
