@@ -20,18 +20,18 @@
 
 package eu.internetofus.wenet_task_manager;
 
-import eu.internetofus.common.components.HardcodedQuestionAndAnswersProtocolITC;
+import eu.internetofus.common.protocols.Ask4HelpV1ProtocolITC;
+import eu.internetofus.common.protocols.DefaultProtocols;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
- * Interaction test over the question and answers protocol with norms.
- * ATTENTION: This test is sequential and maintains the state between methods.
- * In other words, you must to run the entire test methods on the specified
- * order to work.
+ * Check the {@link DefaultProtocols#ASK_4_HELP_V1} protocol. ATTENTION: This
+ * test is sequential and maintains the state between methods. In other words,
+ * you must to run the entire test methods on the specified order to work.
  *
  * @author UDT-IA, IIIA-CSIC
  */
 @ExtendWith(WeNetTaskManagerIntegrationExtension.class)
-public class HardcodedQuestionAndAnswersProtocolIT extends HardcodedQuestionAndAnswersProtocolITC {
+public class Ask4HelpV1ProtocolIT extends Ask4HelpV1ProtocolITC {
 
 }

@@ -90,6 +90,10 @@
   </dependency>
   <dependency>
    <groupId>eu.internetofus</groupId>
+   <artifactId>common-protocols</artifactId>
+  </dependency>
+  <dependency>
+   <groupId>eu.internetofus</groupId>
    <artifactId>common-test</artifactId>
    <scope>test</scope>
   </dependency>
@@ -108,6 +112,12 @@
   <dependency>
    <groupId>eu.internetofus</groupId>
    <artifactId>common-components</artifactId>
+   <type>test-jar</type>
+   <scope>test</scope>
+  </dependency>
+  <dependency>
+   <groupId>eu.internetofus</groupId>
+   <artifactId>common-protocols</artifactId>
    <type>test-jar</type>
    <scope>test</scope>
   </dependency>

@@ -73,11 +73,11 @@ public class TaskTypesRepositoryImplIT {
   @Test
   public void shouldMigrateTo_0_6_0(final Vertx vertx, final VertxTestContext testContext) {
 
-    var pool = MongoClient.createShared(vertx, Containers.status().getMongoDBConfig(), "TEST");
-    var task_0_5_0 = (JsonObject) Json.decodeValue(TASK_TYPE_0_5_0);
+    final var pool = MongoClient.createShared(vertx, Containers.status().getMongoDBConfig(), "TEST");
+    final var task_0_5_0 = (JsonObject) Json.decodeValue(TASK_TYPE_0_5_0);
     task_0_5_0.remove("id");
     testContext.assertComplete(pool.insert(TaskTypesRepositoryImpl.TASK_TYPES_COLLECTION, task_0_5_0)).onSuccess(id -> {
-      var repository = new TaskTypesRepositoryImpl(vertx, pool, "0.6.0");
+      final var repository = new TaskTypesRepositoryImpl(vertx, pool, "0.6.0");
       testContext.assertComplete(repository.migrateTaskTo_0_6_0().compose(
           empty -> pool.findOne(TaskTypesRepositoryImpl.TASK_TYPES_COLLECTION, new JsonObject().put("_id", id), null))
           .onSuccess(migratedTask -> {
@@ -107,11 +107,11 @@ public class TaskTypesRepositoryImplIT {
   @Test
   public void shouldMigrate0_5_0_ToLatest(final Vertx vertx, final VertxTestContext testContext) {
 
-    var pool = MongoClient.createShared(vertx, Containers.status().getMongoDBConfig(), "TEST");
-    var task_0_5_0 = (JsonObject) Json.decodeValue(TASK_TYPE_0_5_0);
+    final var pool = MongoClient.createShared(vertx, Containers.status().getMongoDBConfig(), "TEST");
+    final var task_0_5_0 = (JsonObject) Json.decodeValue(TASK_TYPE_0_5_0);
     task_0_5_0.remove("id");
     testContext.assertComplete(pool.insert(TaskTypesRepositoryImpl.TASK_TYPES_COLLECTION, task_0_5_0)).onSuccess(id -> {
-      var repository = new TaskTypesRepositoryImpl(vertx, pool, "latest");
+      final var repository = new TaskTypesRepositoryImpl(vertx, pool, "latest");
       testContext.assertComplete(repository.migrateDocumentsToCurrentVersions()).onSuccess(migrated -> {
 
         testContext.assertComplete(repository.searchTaskType(id)).onSuccess(task -> testContext.completeNow());
@@ -119,41 +119,6 @@ public class TaskTypesRepositoryImplIT {
       });
 
     });
-
-  }
-
-  /**
-   * Should not load a default type that is not defined.
-   *
-   * @param vertx       event bus to use.
-   * @param testContext context that executes the test.
-   *
-   * @see TaskTypesRepositoryImpl#loadResourceTaskType(String)
-   */
-  @Test
-  public void shouldNotLoadUndefinedDefualtTaskType(final Vertx vertx, final VertxTestContext testContext) {
-
-    var pool = MongoClient.createShared(vertx, Containers.status().getMongoDBConfig(), "TEST");
-    var repository = new TaskTypesRepositoryImpl(vertx, pool, "latest");
-    testContext.assertFailure(repository.loadResourceTaskType("undefined"))
-        .onFailure(task -> testContext.completeNow());
-
-  }
-
-  /**
-   * Should not load a default type that has a bad default file.
-   *
-   * @param vertx       event bus to use.
-   * @param testContext context that executes the test.
-   *
-   * @see TaskTypesRepositoryImpl#loadResourceTaskType(String)
-   */
-  @Test
-  public void shouldNotLoadDefualtTaskTypeWithBadJsonFile(final Vertx vertx, final VertxTestContext testContext) {
-
-    var pool = MongoClient.createShared(vertx, Containers.status().getMongoDBConfig(), "TEST");
-    var repository = new TaskTypesRepositoryImpl(vertx, pool, "latest");
-    testContext.assertFailure(repository.loadResourceTaskType("bad")).onFailure(task -> testContext.completeNow());
 
   }
 

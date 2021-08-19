@@ -21,23 +21,19 @@
 package eu.internetofus.wenet_task_manager.persistence;
 
 import eu.internetofus.common.components.models.TaskType;
-import eu.internetofus.common.components.task_manager.WeNetTaskManager;
-import eu.internetofus.common.model.Model;
 import eu.internetofus.common.model.TimeManager;
+import eu.internetofus.common.protocols.DefaultProtocols;
 import eu.internetofus.common.vertx.Repository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.FindOptions;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.mongo.UpdateOptions;
-import java.nio.charset.Charset;
-import org.apache.commons.io.IOUtils;
 
 /**
  * Implementation of the {@link TaskTypesRepository}.
@@ -55,15 +51,6 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
    * The path to the file that contains an array of the default task types to
    */
   public static final String DEFAULT_TASK_TYPE_RESOURCE_PREFIX = "eu/internetofus/wenet_task_manager/persistence/DefaultTaskType_";
-
-  /**
-   * The identifier of the default task types defined on the repository.
-   */
-  public static final String[] DEFAULT_TASK_TYPE_IDS = { WeNetTaskManager.HARDCODED_DINNER_TASK_TYPE_ID,
-      WeNetTaskManager.QUESTION_AND_ANSWER_TASK_TYPE_ID, WeNetTaskManager.ECHO_V1_TASK_TYPE_ID,
-      WeNetTaskManager.EAT_TOGETHER_WITH_NORMS_V1_TASK_TYPE_ID,
-      WeNetTaskManager.QUESTION_AND_ANSWER_WITH_NORMS_V1_TASK_TYPE_ID,
-      WeNetTaskManager.ENGLISH_AUCTION_WITH_NORMS_V1_TASK_TYPE_ID };
 
   /**
    * Create a new service.
@@ -240,9 +227,21 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
   protected Future<Void> updateDefaultTaskTypes() {
 
     Future<Void> future = Future.succeededFuture();
-    for (final var taskTypeId : DEFAULT_TASK_TYPE_IDS) {
+    for (final var protocol : DefaultProtocols.values()) {
 
-      future = future.compose(empty -> this.loadResourceTaskType(taskTypeId).compose(this::updateDefaultTaskType));
+      future = future.compose(empty -> this.searchTaskType(protocol.taskTypeId()).transform(search -> {
+
+        if (search.failed()) {
+
+          // not defined => store it
+          return protocol.load(this.vertx).compose(taskType -> this.storeTaskType(taskType)).map(any -> null);
+
+        } else {
+          // already defined
+          return Future.succeededFuture();
+        }
+
+      }));
 
     }
     return future;
@@ -273,46 +272,6 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
 
     });
     return promise.future();
-
-  }
-
-  /**
-   * Load a resource with the default type with the specified identifier.
-   *
-   * @param id identifier of the default task type to load.
-   *
-   * @return the future with the default task types.
-   */
-  protected Future<TaskType> loadResourceTaskType(final String id) {
-
-    return this.vertx.executeBlocking(promise -> {
-
-      try {
-
-        final var resourcePath = DEFAULT_TASK_TYPE_RESOURCE_PREFIX + id + ".json";
-        final var value = IOUtils.resourceToString(resourcePath, Charset.defaultCharset(),
-            this.getClass().getClassLoader());
-        final var data = Json.decodeValue(value);
-        TaskType taskType = null;
-        if (data instanceof JsonObject) {
-
-          taskType = Model.fromJsonObject((JsonObject) data, TaskType.class);
-        }
-        if (taskType != null) {
-
-          promise.complete(taskType);
-
-        } else {
-
-          promise.fail("The '" + resourcePath + "' is not a task type in JSON.");
-        }
-
-      } catch (final Throwable cause) {
-
-        promise.fail(cause);
-      }
-
-    });
 
   }
 

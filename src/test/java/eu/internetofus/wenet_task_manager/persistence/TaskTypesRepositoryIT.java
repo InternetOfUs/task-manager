@@ -25,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import eu.internetofus.common.components.models.TaskType;
 import eu.internetofus.common.components.models.TaskTypeTest;
 import eu.internetofus.common.components.task_manager.WeNetTaskManager;
+import eu.internetofus.common.protocols.DefaultProtocols;
 import eu.internetofus.common.vertx.ModelsPageContext;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import io.vertx.core.Future;
@@ -645,9 +646,9 @@ public class TaskTypesRepositoryIT {
   public void shouldFoundDefaultTaskTypes(final Vertx vertx, final VertxTestContext testContext) {
 
     Future<?> future = Future.succeededFuture();
-    for (final var id : TaskTypesRepositoryImpl.DEFAULT_TASK_TYPE_IDS) {
+    for (final var protocol : DefaultProtocols.values()) {
 
-      future = future.compose(previous -> WeNetTaskManager.createProxy(vertx).retrieveTaskType(id));
+      future = future.compose(previous -> WeNetTaskManager.createProxy(vertx).retrieveTaskType(protocol.taskTypeId()));
 
     }
     testContext.assertComplete(future).onSuccess(found -> testContext.completeNow());
