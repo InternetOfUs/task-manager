@@ -29,6 +29,7 @@ import eu.internetofus.common.components.StoreServices;
 import eu.internetofus.common.components.models.TaskType;
 import eu.internetofus.common.components.models.TaskTypeTest;
 import eu.internetofus.common.model.ErrorMessage;
+import eu.internetofus.common.model.Merges;
 import eu.internetofus.common.vertx.AbstractModelResourcesIT;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import eu.internetofus.wenet_task_manager.api.tasks.Tasks;
@@ -103,6 +104,9 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
     source.id = target.id;
     source._creationTs = target._creationTs;
     source._lastUpdateTs = target._lastUpdateTs;
+    source.attributes = Merges.mergeJsonObjects(target.attributes, source.attributes);
+    source.transactions = Merges.mergeJsonObjects(target.transactions, source.transactions);
+    source.callbacks = Merges.mergeJsonObjects(target.callbacks, source.callbacks);
     assertThat(source).isEqualTo(target);
 
   }
