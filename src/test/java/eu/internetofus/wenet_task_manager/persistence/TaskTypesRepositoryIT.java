@@ -40,6 +40,8 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 /**
  * Integration test over the {@link TaskTypesRepository}.
@@ -639,19 +641,17 @@ public class TaskTypesRepositoryIT {
   /**
    * Check that can obtain the default task types.
    *
+   * @param protocol    that has to be defined.
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    */
-  @Test
-  public void shouldFoundDefaultTaskTypes(final Vertx vertx, final VertxTestContext testContext) {
+  @ParameterizedTest(name = "Should found task type associated to {0}")
+  @EnumSource(DefaultProtocols.class)
+  public void shouldFoundDefaultTaskTypes(final DefaultProtocols protocol, final Vertx vertx,
+      final VertxTestContext testContext) {
 
-    Future<?> future = Future.succeededFuture();
-    for (final var protocol : DefaultProtocols.values()) {
-
-      future = future.compose(previous -> WeNetTaskManager.createProxy(vertx).retrieveTaskType(protocol.taskTypeId()));
-
-    }
-    testContext.assertComplete(future).onSuccess(found -> testContext.completeNow());
+    WeNetTaskManager.createProxy(vertx).retrieveTaskType(protocol.taskTypeId())
+        .onComplete(testContext.succeeding(any -> testContext.completeNow()));
 
   }
 
