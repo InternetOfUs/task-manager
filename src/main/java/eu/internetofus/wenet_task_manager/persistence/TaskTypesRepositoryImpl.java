@@ -20,9 +20,7 @@
 
 package eu.internetofus.wenet_task_manager.persistence;
 
-import eu.internetofus.common.components.models.TaskType;
 import eu.internetofus.common.model.TimeManager;
-import eu.internetofus.common.protocols.DefaultProtocols;
 import eu.internetofus.common.vertx.Repository;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -145,8 +143,7 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
    */
   public Future<Void> migrateDocumentsToCurrentVersions() {
 
-    return this.migrateTaskTo_0_6_0().compose(empty -> this.updateSchemaVersionOnCollection(TASK_TYPES_COLLECTION))
-        .compose(settedSchema -> this.updateDefaultTaskTypes());
+    return this.migrateTaskTo_0_6_0().compose(empty -> this.updateSchemaVersionOnCollection(TASK_TYPES_COLLECTION));
 
   }
 
@@ -215,62 +212,6 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
 
     }).exceptionHandler(error -> promise.tryFail(error)).endHandler(end -> promise.tryComplete());
 
-    return promise.future();
-
-  }
-
-  /**
-   * Fix the default task types.
-   *
-   * @return the future when are fixed the default task types.
-   */
-  protected Future<Void> updateDefaultTaskTypes() {
-
-    Future<Void> future = Future.succeededFuture();
-    for (final var protocol : DefaultProtocols.values()) {
-
-      future = future.compose(empty -> this.searchTaskType(protocol.taskTypeId()).transform(search -> {
-
-        if (search.failed()) {
-
-          // not defined => store it
-          return protocol.load(this.vertx).compose(taskType -> this.storeTaskType(taskType)).map(any -> null);
-
-        } else {
-          // already defined
-          return Future.succeededFuture();
-        }
-
-      }));
-
-    }
-    return future;
-
-  }
-
-  /**
-   * Update a task type into the repository.
-   *
-   * @param taskType to update on the repository.
-   *
-   * @return the future when the task type is updated.
-   */
-  protected Future<Void> updateDefaultTaskType(final TaskType taskType) {
-
-    final Promise<Void> promise = Promise.promise();
-    this.searchTaskType(taskType.id).onComplete(search -> {
-
-      if (search.failed()) {
-        // Not exist => create
-        final Future<Void> voidSuccessFuture = Future.succeededFuture();
-        this.storeTaskType(taskType).compose(stored -> voidSuccessFuture).onComplete(promise);
-
-      } else {
-        // Exist => update
-        this.updateTaskType(taskType).onComplete(promise);
-      }
-
-    });
     return promise.future();
 
   }

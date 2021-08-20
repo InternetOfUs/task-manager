@@ -24,8 +24,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import eu.internetofus.common.components.models.TaskType;
 import eu.internetofus.common.components.models.TaskTypeTest;
-import eu.internetofus.common.components.task_manager.WeNetTaskManager;
-import eu.internetofus.common.protocols.DefaultProtocols;
 import eu.internetofus.common.vertx.ModelsPageContext;
 import eu.internetofus.wenet_task_manager.WeNetTaskManagerIntegrationExtension;
 import io.vertx.core.Future;
@@ -40,8 +38,6 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 
 /**
  * Integration test over the {@link TaskTypesRepository}.
@@ -635,23 +631,6 @@ public class TaskTypesRepositoryIT {
                     }));
               });
         }));
-
-  }
-
-  /**
-   * Check that can obtain the default task types.
-   *
-   * @param protocol    that has to be defined.
-   * @param vertx       event bus to use.
-   * @param testContext context that executes the test.
-   */
-  @ParameterizedTest(name = "Should found task type associated to {0}")
-  @EnumSource(DefaultProtocols.class)
-  public void shouldFoundDefaultTaskTypes(final DefaultProtocols protocol, final Vertx vertx,
-      final VertxTestContext testContext) {
-
-    WeNetTaskManager.createProxy(vertx).retrieveTaskType(protocol.taskTypeId())
-        .onComplete(testContext.succeeding(any -> testContext.completeNow()));
 
   }
 
