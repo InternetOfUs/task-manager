@@ -3,6 +3,11 @@
 All notable changes to `wenet-task-manager` will be documented in this file
 
 
+## Version 0.13.1 (2021-09-14)
+
+ * Upgrade common.
+
+
 ## Version 0.13.0 (2021-08-23)
 
  * Upgrade common version that fix migrate collections stack overflow error.
