@@ -28,8 +28,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
-import eu.internetofus.common.model.ValidationErrorException;
 import eu.internetofus.common.components.models.TaskType;
+import eu.internetofus.common.model.ValidationErrorException;
 import eu.internetofus.common.vertx.ModelsPageContext;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -55,7 +55,7 @@ import org.mockito.ArgumentCaptor;
 public class TaskTypesRepositoryTest {
 
   /**
-   * Verify that can not create task type profiles page sort.
+   * Verify that can not create task types page sort.
    *
    * @see TaskTypesRepository#createTaskTypesPageSort(List)
    */
@@ -71,7 +71,7 @@ public class TaskTypesRepositoryTest {
   }
 
   /**
-   * Verify that can not create task type profiles page sort.
+   * Verify that can not create task types page sort.
    *
    * @see TaskTypesRepository#createTaskTypesPageSort(List)
    */
@@ -101,7 +101,7 @@ public class TaskTypesRepositoryTest {
   @Test
   public void shouldFailSearchTaskTypeWhenFoundObjectNotMatch(final VertxTestContext testContext) {
 
-    final DummyTaskTypesRepository repository = spy(new DummyTaskTypesRepository());
+    final var repository = spy(new DummyTaskTypesRepository());
     testContext.assertFailure(repository.searchTaskType("id")).onFailure(error -> testContext.completeNow());
 
     @SuppressWarnings("unchecked")
@@ -121,7 +121,7 @@ public class TaskTypesRepositoryTest {
   @Test
   public void shouldFailStoreTaskTypeWhenStoredObjectNotMatch(final VertxTestContext testContext) {
 
-    final DummyTaskTypesRepository repository = spy(new DummyTaskTypesRepository());
+    final var repository = spy(new DummyTaskTypesRepository());
     testContext.assertFailure(repository.storeTaskType(new TaskType()).onFailure(error -> testContext.completeNow()));
 
     @SuppressWarnings("unchecked")
@@ -152,7 +152,7 @@ public class TaskTypesRepositoryTest {
 
       }
     };
-    final DummyTaskTypesRepository repository = spy(new DummyTaskTypesRepository());
+    final var repository = spy(new DummyTaskTypesRepository());
     testContext.assertFailure(repository.updateTaskType(taskType)).onFailure(error -> testContext.completeNow());
 
   }
@@ -167,7 +167,7 @@ public class TaskTypesRepositoryTest {
   @Test
   public void shouldFailRetrieveTaskTypesPageObjectWhenSearchFail(final VertxTestContext testContext) {
 
-    final DummyTaskTypesRepository repository = spy(new DummyTaskTypesRepository());
+    final var repository = spy(new DummyTaskTypesRepository());
     final var context = new ModelsPageContext();
     context.query = TaskTypesRepository.createTaskTypesPageQuery("name", "description", null);
     context.sort = TaskTypesRepository.createTaskTypesPageSort(Arrays.asList("name", "-description"));
@@ -193,7 +193,7 @@ public class TaskTypesRepositoryTest {
   @Test
   public void shouldFailRetrieveTaskTypesPageWhenObjectNotMatch(final VertxTestContext testContext) {
 
-    final DummyTaskTypesRepository repository = spy(new DummyTaskTypesRepository());
+    final var repository = spy(new DummyTaskTypesRepository());
     final var context = new ModelsPageContext();
     context.query = TaskTypesRepository.createTaskTypesPageQuery("name", "description",
         Arrays.asList("keyword2", "keyword2"));
@@ -220,7 +220,7 @@ public class TaskTypesRepositoryTest {
   @Test
   public void shouldFailRetrieveTaskTypesPageWhenObjectNotFound(final VertxTestContext testContext) {
 
-    final DummyTaskTypesRepository repository = spy(new DummyTaskTypesRepository());
+    final var repository = spy(new DummyTaskTypesRepository());
     final var context = new ModelsPageContext();
     context.query = TaskTypesRepository.createTaskTypesPageQuery("name", "description",
         Arrays.asList("keyword2", "keyword2"));
