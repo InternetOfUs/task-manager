@@ -134,7 +134,5 @@ openAPI:
       description: Production instance
     - url: https://wenet.u-hopper.com/dev/task_manager
       description: Staging instance
-    - url: http://ardid.iiia.csic.es/wenet/task-manager/prod/
-      description: IIIA production server
-    - url: http://ardid.iiia.csic.es/wenet/task-manager/dev/
+    - url: https://ardid.iiia.csic.es/wenet/task-manager
       description: IIIA development server
