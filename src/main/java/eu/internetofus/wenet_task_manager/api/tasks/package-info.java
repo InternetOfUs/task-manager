@@ -19,7 +19,7 @@
  */
 
 /**
- * Services to manage the {@link eu.internetofus.common.components.task_manager.Task}.
+ * Services to manage the {@link eu.internetofus.common.components.models.Task}.
  *
  * @author UDT-IA, IIIA-CSIC
  */
