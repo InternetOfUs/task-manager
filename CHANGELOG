@@ -3,6 +3,11 @@
 All notable changes to `wenet-task-manager` will be documented in this file
 
 
+## Version 0.14.0 (2021-10-07)
+
+ * Upgrade common api references.
+
+
 ## Version 0.13.1 (2021-09-14)
 
  * Upgrade common.
