@@ -35,6 +35,7 @@ import eu.internetofus.common.components.models.TaskTransactionTest;
 import eu.internetofus.common.components.models.WeNetUserProfile;
 import eu.internetofus.common.components.service.App;
 import eu.internetofus.common.components.service.WeNetServiceSimulator;
+import eu.internetofus.common.components.task_manager.TasksPage;
 import eu.internetofus.common.components.task_manager.WeNetTaskManager;
 import eu.internetofus.common.model.ErrorMessage;
 import eu.internetofus.common.model.Model;

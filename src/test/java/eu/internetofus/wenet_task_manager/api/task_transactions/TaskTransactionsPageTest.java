@@ -22,7 +22,7 @@ package eu.internetofus.wenet_task_manager.api.task_transactions;
 
 import eu.internetofus.common.model.ModelTestCase;
 import eu.internetofus.common.components.models.TaskTransactionTest;
-import eu.internetofus.wenet_task_manager.api.tasks.TasksPage;
+import eu.internetofus.common.components.task_manager.TasksPage;
 import java.util.ArrayList;
 
 /**

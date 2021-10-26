@@ -20,6 +20,7 @@
 
 package eu.internetofus.wenet_task_manager.api.task_types;
 
+import eu.internetofus.common.components.task_manager.TaskTypesPage;
 import eu.internetofus.common.model.ErrorMessage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;

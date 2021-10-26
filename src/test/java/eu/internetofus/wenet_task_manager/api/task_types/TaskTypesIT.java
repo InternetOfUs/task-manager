@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import eu.internetofus.common.components.StoreServices;
 import eu.internetofus.common.components.models.TaskType;
 import eu.internetofus.common.components.models.TaskTypeTest;
+import eu.internetofus.common.components.task_manager.TaskTypesPage;
 import eu.internetofus.common.model.ErrorMessage;
 import eu.internetofus.common.model.Merges;
 import eu.internetofus.common.vertx.AbstractModelResourcesIT;
