@@ -50,7 +50,7 @@ public class TaskTransactionsPage extends ReflectionModel implements Model {
   /**
    * The found profiles.
    */
-  @ArraySchema(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/349a7827e0bc0380c2269d7372b1671aa3a670f9/sources/wenet-models-openapi.yaml#/components/schemas/TaskTransaction"), arraySchema = @Schema(description = "The set of transactions found"))
+  @ArraySchema(schema = @Schema(ref = "https://bitbucket.org/wenet/wenet-components-documentation/raw/940e9403246417419c8dcce9f3b19c5bb754028b/sources/wenet-models-openapi.yaml#/components/schemas/TaskTransaction"), arraySchema = @Schema(description = "The set of transactions found"))
   public List<TaskTransaction> transactions;
 
 }
