@@ -20,6 +20,8 @@
 
 package eu.internetofus.wenet_task_manager.api.tasks;
 
+import eu.internetofus.common.components.WeNetModelContext;
+import eu.internetofus.common.components.WeNetValidateContext;
 import eu.internetofus.common.components.interaction_protocol_engine.WeNetInteractionProtocolEngine;
 import eu.internetofus.common.components.models.Message;
 import eu.internetofus.common.components.models.Task;
@@ -27,7 +29,6 @@ import eu.internetofus.common.components.models.TaskTransaction;
 import eu.internetofus.common.components.service.App;
 import eu.internetofus.common.model.Model;
 import eu.internetofus.common.model.ValidationErrorException;
-import eu.internetofus.common.vertx.ModelContext;
 import eu.internetofus.common.vertx.ModelResources;
 import eu.internetofus.common.vertx.ServiceContext;
 import eu.internetofus.common.vertx.ServiceRequests;
@@ -69,12 +70,9 @@ public class TasksResource implements Tasks {
    *
    * @return the context of the {@link Task}.
    */
-  protected ModelContext<Task, String> createTaskContext() {
+  protected WeNetModelContext<Task, String> createTaskContext() {
 
-    final var context = new ModelContext<Task, String>();
-    context.name = "task";
-    context.type = Task.class;
-    return context;
+    return WeNetModelContext.creteWeNetContext("task", Task.class, this.vertx);
 
   }
 
@@ -83,12 +81,9 @@ public class TasksResource implements Tasks {
    *
    * @return the context of the {@link TaskTransaction}.
    */
-  protected ModelContext<TaskTransaction, String> createTaskTransactionContext() {
+  protected WeNetModelContext<TaskTransaction, String> createTaskTransactionContext() {
 
-    final var context = new ModelContext<TaskTransaction, String>();
-    context.name = "taskTransaction";
-    context.type = TaskTransaction.class;
-    return context;
+    return WeNetModelContext.creteWeNetContext("taskTransaction", TaskTransaction.class, this.vertx);
 
   }
 
@@ -97,12 +92,9 @@ public class TasksResource implements Tasks {
    *
    * @return the context of the {@link Message}.
    */
-  protected ModelContext<Message, Void> createMessageContext() {
+  protected WeNetModelContext<Message, Void> createMessageContext() {
 
-    final var context = new ModelContext<Message, Void>();
-    context.name = "message";
-    context.type = Message.class;
-    return context;
+    return WeNetModelContext.creteWeNetContext("message", Message.class, this.vertx);
 
   }
 
@@ -150,7 +142,7 @@ public class TasksResource implements Tasks {
 
       final var model = this.createTaskContext();
       final var context = new ServiceContext(request, resultHandler);
-      ModelResources.createModelChain(this.vertx, body, model,
+      ModelResources.createModelChain(body, model,
           (task, handler) -> TasksRepository.createProxy(this.vertx).storeTask(task).onComplete(handler), context,
           () -> {
 
@@ -187,7 +179,7 @@ public class TasksResource implements Tasks {
     final var model = this.createTaskContext();
     model.id = taskId;
     final var context = new ServiceContext(request, resultHandler);
-    ModelResources.updateModel(this.vertx, body, model,
+    ModelResources.updateModel(body, model,
         (id, hanlder) -> TasksRepository.createProxy(this.vertx).searchTask(id).onComplete(hanlder),
         (task, handler) -> TasksRepository.createProxy(this.vertx).updateTask(task).onComplete(handler), context);
 
@@ -203,7 +195,7 @@ public class TasksResource implements Tasks {
     final var model = this.createTaskContext();
     model.id = taskId;
     final var context = new ServiceContext(request, resultHandler);
-    ModelResources.mergeModel(this.vertx, body, model,
+    ModelResources.mergeModel(body, model,
         (id, hanlder) -> TasksRepository.createProxy(this.vertx).searchTask(id).onComplete(hanlder),
         (task, handler) -> TasksRepository.createProxy(this.vertx).updateTask(task).onComplete(handler), context);
 
@@ -239,7 +231,7 @@ public class TasksResource implements Tasks {
 
     } else {
 
-      taskTransaction.validate("bad_task_transaction", this.vertx).onComplete(validation -> {
+      taskTransaction.validate(new WeNetValidateContext("bad_task_transaction", this.vertx)).onComplete(validation -> {
 
         if (validation.failed()) {
 
@@ -336,7 +328,7 @@ public class TasksResource implements Tasks {
       } else {
 
         transactionModel.source.taskId = taskId;
-        ModelResources.validate(this.vertx, transactionModel, context, () -> {
+        ModelResources.validate(transactionModel, context, () -> {
 
           TasksRepository.createProxy(this.vertx).addTransactionIntoTask(taskId, transactionModel.source)
               .onComplete(added -> {
@@ -377,7 +369,7 @@ public class TasksResource implements Tasks {
     final var context = new ServiceContext(request, resultHandler);
     ModelResources.toModel(body, messageModel, context, () -> {
 
-      ModelResources.validate(this.vertx, messageModel, context, () -> {
+      ModelResources.validate(messageModel, context, () -> {
 
         TasksRepository.createProxy(this.vertx)
             .addMessageIntoTransaction(taskId, taskTransactionId, messageModel.source).onComplete(added -> {

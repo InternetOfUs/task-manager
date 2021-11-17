@@ -20,10 +20,11 @@
 
 package eu.internetofus.wenet_task_manager.api.task_types;
 
-import eu.internetofus.common.model.ValidationErrorException;
+import eu.internetofus.common.components.WeNetModelContext;
+import eu.internetofus.common.components.WeNetValidateContext;
 import eu.internetofus.common.components.models.ProtocolNorm;
 import eu.internetofus.common.components.models.TaskType;
-import eu.internetofus.common.vertx.ModelContext;
+import eu.internetofus.common.model.ValidationErrorException;
 import eu.internetofus.common.vertx.ModelFieldContext;
 import eu.internetofus.common.vertx.ModelResources;
 import eu.internetofus.common.vertx.ServiceContext;
@@ -74,12 +75,9 @@ public class TaskTypesResource implements TaskTypes {
    *
    * @return the context of the {@link TaskType}.
    */
-  protected ModelContext<TaskType, String> createTaskTypeContext() {
+  protected WeNetModelContext<TaskType, String> createTaskTypeContext() {
 
-    final var context = new ModelContext<TaskType, String>();
-    context.name = "task_type";
-    context.type = TaskType.class;
-    return context;
+    return WeNetModelContext.creteWeNetContext("task_type", TaskType.class, this.vertx);
 
   }
 
@@ -107,7 +105,7 @@ public class TaskTypesResource implements TaskTypes {
 
     final var model = this.createTaskTypeContext();
     final var context = new ServiceContext(request, resultHandler);
-    ModelResources.createModel(this.vertx, body, model,
+    ModelResources.createModel(body, model,
         (taskType, handler) -> this.typesRepository.storeTaskType(taskType).onComplete(handler), context);
 
   }
@@ -122,7 +120,7 @@ public class TaskTypesResource implements TaskTypes {
     final var model = this.createTaskTypeContext();
     model.id = taskTypeId;
     final var context = new ServiceContext(request, resultHandler);
-    ModelResources.updateModel(this.vertx, body, model,
+    ModelResources.updateModel(body, model,
         (id, handler) -> this.typesRepository.searchTaskType(id).onComplete(handler),
         (taskType, handler) -> this.typesRepository.updateTaskType(taskType).onComplete(handler), context);
 
@@ -193,8 +191,7 @@ public class TaskTypesResource implements TaskTypes {
     final var model = this.createTaskTypeContext();
     model.id = taskTypeId;
     final var context = new ServiceContext(request, resultHandler);
-    ModelResources.mergeModel(this.vertx, body, model,
-        (id, handler) -> this.typesRepository.searchTaskType(id).onComplete(handler),
+    ModelResources.mergeModel(body, model, (id, handler) -> this.typesRepository.searchTaskType(id).onComplete(handler),
         (taskType, handler) -> this.typesRepository.updateTaskType(taskType).onComplete(handler), context);
 
   }
@@ -206,14 +203,15 @@ public class TaskTypesResource implements TaskTypes {
    *
    * @return the context for the task type norms.
    */
-  protected ModelFieldContext<TaskType, String, ProtocolNorm, Integer> createTaskTypeNormsContext(
+  protected ModelFieldContext<TaskType, String, ProtocolNorm, Integer, WeNetValidateContext> createTaskTypeNormsContext(
       final String taskTypeId) {
 
-    final var element = new ModelFieldContext<TaskType, String, ProtocolNorm, Integer>();
+    final var element = new ModelFieldContext<TaskType, String, ProtocolNorm, Integer, WeNetValidateContext>();
     element.model = this.createTaskTypeContext();
     element.name = "norms";
     element.type = ProtocolNorm.class;
     element.model.id = taskTypeId;
+    element.validateContext = element.model.validateContext;
     return element;
 
   }
@@ -227,7 +225,7 @@ public class TaskTypesResource implements TaskTypes {
 
     final var context = new ServiceContext(request, resultHandler);
     final var element = this.createTaskTypeNormsContext(taskTypeId);
-    ModelResources.createModelFieldElement(this.vertx, body, element,
+    ModelResources.createModelFieldElement(body, element,
         (id, handler) -> this.typesRepository.searchTaskType(id).onComplete(handler), type -> type.norms,
         (type, norms) -> type.norms = norms,
         (type, handler) -> this.typesRepository.updateTaskType(type).onComplete(handler), context);
@@ -244,7 +242,7 @@ public class TaskTypesResource implements TaskTypes {
     final var context = new ServiceContext(request, resultHandler);
     final var element = this.createTaskTypeNormsContext(taskTypeId);
     element.id = index;
-    ModelResources.updateModelFieldElement(this.vertx, body, element,
+    ModelResources.updateModelFieldElement(body, element,
         (id, handler) -> this.typesRepository.searchTaskType(id).onComplete(handler), type -> type.norms,
         ModelResources.searchElementByIndex(),
         (type, handler) -> this.typesRepository.updateTaskType(type).onComplete(handler), context);
@@ -261,7 +259,7 @@ public class TaskTypesResource implements TaskTypes {
     final var context = new ServiceContext(request, resultHandler);
     final var element = this.createTaskTypeNormsContext(taskTypeId);
     element.id = index;
-    ModelResources.mergeModelFieldElement(this.vertx, body, element,
+    ModelResources.mergeModelFieldElement(body, element,
         (id, handler) -> this.typesRepository.searchTaskType(id).onComplete(handler), type -> type.norms,
         ModelResources.searchElementByIndex(),
         (type, handler) -> this.typesRepository.updateTaskType(type).onComplete(handler), context);
