@@ -298,6 +298,9 @@ public class TaskTypesResource implements TaskTypes {
 
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void retrieveTaskTypeNorm(final String taskTypeId, final int index, final ServiceRequest request,
       final Handler<AsyncResult<ServiceResponse>> resultHandler) {
@@ -308,6 +311,21 @@ public class TaskTypesResource implements TaskTypes {
     ModelResources.retrieveModelFieldElement(element,
         (id, handler) -> this.typesRepository.searchTaskType(id).onComplete(handler), type -> type.norms,
         ModelResources.searchElementByIndex(), context);
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void isTaskTypeDefined(final String taskTypeId, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
+
+    final var model = this.createTaskTypeContext();
+    model.id = taskTypeId;
+    final var context = new ServiceContext(request, resultHandler);
+    ModelResources.checkModelExist(model,
+        (modelId, handler) -> this.typesRepository.searchTaskType(modelId).onComplete(handler), context);
 
   }
 

@@ -20,9 +20,9 @@
 
 package eu.internetofus.wenet_task_manager.api.tasks;
 
-import eu.internetofus.common.model.ErrorMessage;
 import eu.internetofus.common.components.models.Task;
 import eu.internetofus.common.components.task_manager.TasksPage;
+import eu.internetofus.common.model.ErrorMessage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.Explode;
@@ -42,6 +42,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -318,6 +319,24 @@ public interface Tasks {
   void retrieveTaskTransaction(
       @PathParam("taskId") @Parameter(description = "The identifier of the task where is the transaction to get", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskId,
       @PathParam("transactionId") @Parameter(description = "The identifier of the transaction to get", example = "1") String transactionId,
+      @Parameter(hidden = true, required = false) ServiceRequest request,
+      @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
+
+  /**
+   * Called when want to check if a task exist.
+   *
+   * @param taskId        identifier of the task to get.
+   * @param request       of the operation.
+   * @param resultHandler to inform of the response.
+   */
+  @HEAD
+  @Path("/{taskId}")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(summary = "Check if exist a task with an identifier", description = "Allow to check if an identifier is associated to a task")
+  @ApiResponse(responseCode = "204", description = "The task exist")
+  @ApiResponse(responseCode = "404", description = "Not found task", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  void isTaskDefined(
+      @PathParam("taskId") @Parameter(description = "The identifier of the task to check if exist", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskId,
       @Parameter(hidden = true, required = false) ServiceRequest request,
       @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
 

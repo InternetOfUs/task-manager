@@ -437,4 +437,19 @@ public class TasksResource implements Tasks {
 
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void isTaskDefined(final String taskId, final ServiceRequest request,
+      final Handler<AsyncResult<ServiceResponse>> resultHandler) {
+
+    final var model = this.createTaskContext();
+    model.id = taskId;
+    final var context = new ServiceContext(request, resultHandler);
+    ModelResources.checkModelExist(model,
+        (modelId, handler) -> TasksRepository.createProxy(this.vertx).searchTask(modelId).onComplete(handler), context);
+
+  }
+
 }

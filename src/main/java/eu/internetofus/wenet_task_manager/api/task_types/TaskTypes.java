@@ -42,6 +42,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -335,6 +336,24 @@ public interface TaskTypes {
   void deleteTaskTypeNorm(
       @PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to delete a norm", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
       @PathParam("index") @Parameter(description = "The identifier of the norm to delete", example = "1") int index,
+      @Parameter(hidden = true, required = false) ServiceRequest request,
+      @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
+
+  /**
+   * Called when want to check if a task type exist.
+   *
+   * @param taskTypeId    identifier of the task type to get.
+   * @param request       of the operation.
+   * @param resultHandler to inform of the response.
+   */
+  @HEAD
+  @Path("/{taskTypeId}")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(summary = "Check if exist a tasktype with an identifier", description = "Allow to check if an  identifier is associated to a tasktype")
+  @ApiResponse(responseCode = "204", description = "The tasktype exist")
+  @ApiResponse(responseCode = "404", description = "Not found tasktype", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
+  void isTaskTypeDefined(
+      @PathParam("taskTypeId") @Parameter(description = "The identifier of the task type to check if exist", example = "15837028-645a-4a55-9aaf-ceb846439eba") String taskTypeId,
       @Parameter(hidden = true, required = false) ServiceRequest request,
       @Parameter(hidden = true, required = false) Handler<AsyncResult<ServiceResponse>> resultHandler);
 
