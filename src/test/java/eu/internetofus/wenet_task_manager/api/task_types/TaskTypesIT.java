@@ -190,7 +190,7 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
    *      io.vertx.ext.web.api.service.ServiceRequest, io.vertx.core.Handler)
    */
   @Test
-  public void shouldNotMergeBecasueNotChangedOnTaskType(final Vertx vertx, final WebClient client,
+  public void shouldMergeWithNotChangedOnTaskType(final Vertx vertx, final WebClient client,
       final VertxTestContext testContext) {
 
     StoreServices.storeTaskTypeExample(1, vertx, testContext).onSuccess(target -> {
@@ -198,10 +198,9 @@ public class TaskTypesIT extends AbstractModelResourcesIT<TaskType, String> {
       final var source = new TaskType();
       testRequest(client, HttpMethod.PATCH, this.modelPath() + "/" + target.id).expect(res -> testContext.verify(() -> {
 
-        assertThat(res.statusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-        final var error = assertThatBodyIs(ErrorMessage.class, res);
-        assertThat(error.code).isNotEmpty().isEqualTo("task_type_to_merge_equal_to_original");
-        assertThat(error.message).isNotEmpty().isNotEqualTo(error.code);
+        assertThat(res.statusCode()).isEqualTo(Status.OK.getStatusCode());
+        final var merged = assertThatBodyIs(TaskType.class, res);
+        assertThat(merged).isEqualTo(target);
 
       })).sendJson(source.toJsonObject(), testContext);
     });
