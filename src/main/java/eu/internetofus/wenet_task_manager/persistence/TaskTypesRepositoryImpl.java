@@ -143,7 +143,7 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
    */
   public Future<Void> migrateDocumentsToCurrentVersions() {
 
-    return this.migrateTaskTo_0_6_0().compose(empty -> this.updateSchemaVersionOnCollection(TASK_TYPES_COLLECTION));
+    return this.migrateTaskTypeTo_0_6_0().compose(empty -> this.updateSchemaVersionOnCollection(TASK_TYPES_COLLECTION));
 
   }
 
@@ -152,68 +152,120 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
    *
    * @return the future with the update result.
    */
-  protected Future<Void> migrateTaskTo_0_6_0() {
+  protected Future<Void> migrateTaskTypeTo_0_6_0() {
 
     final var notExists = new JsonObject().put(SCHEMA_VERSION, new JsonObject().put("$exists", false));
     final var notEq = new JsonObject().put(SCHEMA_VERSION, new JsonObject().put("$lt", "0.6.0"));
     final var query = new JsonObject().put("$or", new JsonArray().add(notExists).add(notEq));
     final Promise<Void> promise = Promise.promise();
-    this.pool.findBatch(TASK_TYPES_COLLECTION, query).handler(taskType -> {
-
-      final var newTransactions = new JsonObject();
-      final var oldTransactions = taskType.getJsonArray("transactions", new JsonArray());
-      final var maxTransactions = oldTransactions.size();
-      for (var i = 0; i < maxTransactions; i++) {
-
-        final var taskTransactionType = oldTransactions.getJsonObject(i);
-        final var properties = new JsonObject();
-        final var taskAttributeTypes = taskTransactionType.getJsonArray("attributes", new JsonArray());
-        final var maxAttributes = taskAttributeTypes.size();
-        for (var j = 0; j < maxAttributes; j++) {
-
-          final var taskAttribute = taskAttributeTypes.getJsonObject(j);
-          final var newAttribute = new JsonObject();
-          properties.put(taskAttribute.getString("name"), newAttribute);
-          final var description = taskAttribute.getString("description");
-          if (description != null) {
-
-            newAttribute.put("description", description);
-          }
-
-          final var type = taskAttribute.getString("type");
-          if (type != null) {
-
-            newAttribute.put("type", type);
-          }
-
-        }
-        final var newTransaction = new JsonObject();
-        final var description = taskTransactionType.getString("description");
-        if (description != null) {
-
-          newTransaction.put("description", description);
-        }
-        if (!properties.isEmpty()) {
-
-          newTransaction.put("properties", properties);
-        }
-        newTransactions.put(taskTransactionType.getString("label"), newTransaction);
-
-      }
-
-      final var now = TimeManager.now();
-      final var updateQuery = new JsonObject().put("$set", new JsonObject().put(SCHEMA_VERSION, "0.6.0")
-          .put("_creationTs", now).put("_lastUpdateTs", now).put("transactions", newTransactions));
-
-      final var options = new UpdateOptions().setMulti(false);
-      this.pool.updateCollectionWithOptions(TASK_TYPES_COLLECTION,
-          new JsonObject().put("_id", taskType.getString("_id")), updateQuery, options)
-          .onFailure(cause -> promise.tryFail(cause));
-
-    }).exceptionHandler(error -> promise.tryFail(error)).endHandler(end -> promise.tryComplete());
-
+    this.migrateTaskTypeTo_0_6_0(query, promise);
     return promise.future();
 
   }
 
+  /**
+   * Migrate the task types.
+   *
+   * @param query   to the task type.
+   * @param promise to inform of the migration process.
+   */
+  private void migrateTaskTypeTo_0_6_0(final JsonObject query, final Promise<Void> promise) {
+
+    this.pool.findOne(TASK_TYPES_COLLECTION, query, new JsonObject()).onComplete(search -> {
+
+      if (search.failed()) {
+
+        promise.fail(search.cause());
+
+      } else {
+
+        final var taskType = search.result();
+        if (taskType == null) {
+
+          promise.complete();
+
+        } else {
+
+          final var newTransactions = this.migrateTaskTypeTo_0_6_0(taskType);
+          final var now = TimeManager.now();
+          final var updateQuery = new JsonObject().put("$set", new JsonObject().put(SCHEMA_VERSION, "0.6.0")
+              .put("_creationTs", now).put("_lastUpdateTs", now).put("transactions", newTransactions));
+
+          final var options = new UpdateOptions().setMulti(false);
+          this.pool.updateCollectionWithOptions(TASK_TYPES_COLLECTION,
+              new JsonObject().put("_id", taskType.getString("_id")), updateQuery, options).onComplete(update -> {
+
+                if (update.failed()) {
+
+                  promise.fail(update.cause());
+
+                } else {
+
+                  this.migrateTaskTypeTo_0_6_0(query, promise);
+                }
+              });
+        }
+      }
+    });
+
+  }
+
+  /**
+   * Migrate a document.
+   *
+   * @param taskType to migrate.
+   *
+   * @return the migrated transactions.
+   */
+  private JsonObject migrateTaskTypeTo_0_6_0(final JsonObject taskType) {
+
+    final var newTransactions = new JsonObject();
+    var oldTransactions = new JsonArray();
+    final var value = taskType.getValue("transactions");
+    if (value instanceof JsonArray) {
+
+      oldTransactions = (JsonArray) value;
+    }
+    final var maxTransactions = oldTransactions.size();
+    for (var i = 0; i < maxTransactions; i++) {
+
+      final var taskTransactionType = oldTransactions.getJsonObject(i);
+      final var properties = new JsonObject();
+      final var taskAttributeTypes = taskTransactionType.getJsonArray("attributes", new JsonArray());
+      final var maxAttributes = taskAttributeTypes.size();
+      for (var j = 0; j < maxAttributes; j++) {
+
+        final var taskAttribute = taskAttributeTypes.getJsonObject(j);
+        final var newAttribute = new JsonObject();
+        properties.put(taskAttribute.getString("name"), newAttribute);
+        final var description = taskAttribute.getString("description");
+        if (description != null) {
+
+          newAttribute.put("description", description);
+        }
+
+        final var type = taskAttribute.getString("type");
+        if (type != null) {
+
+          newAttribute.put("type", type);
+        }
+
+      }
+      final var newTransaction = new JsonObject();
+      final var description = taskTransactionType.getString("description");
+      if (description != null) {
+
+        newTransaction.put("description", description);
+      }
+      if (!properties.isEmpty()) {
+
+        newTransaction.put("properties", properties);
+      }
+      newTransactions.put(taskTransactionType.getString("label"), newTransaction);
+
+    }
+
+    return newTransactions;
+
+  }
 }

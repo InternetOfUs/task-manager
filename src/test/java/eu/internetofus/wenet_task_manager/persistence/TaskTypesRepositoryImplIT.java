@@ -68,31 +68,32 @@ public class TaskTypesRepositoryImplIT {
    * @param vertx       event bus to use.
    * @param testContext context that executes the test.
    *
-   * @see TaskTypesRepositoryImpl#migrateTaskTo_0_6_0()
+   * @see TaskTypesRepositoryImpl#migrateTaskTypeTo_0_6_0()
    */
   @Test
   public void shouldMigrateTo_0_6_0(final Vertx vertx, final VertxTestContext testContext) {
 
     final var pool = MongoClient.createShared(vertx, Containers.status().getMongoDBConfig(), "TEST");
-    final var task_0_5_0 = (JsonObject) Json.decodeValue(TASK_TYPE_0_5_0);
-    task_0_5_0.remove("id");
-    testContext.assertComplete(pool.insert(TaskTypesRepositoryImpl.TASK_TYPES_COLLECTION, task_0_5_0)).onSuccess(id -> {
-      final var repository = new TaskTypesRepositoryImpl(vertx, pool, "0.6.0");
-      testContext.assertComplete(repository.migrateTaskTo_0_6_0().compose(
-          empty -> pool.findOne(TaskTypesRepositoryImpl.TASK_TYPES_COLLECTION, new JsonObject().put("_id", id), null))
-          .onSuccess(migratedTask -> {
+    final var task_type_0_5_0 = (JsonObject) Json.decodeValue(TASK_TYPE_0_5_0);
+    task_type_0_5_0.remove("id");
+    testContext.assertComplete(pool.insert(TaskTypesRepositoryImpl.TASK_TYPES_COLLECTION, task_type_0_5_0))
+        .onSuccess(id -> {
+          final var repository = new TaskTypesRepositoryImpl(vertx, pool, "0.6.0");
+          testContext.assertComplete(repository.migrateTaskTypeTo_0_6_0()).onSuccess(any -> {
+            pool.findOne(TaskTypesRepositoryImpl.TASK_TYPES_COLLECTION, new JsonObject().put("_id", id), null)
+                .onComplete(testContext.succeeding(migratedTask -> {
 
-            var task_0_6_0 = (JsonObject) Json.decodeValue(TASK_TYPE_0_6_0);
-            task_0_6_0.remove("id");
-            task_0_6_0 = task_0_6_0.put("_id", id).put("_creationTs", migratedTask.getLong("_creationTs"))
-                .put("_lastUpdateTs", migratedTask.getLong("_lastUpdateTs"));
+                  final var task_type_0_6_0 = (JsonObject) Json.decodeValue(TASK_TYPE_0_6_0);
+                  task_type_0_6_0.remove("id");
+                  task_type_0_6_0.put("_id", id).put("_creationTs", migratedTask.getLong("_creationTs"))
+                      .put("_lastUpdateTs", migratedTask.getLong("_lastUpdateTs"));
 
-            assertThat(migratedTask).isEqualTo(task_0_6_0);
-            testContext.completeNow();
+                  testContext.verify(() -> assertThat(migratedTask).isEqualTo(task_type_0_6_0));
+                  testContext.completeNow();
 
-          }));
-
-    });
+                }));
+          });
+        });
 
   }
 
@@ -108,17 +109,18 @@ public class TaskTypesRepositoryImplIT {
   public void shouldMigrate0_5_0_ToLatest(final Vertx vertx, final VertxTestContext testContext) {
 
     final var pool = MongoClient.createShared(vertx, Containers.status().getMongoDBConfig(), "TEST");
-    final var task_0_5_0 = (JsonObject) Json.decodeValue(TASK_TYPE_0_5_0);
-    task_0_5_0.remove("id");
-    testContext.assertComplete(pool.insert(TaskTypesRepositoryImpl.TASK_TYPES_COLLECTION, task_0_5_0)).onSuccess(id -> {
-      final var repository = new TaskTypesRepositoryImpl(vertx, pool, "latest");
-      testContext.assertComplete(repository.migrateDocumentsToCurrentVersions()).onSuccess(migrated -> {
+    final var task_type_0_5_0 = (JsonObject) Json.decodeValue(TASK_TYPE_0_5_0);
+    task_type_0_5_0.remove("id");
+    testContext.assertComplete(pool.insert(TaskTypesRepositoryImpl.TASK_TYPES_COLLECTION, task_type_0_5_0))
+        .onSuccess(id -> {
+          final var repository = new TaskTypesRepositoryImpl(vertx, pool, "latest");
+          testContext.assertComplete(repository.migrateDocumentsToCurrentVersions()).onSuccess(migrated -> {
 
-        testContext.assertComplete(repository.searchTaskType(id)).onSuccess(task -> testContext.completeNow());
+            testContext.assertComplete(repository.searchTaskType(id)).onSuccess(task -> testContext.completeNow());
 
-      });
+          });
 
-    });
+        });
 
   }
 
