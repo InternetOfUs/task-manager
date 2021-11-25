@@ -24,6 +24,8 @@ ARG DEFAULT_WENET_PROFILE_MANAGER_API="https://wenet.u-hopper.com/prod/profile_m
 ARG DEFAULT_WENET_INTERACTION_PROTOCOL_ENGINE_API="https://wenet.u-hopper.com/prod/interaction_protocol_engine"
 ARG DEFAULT_WENET_SERVICE_API="https://wenet.u-hopper.com/prod/service"
 ARG DEFAULT_COMP_AUTH_KEY=""
+ARG DEFAULT_CACHE_TIMEOUT=300
+ARG DEFAULT_CACHE_SIZE=10000
 ENV API_HOST=${DEFAULT_API_HOST}
 ENV API_PORT=${DEFAULT_API_PORT}
 ENV DB_HOST=${DEFAULT_DB_HOST}
@@ -36,6 +38,8 @@ ENV WENET_INTERACTION_PROTOCOL_ENGINE_API=${DEFAULT_WENET_INTERACTION_PROTOCOL_E
 ENV WENET_SERVICE_API=${DEFAULT_WENET_SERVICE_API}
 ENV RUN_ARGS=""
 ENV COMP_AUTH_KEY=${DEFAULT_COMP_AUTH_KEY}
+ENV CACHE_TIMEOUT=${DEFAULT_CACHE_TIMEOUT}
+ENV CACHE_SIZE=${DEFAULT_CACHE_SIZE}
 
 # Create running dierectories
 RUN mkdir -p /usr/wenet/task-manager/lib
@@ -57,6 +61,9 @@ RUN echo "{\"wenetComponents\":{\"interactionProtocolEngine\":\"${DEFAULT_WENET_
 # Create configuration for service component
 RUN echo "{\"wenetComponents\":{\"service\":\"${DEFAULT_WENET_SERVICE_API}\"}}" > /usr/wenet/task-manager/etc/service.json
 
+# Create configuration for the cache
+RUN echo "{\"wenetComponents\":{\"cache\":{\"timeout\":\"${DEFAULT_CACHE_TIMEOUT}\",\"size\":\"${DEFAULT_CACHE_SIZE}\"}}}" > /usr/wenet/profile-manager/etc/cache.json
+
 WORKDIR /usr/wenet/task-manager
 COPY --from=build /build/target/wenet-task-manager.jar /usr/wenet/task-manager/wenet-task-manager.jar
 COPY --from=build /build/target/lib/ /usr/wenet/task-manager/lib/
@@ -74,4 +81,6 @@ CMD /wait && java -jar wenet-task-manager.jar -c etc \
   -pwenetComponents.interactionProtocolEngine=${WENET_INTERACTION_PROTOCOL_ENGINE_API}\
   -pwenetComponents.service=${WENET_SERVICE_API}\
   -pwebClient.wenetComponentApikey=${COMP_AUTH_KEY}\
+  -pwenetComponents.cache.timeout=${CACHE_TIMEOUT}\
+  -pwenetComponents.cache.size=${CACHE_SIZE}\
   ${RUN_ARGS}

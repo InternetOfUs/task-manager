@@ -163,6 +163,8 @@ This creates the generic docker image, but you can create a different wit the **
  - **DEFAULT_WENET_PROFILE_MANAGER_API** to define the path to the profile manager component to use. By default is **https://wenet.u-hopper.com/prod/profile_manager**.
  - **DEFAULT_WENET_SERVICE_API** to define the path to the service component to use. By default is **https://wenet.u-hopper.com/prod/service**.
  - **DEFAULT_WENET_INTERACTION_PROTOCOL_ENGINE_API** to define the path to the interaction protocol engine component to use. By default is **https://wenet.u-hopper.com/prod/interaction_protocol_engine**.
+ - **DEFAULT_CACHE_TIMEOUT** to define the time in seconds that a value can be on the cache. By default is **300**.
+ - **DEFAULT_CACHE_SIZE** to define the maximum number of entries that can be on the cache. By default is **10000**.
 
 Also, you can define your configuration that modifies these properties and mount to  **/usr/wenet/task-manager/etc**.
 
@@ -188,6 +190,8 @@ On this container, you can use the next environment variables:
  - **WENET_SERVICE_API** to define the path to the service component to use. By default is **https://wenet.u-hopper.com/prod/service**.
  - **WENET_INTERACTION_PROTOCOL_ENGINE_API** to define the path to the interaction protocol engine component to use. By default is **https://wenet.u-hopper.com/prod/interaction_protocol_engine**.
  - **COMP_AUTH_KEY** to define the authentication key that the component has to use to interact with the other WeNet components.
+ - **CACHE_TIMEOUT** to define the time in seconds that a value can be on the cache. By default is **300**.
+ - **CACHE_SIZE** to define the maximum number of entries that can be on the cache. By default is **10000**.
 
 When the container is started, it stores the log messages at **/usr/wenet/task-manager/var/log/task-manager.log**. This file is limited
 to 10 MB and rolled every day using the pattern **task-manager.log.X** (where X is a number between 1 and 99).
@@ -206,6 +210,8 @@ This docker compose has the next variables:
  - **WENET_PROFILE_MANAGER_API** to define the path to the task manager component to use. By default is **https://wenet.u-hopper.com/prod/profile_manager**.
  - **WENET_SERVICE_API** to define the path to the service component to use. By default is **https://wenet.u-hopper.com/prod/service**.
  - **WENET_INTERACTION_PROTOCOL_ENGINE_API** to define the path to the interaction protocol engine component to use. By default is **https://wenet.u-hopper.com/prod/interaction_protocol_engine**.
+ - **CACHE_TIMEOUT** to define the time in seconds that a value can be on the cache. By default is **300**.
+ - **CACHE_SIZE** to define the maximum number of entries that can be on the cache. By default is **10000**.
 
 ### Show running logs
 
