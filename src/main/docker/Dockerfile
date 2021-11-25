@@ -62,7 +62,7 @@ RUN echo "{\"wenetComponents\":{\"interactionProtocolEngine\":\"${DEFAULT_WENET_
 RUN echo "{\"wenetComponents\":{\"service\":\"${DEFAULT_WENET_SERVICE_API}\"}}" > /usr/wenet/task-manager/etc/service.json
 
 # Create configuration for the cache
-RUN echo "{\"wenetComponents\":{\"cache\":{\"timeout\":\"${DEFAULT_CACHE_TIMEOUT}\",\"size\":\"${DEFAULT_CACHE_SIZE}\"}}}" > /usr/wenet/profile-manager/etc/cache.json
+RUN echo "{\"wenetComponents\":{\"cache\":{\"timeout\":\"${DEFAULT_CACHE_TIMEOUT}\",\"size\":\"${DEFAULT_CACHE_SIZE}\"}}}" > /usr/wenet/task-manager/etc/cache.json
 
 WORKDIR /usr/wenet/task-manager
 COPY --from=build /build/target/wenet-task-manager.jar /usr/wenet/task-manager/wenet-task-manager.jar
