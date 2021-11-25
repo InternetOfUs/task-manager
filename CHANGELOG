@@ -2,10 +2,11 @@
 
 All notable changes to `wenet-task-manager` will be documented in this file
 
-## Version 0.16.0 (2021-11-)
+## Version 0.16.0 (2021-11-25)
 
  * Allow Update/merge models with no changes.
  * Add cache when validate the same model.
+ * Add cache when check if component exist.
 
 
 ## Version 0.15.0 (2021-11-9)
