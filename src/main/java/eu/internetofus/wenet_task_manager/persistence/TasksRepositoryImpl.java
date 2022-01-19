@@ -139,7 +139,8 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
    */
   public Future<Void> migrateDocumentsToCurrentVersions() {
 
-    return this.migrateTaskTo_0_6_0().compose(empty -> this.updateSchemaVersionOnCollection(TASKS_COLLECTION));
+    return this.migrateTaskTo_0_6_0()
+        .compose(empty -> this.migrateSchemaVersionOnCollectionTo(this.schemaVersion, TASKS_COLLECTION));
 
   }
 

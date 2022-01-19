@@ -143,7 +143,8 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
    */
   public Future<Void> migrateDocumentsToCurrentVersions() {
 
-    return this.migrateTaskTypeTo_0_6_0().compose(empty -> this.updateSchemaVersionOnCollection(TASK_TYPES_COLLECTION));
+    return this.migrateTaskTypeTo_0_6_0()
+        .compose(empty -> this.migrateSchemaVersionOnCollectionTo(this.schemaVersion, TASK_TYPES_COLLECTION));
 
   }
 

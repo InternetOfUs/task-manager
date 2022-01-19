@@ -2,6 +2,12 @@
 
 All notable changes to `wenet-task-manager` will be documented in this file
 
+
+## Version 0.17.0 (2022-01-19)
+
+ * Improve migrate DB.
+
+
 ## Version 0.16.0 (2021-11-25)
 
  * Allow Update/merge models with no changes.
