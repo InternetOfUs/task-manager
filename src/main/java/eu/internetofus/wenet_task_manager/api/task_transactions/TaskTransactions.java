@@ -19,8 +19,8 @@
  */
 package eu.internetofus.wenet_task_manager.api.task_transactions;
 
-import eu.internetofus.common.model.ErrorMessage;
 import eu.internetofus.common.components.models.Task;
+import eu.internetofus.common.model.ErrorMessage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.Explode;
@@ -118,7 +118,7 @@ public interface TaskTransactions {
   @ApiResponse(responseCode = "400", description = "If any of the search pattern is not valid", content = @Content(schema = @Schema(implementation = ErrorMessage.class)))
   void retrieveTaskTransactionsPage(
       @QueryParam(value = "appId") @Parameter(description = "An application identifier to be equals on the task where are the transactions to return. You can use a Perl compatible regular expressions (PCRE) that has to match the application identifier of the tasks if you write between '/'. For example to get the transactions on the tasks for the applications '1' and '2' you must pass as 'appId' '/^[1|2]$/'.", example = "1", required = false) String appId,
-      @QueryParam(value = "requesterId") @Parameter(description = "An user identifier to be equals on the task where are the transactions to return. You can use a Perl compatible regular expressions (PCRE) that has to match the requester identifier of the tasks if you write between '/'. For example to get the transactions on the tasks for the requesters '1' and '2' you must pass as 'requesterId' '/^[1|2]$/'.", example = "1e346fd440", required = false) String requesterId,
+      @QueryParam(value = "requesterId") @Parameter(description = "A user identifier to be equals on the task where are the transactions to return. You can use a Perl compatible regular expressions (PCRE) that has to match the requester identifier of the tasks if you write between '/'. For example to get the transactions on the tasks for the requesters '1' and '2' you must pass as 'requesterId' '/^[1|2]$/'.", example = "1e346fd440", required = false) String requesterId,
       @QueryParam(value = "taskTypeId") @Parameter(description = "A task type identifier to be equals on the task where are the transactions to return. You can use a Perl compatible regular expressions (PCRE) that has to match the task type identifier of the tasks if you write between '/'. For example to get the transactions on the tasks for the types '1' and '2' you must pass as 'taskTypeId' '/^[1|2]$/'.", example = "1e346fd440", required = false) String taskTypeId,
       @QueryParam(value = "goalName") @Parameter(description = "A goal name to be equals on the task where are the transactions to return. You can use a Perl compatible regular expressions (PCRE) that has to match the goal name of the tasks if you write between '/'. For example to get the transactions on the tasks with a goal name with the word 'eat' you must pass as 'goalName' '/.*eat.*/'", example = "/.*eat.*/", required = false) String goalName,
       @QueryParam(value = "goalDescription") @Parameter(description = "A goal description to be equals on the task where are the transactions to return. You can use a Perl compatible regular expressions (PCRE) that has to match the goal description of the tasks if you write between '/'. For example to get the transactions on the tasks with a goal description with the word 'eat' you must pass as 'goalDescription' '/.*eat.*/'", example = "/.*eat.*/", required = false) String goalDescription,

@@ -3,6 +3,11 @@
 All notable changes to `wenet-task-manager` will be documented in this file
 
 
+## Version 1.0.0 (2022-02-23)
+
+ * Migrate repositoty to github.
+
+
 ## Version 0.17.0 (2022-01-19)
 
  * Improve migrate DB.

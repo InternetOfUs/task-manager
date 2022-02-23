@@ -3,7 +3,7 @@
 ## Introduction
 
 The task manager component is the one responsible for storing and maintaining
-the task and task types. 
+the task and task types.
 
 A task is used to coordinate a set of WeNet users to do something. It is defined
 by the next fields:
@@ -28,7 +28,7 @@ to read more about how to define norms read the [WeNet developer documentation](
  * __transactions__  the historic list of transactions that have been done in
  the task. Also, each transaction has the information of the application messages
  that have been sent to the users that are involved in the task.
- 
+
 On the other hand, the task type defines what the users can do in a task. For
 this purpose has the next fields:
 
@@ -119,9 +119,9 @@ First of all, you must install the next software.
 The profile manager component requires:
 
  - [MongoDB](https://docs.mongodb.com/manual/installation/)
- - [WeNet - Profile manager](https://bitbucket.org/wenet/profile-manager/)
- - [WeNet - Interaction protocol engine](https://bitbucket.org/wenet/wenet-interaction-protocol-engine/)
- - [WeNet - Service API](https://bitbucket.org/wenet/wenet-service-api/)
+ - [Profile manager](https://github.com/InternetOfUs/profile-manager)
+ - [Interaction protocol engine](https://github.com/InternetOfUs/interaction-protocol-engine/)
+ - [Service API](https://github.com/InternetOfUs/service-api/)
 
 ### Development
 
@@ -235,7 +235,7 @@ This create the generic docker image, but you can create a different wit the **d
 
 ## Documentation
 
-The latest APIs documentation is available [here](http://swagger.u-hopper.com/?url=https://bitbucket.org/wenet/wenet-components-documentation/raw/master/sources/wenet-task_manager-openapi.yaml).
+The latest APIs documentation is available [here](http://swagger.u-hopper.com/?url=https://github.com/InternetOfUs/components-documentation/raw/master/sources/wenet-task_manager-openapi.yaml).
 
 
 ## Instances

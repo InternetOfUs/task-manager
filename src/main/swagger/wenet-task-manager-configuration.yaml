@@ -16,15 +16,15 @@ openAPI:
       description: Other services provided by the API.
   info:
     # The verion of the API has to be synchonized with the 'api-version' property of the 'pom.xml'
-    version: '0.10.0'
+    version: '1.0.0'
     title: WeNet - Task manager API
     description:  >-
       The task manager component is the one responsible for storing and maintaining
-      the task and task types. 
-      
+      the task and task types.
+
       A task is used to coordinate a set of WeNet users to do something. It is defined
       by the next fields:
-      
+
        - __id__  identifier of the task.
        - __goal__  the objective to reach. In other words why the users cooperate.
        - __requesterId__  the identifier of the user that has created the task.
@@ -45,10 +45,10 @@ openAPI:
        - __transactions__  the historic list of transactions that have been done in
         the task. Also, each transaction has the information of the application messages
         that have been sent to the users that are involved in the task.
-       
+
       On the other hand, the task type defines what the users can do in a task. For
       this purpose has the next fields:
-      
+
        - __id__  identifier of the task type.
        - __name__  of the type.
        - __description__  of the type.
@@ -64,63 +64,62 @@ openAPI:
        the value is the OpenAPI description of the attributes for the message.
        - __norms__  that describe the possible behaviour can do in a task of this type.
         If you want to read more about how to define norms read the [WeNet developer documentation](https://internetofus.github.io/developer/docs/tech/conversation/norms)
-      
+
       The next JSON is an example of a task type that echo the received transaction
       to the same user.
-      
+
       ```
 
       {
-         "id":"wenet_echo_v1",
-         "name":"Echo",
-         "description":"This tasks echo the transaction messages",
-         "keywords":[
-            "example",
-            "test"
+         "id": "echo_v1",
+         "name": "Echo",
+         "description": "This tasks echo the transaction messages",
+         "keywords": [
+             "example",
+             "test"
          ],
-         "transactions":{
-            "echo":{
-               "type":"object",
-               "description":"Send the echo message",
-               "properties":{
-                  "message":{
-                     "type":"string",
-                     "description":"The message to echo"
-                  }
-               }
-            }
+         "transactions": {
+             "echo": {
+                 "type": "object",
+                 "description": "Send the echo message",
+                 "properties": {
+                     "message": {
+                         "type": "string",
+                         "description": "The message to echo"
+                     }
+                 }
+             }
          },
-         "callbacks":{
-            "echo":{
-               "type":"object",
-               "properties":{
-                  "taskId":{
-                     "type":"string",
-                     "description":"The identifier of the task"
-                  },
-                  "communityId":{
-                     "type":"string",
-                     "description":"The identifier of the community"
-                  },
-                  "message":{
-                     "type":"string",
-                     "description":"The echo message"
-                  }
-               }
-            }
+         "callbacks": {
+             "echo": {
+                 "type": "object",
+                 "properties": {
+                     "taskId": {
+                         "type": "string",
+                         "description": "The identifier of the task"
+                     },
+                     "message": {
+                         "type": "string",
+                         "description": "The echo message"
+                     }
+                 }
+             }
          },
-         "norms":[
-            {
-               "whenever":"is_received_created_task()",
-               "thenceforth":"add_created_transaction()"
-            },
-            {
-               "whenever":"is_received_do_transaction('echo',Content)",
-               "thenceforth":"add_message_transaction() and send_user_message('echo',Content)"
-            }
+         "norms": [
+             {
+                 "whenever": "is_received_created_task()",
+                 "thenceforth": "add_created_transaction()"
+             },
+             {
+                 "whenever": "is_received_do_transaction('echo',Content) and get_profile_id(Me)",
+                 "thenceforth": "add_message_transaction() and send_message(Me,'echo',Content)"
+             },
+             {
+                 "whenever": "is_received(_,'echo',Content) and get_task_id(TaskId) and get_attribute(Message,message,@(null),Content)",
+                 "thenceforth": "send_user_message('echo',json([taskId=TaskId,message=Message]))"
+             }
          ]
       }
-
       ```
 
     contact:
