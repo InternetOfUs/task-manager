@@ -1,4 +1,4 @@
-# WeNet - Task manager
+# Internet of us - Task manager
 
 ## Introduction
 
