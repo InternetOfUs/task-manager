@@ -37,6 +37,7 @@ openAPI:
       on it, and on this transaction are stored the messages that has been sent to the application
       when this transaction is executed. As well, it provides services that can be used
       to obtain the messages sent to the users by the application callbacks.
+
     contact:
       name: Bruno Rosell i Gui (UDT-IA, IIIA-CSIC)
       email: rosell@iiia.csic.es
