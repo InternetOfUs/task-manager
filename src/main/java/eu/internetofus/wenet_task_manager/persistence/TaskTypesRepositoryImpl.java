@@ -155,9 +155,7 @@ public class TaskTypesRepositoryImpl extends Repository implements TaskTypesRepo
    */
   protected Future<Void> migrateTaskTypeTo_0_6_0() {
 
-    final var notExists = new JsonObject().put(SCHEMA_VERSION, new JsonObject().put("$exists", false));
-    final var notEq = new JsonObject().put(SCHEMA_VERSION, new JsonObject().put("$lt", "0.6.0"));
-    final var query = new JsonObject().put("$or", new JsonArray().add(notExists).add(notEq));
+    final var query = this.createQueryToReturnDocumentsWithAVersionLessThan("0.6.0");
     final Promise<Void> promise = Promise.promise();
     this.migrateTaskTypeTo_0_6_0(query, promise);
     return promise.future();
