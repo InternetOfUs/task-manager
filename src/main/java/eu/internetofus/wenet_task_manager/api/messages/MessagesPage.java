@@ -50,7 +50,7 @@ public class MessagesPage extends ReflectionModel implements Model {
   /**
    * The found profiles.
    */
-  @ArraySchema(schema = @Schema(ref = "https://raw.githubusercontent.com/InternetOfUs/components-documentation/MODELS_2.2.0/sources/wenet-models-openapi.yaml#/components/schemas/Message"), arraySchema = @Schema(description = "The set of messages found"))
+  @ArraySchema(schema = @Schema(ref = "https://raw.githubusercontent.com/InternetOfUs/components-documentation/MODELS_2.3.0/sources/wenet-models-openapi.yaml#/components/schemas/Message"), arraySchema = @Schema(description = "The set of messages found"))
   public List<Message> messages;
 
 }
