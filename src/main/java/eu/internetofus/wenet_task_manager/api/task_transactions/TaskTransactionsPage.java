@@ -32,7 +32,7 @@ import java.util.List;
  *
  * @author UDT-IA, IIIA-CSIC
  */
-@Schema(name = "TaskTransactionsPage", description = "Contains a set of tasks")
+@Schema(title = "TaskTransactionsPage", description = "Contains a set of tasks")
 public class TaskTransactionsPage extends ReflectionModel implements Model {
 
   /**
