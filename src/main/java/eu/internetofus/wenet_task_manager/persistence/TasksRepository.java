@@ -37,6 +37,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.serviceproxy.ServiceBinder;
@@ -721,4 +722,78 @@ public interface TasksRepository {
     }
 
   }
+
+  /**
+   * Delete all the tasks with the specified requester.
+   *
+   * @param profileId identifier of the requester to delete its tasks.
+   *
+   * @return the future with the identifiers of the deleted tasks.
+   */
+  @GenIgnore
+  default Future<List<String>> deleteAllTaskWithRequester(final String profileId) {
+
+    final Promise<JsonArray> promise = Promise.promise();
+    this.deleteAllTaskWithRequester(profileId, promise);
+    return Model.fromFutureJsonArray(promise.future(), String.class);
+
+  }
+
+  /**
+   * Delete all the tasks with the specified requester.
+   *
+   * @param profileId      identifier of the requester to delete its tasks.
+   * @param deleteHanndler handler to manage the deleted tasks.
+   */
+  void deleteAllTaskWithRequester(String profileId, Handler<AsyncResult<JsonArray>> deleteHanndler);
+
+  /**
+   * Delete all the transaction that a user has done.
+   *
+   * @param profileId identifier of the actioneer to remove all its transactions.
+   *
+   * @return if the deletion was or not a success.
+   */
+  @GenIgnore
+  default Future<Void> deleteAllTransactionByActioneer(final String profileId) {
+
+    final Promise<Void> promise = Promise.promise();
+    this.deleteAllTransactionByActioneer(profileId, promise);
+    return promise.future();
+
+  }
+
+  /**
+   * Delete all the transaction that a user has done.
+   *
+   * @param profileId      identifier of the actioneer to remove all its
+   *                       transactions.
+   * @param deleteHanndler handler to manage the deleted process.
+   */
+  void deleteAllTransactionByActioneer(String profileId, Handler<AsyncResult<Void>> deleteHanndler);
+
+  /**
+   * Delete all the messages that a user has received.
+   *
+   * @param profileId identifier of the receiver to remove all its messages.
+   *
+   * @return if the deletion was or not a success.
+   */
+  @GenIgnore
+  default Future<Void> deleteAllMessagesWithReceiver(final String profileId) {
+
+    final Promise<Void> promise = Promise.promise();
+    this.deleteAllMessagesWithReceiver(profileId, promise);
+    return promise.future();
+
+  }
+
+  /**
+   * Delete all the messages that a user has received.
+   *
+   * @param profileId      identifier of the receiver to remove all its messages.
+   * @param deleteHanndler handler to manage the deleted process.
+   */
+  void deleteAllMessagesWithReceiver(String profileId, Handler<AsyncResult<Void>> deleteHanndler);
+
 }

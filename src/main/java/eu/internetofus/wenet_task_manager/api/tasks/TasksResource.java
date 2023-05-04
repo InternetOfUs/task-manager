@@ -26,6 +26,7 @@ import eu.internetofus.common.components.interaction_protocol_engine.WeNetIntera
 import eu.internetofus.common.components.models.Message;
 import eu.internetofus.common.components.models.Task;
 import eu.internetofus.common.components.models.TaskTransaction;
+import eu.internetofus.common.components.profile_manager.WeNetProfileManager;
 import eu.internetofus.common.components.service.App;
 import eu.internetofus.common.model.Model;
 import eu.internetofus.common.model.ValidationErrorException;
@@ -211,7 +212,37 @@ public class TasksResource implements Tasks {
     final var model = this.createTaskContext();
     model.id = taskId;
     final var context = new ServiceContext(request, resultHandler);
-    ModelResources.deleteModel(model, TasksRepository.createProxy(this.vertx)::deleteTask, context);
+    ModelResources.deleteModel(model, (taskToDeleteId, deletter) -> {
+      {
+
+        TasksRepository.createProxy(this.vertx).deleteTask(taskToDeleteId).map(result -> {
+
+          final var profileManager = WeNetProfileManager.createProxy(this.vertx);
+          final var interactionProtocolEngine = WeNetInteractionProtocolEngine.createProxy(this.vertx);
+          profileManager.taskDeleted(taskToDeleteId).onComplete(profileManagerNotified -> {
+
+            if (profileManagerNotified.failed()) {
+
+              Logger.trace(profileManagerNotified.cause(),
+                  "Cannot notify the profile manager that the task {} has been deleted.", taskToDeleteId);
+            }
+          });
+
+          interactionProtocolEngine.taskDeleted(taskToDeleteId).onComplete(interactionProtocolEngineNotified -> {
+
+            if (interactionProtocolEngineNotified.failed()) {
+
+              Logger.trace(interactionProtocolEngineNotified.cause(),
+                  "Cannot notify the interaction protocol engine that the task {} has been deleted.", taskToDeleteId);
+            }
+          });
+
+          return result;
+
+        }).onComplete(deletter);
+      }
+
+    }, context);
 
   }
 

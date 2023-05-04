@@ -2,6 +2,12 @@
 
 All notable changes to `wenet-task-manager` will be documented in this file
 
+
+## Version 1.1.0 (2023-04-20)
+
+ * Manage the deletion of a profile.
+ 
+
 ## Version 1.0.5 (2023-03-22)
 
  * Update commons library.

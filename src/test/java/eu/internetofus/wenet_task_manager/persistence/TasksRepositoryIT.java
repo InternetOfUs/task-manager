@@ -36,6 +36,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 import io.vertx.junit5.VertxTestContext;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -960,6 +961,253 @@ public class TasksRepositoryIT {
     };
     testContext.assertFailure(TasksRepository.createProxy(vertx).updateTask(task))
         .onFailure(error -> testContext.completeNow());
+  }
+
+  /**
+   * Check that delete all the task with an specified requester.
+   *
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   */
+  @Test
+  public void shouldDeleteAllTaskWithRequester(final Vertx vertx, final VertxTestContext testContext) {
+
+    StoreServices.storeProfileExample(43, vertx, testContext).onSuccess(profile -> {
+      final List<Task> tasks = new ArrayList<>();
+      testContext.assertComplete(this.storeSomeTasks(vertx, testContext, task -> {
+        if (tasks.size() % 2 == 0) {
+
+          task.requesterId = profile.id;
+        }
+
+      }, 20, tasks)).onSuccess(any -> {
+
+        testContext.assertComplete(TasksRepository.createProxy(vertx).deleteAllTaskWithRequester(profile.id))
+            .onSuccess(ids -> testContext.verify(() -> {
+
+              assertThat(ids).isNotNull();
+              var expectedSize = 0;
+              for (final var task : tasks) {
+
+                if (task.requesterId.equals(profile.id)) {
+
+                  assertThat(ids).contains(task.id);
+                  expectedSize++;
+
+                } else {
+
+                  assertThat(ids).doesNotContain(task.id);
+                }
+
+              }
+              assertThat(ids).hasSize(expectedSize);
+
+              this.assertDeleted(tasks, profile.id, vertx, testContext);
+
+            }));
+
+      });
+    });
+
+  }
+
+  /**
+   * Check that the tasks has been removed.
+   *
+   * @param tasks       that has to be removed.
+   * @param profileId   identifier of the task that remove it this identifier is
+   *                    the requester.
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   */
+  private void assertDeleted(final List<Task> tasks, final String profileId, final Vertx vertx,
+      final VertxTestContext testContext) {
+
+    if (tasks.isEmpty()) {
+
+      testContext.completeNow();
+
+    } else {
+
+      final var task = tasks.remove(0);
+      if (task.requesterId.equals(profileId)) {
+
+        testContext.assertFailure(TasksRepository.createProxy(vertx).searchTask(task.id))
+            .onFailure(any -> this.assertDeleted(tasks, profileId, vertx, testContext));
+
+      } else {
+
+        testContext.assertComplete(TasksRepository.createProxy(vertx).searchTask(task.id))
+            .onSuccess(any -> this.assertDeleted(tasks, profileId, vertx, testContext));
+
+      }
+
+    }
+  }
+
+  /**
+   * Check that delete all the transactions with the specified actioneer.
+   *
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   */
+  @Test
+  public void shouldDeleteAllTransactionByActioneer(final Vertx vertx, final VertxTestContext testContext) {
+
+    StoreServices.storeProfileExample(43, vertx, testContext).onSuccess(profile -> {
+      final List<Task> tasks = new ArrayList<>();
+      testContext.assertComplete(this.storeSomeTasks(vertx, testContext, task -> {
+        if (tasks.size() % 2 == 0) {
+
+          for (var i = 0; i < 10; i++) {
+
+            final var transaction = new TaskTransactionTest().createModelExample(i);
+            if (i % 2 == 0) {
+
+              transaction.actioneerId = profile.id;
+            }
+            task.transactions.add(transaction);
+          }
+          Collections.shuffle(task.transactions);
+        }
+
+      }, 20, tasks)).onSuccess(any -> {
+
+        testContext.assertComplete(TasksRepository.createProxy(vertx).deleteAllTransactionByActioneer(profile.id))
+            .onSuccess(empty -> this.assertDeletedTransactionsBy(profile.id, tasks, vertx, testContext));
+      });
+    });
+
+  }
+
+  /**
+   * Check that the transactions of an actioneer has been removed.
+   *
+   * @param profileId   identifier of the actionneer.
+   * @param tasks       where the transactions has to be removed.
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   */
+  private void assertDeletedTransactionsBy(final String profileId, final List<Task> tasks, final Vertx vertx,
+      final VertxTestContext testContext) {
+
+    if (tasks.isEmpty()) {
+
+      testContext.completeNow();
+
+    } else {
+
+      final var expected = tasks.remove(0);
+      testContext.assertComplete(TasksRepository.createProxy(vertx).searchTask(expected.id)).onSuccess(updated -> {
+
+        final var iter = expected.transactions.iterator();
+        while (iter.hasNext()) {
+
+          final var transaction = iter.next();
+          if (transaction.actioneerId.equals(profileId)) {
+
+            iter.remove();
+          }
+        }
+        expected._lastUpdateTs = updated._lastUpdateTs;
+        testContext.verify(() -> {
+
+          assertThat(updated).isEqualTo(expected);
+
+        });
+
+        this.assertDeletedTransactionsBy(profileId, tasks, vertx, testContext);
+
+      });
+
+    }
+  }
+
+  /**
+   * Check that delete all the messages with the specified receiver.
+   *
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   */
+  @Test
+  public void shouldDeleteAllMessagesWithReceiver(final Vertx vertx, final VertxTestContext testContext) {
+
+    StoreServices.storeProfileExample(43, vertx, testContext).onSuccess(profile -> {
+      final List<Task> tasks = new ArrayList<>();
+      testContext.assertComplete(this.storeSomeTasks(vertx, testContext, task -> {
+        if (tasks.size() % 2 == 0) {
+
+          for (var i = 0; i < 10; i++) {
+
+            final var transaction = new TaskTransactionTest().createModelExample(i);
+            for (var j = 0; j < 10; j++) {
+
+              final var message = new MessageTest().createModelExample(j);
+              if (j % 2 == 0) {
+
+                message.receiverId = profile.id;
+              }
+              transaction.messages.add(message);
+            }
+
+            Collections.shuffle(transaction.messages);
+            task.transactions.add(transaction);
+          }
+          Collections.shuffle(task.transactions);
+        }
+
+      }, 20, tasks)).onSuccess(any -> {
+
+        testContext.assertComplete(TasksRepository.createProxy(vertx).deleteAllMessagesWithReceiver(profile.id))
+            .onSuccess(empty -> this.assertDeletedMessagesTo(profile.id, tasks, vertx, testContext));
+      });
+    });
+
+  }
+
+  /**
+   * Check that the messages to a receiver has been removed.
+   *
+   * @param profileId   identifier of the receiver.
+   * @param tasks       where the messages has to be removed.
+   * @param vertx       event bus to use.
+   * @param testContext context that executes the test.
+   */
+  private void assertDeletedMessagesTo(final String profileId, final List<Task> tasks, final Vertx vertx,
+      final VertxTestContext testContext) {
+
+    if (tasks.isEmpty()) {
+
+      testContext.completeNow();
+
+    } else {
+
+      final var expected = tasks.remove(0);
+      testContext.assertComplete(TasksRepository.createProxy(vertx).searchTask(expected.id)).onSuccess(updated -> {
+
+        for (final var transaction : expected.transactions) {
+
+          final var iter = transaction.messages.iterator();
+          while (iter.hasNext()) {
+
+            final var message = iter.next();
+            if (message.receiverId.equals(profileId)) {
+
+              iter.remove();
+            }
+          }
+        }
+        expected._lastUpdateTs = updated._lastUpdateTs;
+        testContext.verify(() -> {
+
+          assertThat(updated).isEqualTo(expected);
+
+        });
+
+        this.assertDeletedMessagesTo(profileId, tasks, vertx, testContext);
+
+      });
+    }
   }
 
 }

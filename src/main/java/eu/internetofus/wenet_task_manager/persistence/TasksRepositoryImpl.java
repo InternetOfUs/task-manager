@@ -32,6 +32,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.mongo.FindOptions;
 import io.vertx.ext.mongo.MongoClient;
+import io.vertx.ext.mongo.UpdateOptions;
 import java.util.UUID;
 
 /**
@@ -285,6 +286,66 @@ public class TasksRepositoryImpl extends Repository implements TasksRepository {
 
     this.aggregatePageObject(TASKS_COLLECTION, query, order, offset, limit, "transactions.messages")
         .onComplete(searchHandler);
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void deleteAllTaskWithRequester(final String profileId, final Handler<AsyncResult<JsonArray>> deleteHanndler) {
+
+    final var query = new JsonObject().put("requesterId", profileId);
+    this.pool.find(TASKS_COLLECTION, query).transform(handler -> {
+
+      if (handler.failed()) {
+
+        return Future.failedFuture(handler.cause());
+
+      } else {
+
+        final var tasks = handler.result();
+        final var ids = new JsonArray();
+        for (final var task : tasks) {
+
+          final var taskId = task.getString("_id");
+          ids.add(taskId);
+        }
+
+        final var deleteQuery = new JsonObject().put("_id", new JsonObject().put("$in", ids));
+        return this.pool.removeDocuments(TASKS_COLLECTION, deleteQuery).map(any -> ids);
+      }
+
+    }).onComplete(deleteHanndler);
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void deleteAllTransactionByActioneer(final String profileId, final Handler<AsyncResult<Void>> deleteHanndler) {
+
+    final var query = new JsonObject().put("transactions.actioneerId", profileId);
+    final var update = new JsonObject().put("$pull",
+        new JsonObject().put("transactions", new JsonObject().put("actioneerId", profileId)));
+    final var options = new UpdateOptions().setMulti(true);
+    this.pool.updateCollectionWithOptions(TASKS_COLLECTION, query, update, options).map(result -> (Void) null)
+        .onComplete(deleteHanndler);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void deleteAllMessagesWithReceiver(final String profileId, final Handler<AsyncResult<Void>> deleteHanndler) {
+
+    final var query = new JsonObject().put("transactions.messages.receiverId", profileId);
+    final var update = new JsonObject().put("$pull",
+        new JsonObject().put("transactions.$[].messages", new JsonObject().put("receiverId", profileId)));
+    final var options = new UpdateOptions().setMulti(true);
+    this.pool.updateCollectionWithOptions(TASKS_COLLECTION, query, update, options).map(result -> (Void) null)
+        .onComplete(deleteHanndler);
 
   }
 
