@@ -53,7 +53,7 @@ public interface Profiles {
   /**
    * The address of this service.
    */
-  String ADDRESS = "wenet_profile_manager.api.profiles";
+  String ADDRESS = "wenet_task_manager.api.profiles";
 
   /**
    * Called when a profile has been deleted.
